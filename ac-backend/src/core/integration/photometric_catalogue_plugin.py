@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, List
 
-from src.core.model.identificator_model import IdentificatorModel
-from src.core.model.photometric_data_model import PhotometricDataModel
+from src.core.integration.schemas import IdentificatorModel, PhotometricDataModel
 
 T = TypeVar('T',  bound=IdentificatorModel)
 
