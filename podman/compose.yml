@@ -1,0 +1,22 @@
+services:
+  database:
+    image: docker.io/postgres:latest
+    container_name: ac-database
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    networks:
+      - ac
+
+    volumes:
+      - database:/var/lib/postgresql/data/
+
+networks:
+  ac:
+
+volumes:
+  database:
