@@ -5,6 +5,7 @@ from pydantic import BaseModel
 import requests
 
 from src.core.integration.schemas import PhotometricDataModel
+from src.dasch.dasch_identificator_model import DaschIdentificatorModel
 from src.dasch.dasch_plugin import DaschPlugin
 from src.plugin import plugin_router
 
@@ -41,4 +42,5 @@ class Query(BaseModel):
 @app.post("/dasch")
 async def dasch(query: Query) -> List[PhotometricDataModel]:
     d = DaschPlugin()
-    return d.get_data(query.ra_deg, query.dec_deg, query.radius_arcsec)
+    m = DaschIdentificatorModel(ra_deg=query.ra_deg, dec_deg=query.dec_deg, gsc_bin_index=137593564, ref_number=110303213195875)
+    return d.get_photometric_data(m)
