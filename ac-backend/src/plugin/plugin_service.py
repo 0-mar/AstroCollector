@@ -1,0 +1,146 @@
+# https://docs.python.org/3/library/importlib.html
+import importlib.util
+import inspect
+import sys
+import uuid
+from pathlib import Path
+
+import importlib
+import pkgutil
+from types import ModuleType
+from typing import Annotated, List, Optional
+
+from fastapi import Depends, UploadFile
+import aiofiles
+from fastapi.concurrency import run_in_threadpool
+
+import plugins
+from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
+from src.core.repository.repository import Repository, get_repository
+from src.plugin.plugin_exceptions import NoPluginClassException
+from src.plugin.plugin_model import Plugin
+from src.plugin.plugin_schemas import PluginDto, CreatePluginDto
+
+PluginRepositoryDep = Annotated[Repository[Plugin], Depends(get_repository(Plugin))]
+PLUGIN_DIR = Path.joinpath(Path(__file__).parent.parent.parent, 'plugins').resolve()
+
+# What about plugin cache?
+# https://stackoverflow.com/questions/65041691/is-python-dictionary-async-safe
+
+class PluginService:
+
+    def __init__(self, repository: PluginRepositoryDep):
+        self._repository = repository
+        self.plugins = dict()
+
+    def discover_plugins(self) -> None:
+        # https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures
+        # https://mwax911.medium.com/building-a-plugin-architecture-with-python-7b4ab39ad4fc
+        # https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/
+        # https://www.guidodiepen.nl/2019/02/implementing-a-simple-plugin-framework-in-python/
+
+
+        # iterate over all .py files
+        # for plugin_file_path in self.plugin_path_dir.rglob('*.py'):
+        #     # because path is object not string
+        #     path_in_str = str(plugin_file_path)
+        #
+        #     self.import_from_path(path_in_str)
+
+        # self.discovered_plugins = {
+        #     name: importlib.import_module(name)
+        #     for finder, name, ispkg
+        #     in self.iter_namespace(plugins)
+        # }
+
+        for finder, name, ispkg in self.iter_namespace(plugins):
+            plugin_module: ModuleType = importlib.import_module(name)
+            self.__register_plugins(plugin_module)
+
+
+
+    def _load_plugin(self, module_name: str, file_path: Path) -> Optional[PhotometricCataloguePlugin]:
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None:
+            raise ImportError(f"Could not load spec from {file_path}")
+        plugin_module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = plugin_module
+        spec.loader.exec_module(plugin_module)
+        #self.plugins[module_name] = module
+
+        clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
+        for (_, cls) in clsmembers:
+            # Only add classes that are a sub class of PhotometricCataloguePlugin,
+            # but NOT PhotometricCataloguePlugin itself
+            if issubclass(cls, PhotometricCataloguePlugin) and cls is not PhotometricCataloguePlugin:
+                print(f'    Found plugin class: {cls.__module__}.{cls.__name__}')
+                return cls()
+
+        return None
+
+    def __register_plugins(self, plugin_module: ModuleType) -> None:
+        clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
+        for (_, cls) in clsmembers:
+            # Only add classes that are a sub class of PhotometricCataloguePlugin,
+            # but NOT PhotometricCataloguePlugin itself
+            if issubclass(cls, PhotometricCataloguePlugin) and cls is not PhotometricCataloguePlugin:
+                print(f'    Found plugin class: {cls.__module__}.{cls.__name__}')
+                self.plugins[cls.__name__] = cls()
+
+    def iter_namespace(self, ns_pkg):
+        # Specifying the second argument (prefix) to iter_modules makes the
+        # returned name an absolute name instead of a relative one. This allows
+        # import_module to work without having to do additional modification to
+        # the name.
+        return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
+
+    async def get_plugin(self, plugin_id: str) -> PluginDto:
+        plugin = await self._repository.get(plugin_id)
+        return PluginDto.model_validate(plugin)
+
+    async def create_plugin(self, create_dto: CreatePluginDto) -> PluginDto:
+        dto_data = create_dto.model_dump()
+        plugin = Plugin(**dto_data, file_name=None)
+
+        plugin = await self._repository.save(plugin)
+        return PluginDto.model_validate(plugin)
+
+    async def upload_plugin(self, plugin_id: str, plugin_file: UploadFile) -> None:
+        old_plugin = await self._repository.get(plugin_id) # check if exists
+
+        new_file_name = str(uuid.uuid4()) + ".py"
+        plugin_file_path = Path.joinpath(PLUGIN_DIR, new_file_name).resolve()
+        async with aiofiles.open(plugin_file_path, 'wb') as out_file:
+            while content := await plugin_file.read(1024):  # async read chunk
+                await out_file.write(content)  # async write chunk
+
+        plugin_dto = PluginDto.model_validate(old_plugin)
+        plugin_dto.file_name = new_file_name
+        await self._repository.update(str(old_plugin.id), plugin_dto.model_dump())
+
+
+    async def delete_plugin(self, plugin_id: str) -> None:
+        plugin = await self._repository.get(plugin_id)
+        plugin_file_path = Path.joinpath(PLUGIN_DIR, plugin.file_name).resolve()
+        plugin_file_path.unlink()
+        await self._repository.delete(plugin_id)
+
+    async def list_plugins(self, offset=0, **kwargs) -> List[PluginDto]:
+        plugin_list = await self._repository.find(offset=offset, **kwargs)
+        return list(map(PluginDto.model_validate, plugin_list))
+
+    async def run_plugin(self, plugin_id: str, ra_deg, dec_deg, radius_arcsec):
+        db_plugin = await self._repository.get(plugin_id)
+        plugin_file_path = Path.joinpath(PLUGIN_DIR, db_plugin.file_name).resolve()
+        # needs to run in threadpool because of blocking operations
+        plugin = await run_in_threadpool(self._load_plugin, db_plugin.file_name, plugin_file_path)
+        if plugin is None:
+            raise NoPluginClassException("Could not load plugin")
+
+        objects = plugin.list_objects(ra_deg, dec_deg, radius_arcsec)
+        return objects
+
+
+def get_plugin_service(repository: PluginRepositoryDep) -> PluginService:
+    """Dependency for getting plugin service instance."""
+    return PluginService(repository)
