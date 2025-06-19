@@ -1,4 +1,4 @@
-from src.core.model.identificator_model import IdentificatorModel
+from src.core.integration.schemas import IdentificatorModel
 
 
 class DaschIdentificatorModel(IdentificatorModel):
