@@ -8,8 +8,19 @@ dependencies = [
     "alembic>=1.16.1",
     "asyncpg>=0.30.0",
     "fastapi>=0.115.12",
+    "mypy>=1.16.1",
+    "pre-commit>=4.2.0",
     "pydantic-settings>=2.9.1",
     "requests>=2.32.4",
     "sqlalchemy>=2.0.41",
     "uvicorn>=0.34.3",
 ]
+
+[dependency-groups]
+dev = [
+    "types-aiofiles>=24.1.0.20250606",
+    "types-requests>=2.32.4.20250611",
+]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
