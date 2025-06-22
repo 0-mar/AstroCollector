@@ -20,17 +20,15 @@ jobs:
     name: Mypy type check
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v5
-      with:
-          python-version-file: "ac-backend/pyproject.toml"
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v6
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        working-directory: ac-backend
-    - name: path
-      run: pwd
+        python-version-file: "ac-backend/pyproject.toml"
     - name: Install the project
       run: uv sync --locked --all-extras --dev
+      working-directory: ac-backend
     - name: Run mypy
       run: uv run mypy src --strict
+      working-directory: ac-backend
