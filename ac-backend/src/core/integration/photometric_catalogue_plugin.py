@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, List
+from typing import TypeVar, List, Generic
 
 from src.core.integration.schemas import IdentificatorModel, PhotometricDataModel
 
-T = TypeVar('T',  bound=IdentificatorModel)
+T = TypeVar("T", bound=IdentificatorModel)
 
-class PhotometricCataloguePlugin(ABC):
+
+class PhotometricCataloguePlugin(Generic[T], ABC):
     @abstractmethod
-    def list_objects(self, ra_deg, dec_deg, radius_arcsec) -> List[T]:
+    def list_objects(
+        self, ra_deg: float, dec_deg: float, radius_arcsec: float
+    ) -> List[T]:
         pass
 
     @abstractmethod

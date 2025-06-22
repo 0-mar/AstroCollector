@@ -1,18 +1,16 @@
 """Create a baseline migrations
 
 Revision ID: d5542787e60d
-Revises: 
+Revises:
 Create Date: 2025-06-17 00:32:27.799561
 
 """
-from typing import Sequence, Union
 
-from alembic import op
-import sqlalchemy as sa
+from typing import Sequence, Union
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'd5542787e60d'
+revision: str = "d5542787e60d"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

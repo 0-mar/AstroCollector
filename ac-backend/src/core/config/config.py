@@ -15,16 +15,13 @@ class Settings(BaseSettings):
     DB_PORT: int = Field(..., alias="POSTGRES_PORT")
     DB_NAME: str = Field(..., alias="POSTGRES_DB")
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@localhost:{self.DB_PORT}/{self.DB_NAME}"
 
     model_config = SettingsConfigDict(
-        env_file=(
-            Path("../podman/.env"),
-            Path(".env")
-        ),
+        env_file=(Path("../podman/.env"), Path(".env")),
         env_file_encoding="utf-8",
         populate_by_name=True,
     )

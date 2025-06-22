@@ -2,10 +2,10 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, UploadFile
-from fastapi.openapi.models import Response
 
+from src.core.integration.schemas import IdentificatorModel
 from src.plugin.plugin_schemas import PluginDto, CreatePluginDto
-from src.plugin.plugin_service import PluginService, get_plugin_service
+from src.plugin.plugin_service import PluginService
 
 PluginServiceDep = Annotated[PluginService, Depends(PluginService)]
 
@@ -14,8 +14,9 @@ PLUGIN_DIR = Path(__file__).parent.parent.parent
 router = APIRouter(
     prefix="/api/plugins",
     tags=["plugins"],
-    responses={404: {"description": "Not found"}}
+    responses={404: {"description": "Not found"}},
 )
+
 
 @router.get("/{plugin_id}", response_model=PluginDto)
 async def get_plugin(
@@ -30,7 +31,8 @@ async def get_plugin(
 @router.post("", response_model=PluginDto)
 async def create_plugin(
     create_dto: CreatePluginDto,
-    service: PluginServiceDep,) -> PluginDto:
+    service: PluginServiceDep,
+) -> PluginDto:
     """Create plugin"""
 
     plugin = await service.create_plugin(create_dto)
@@ -38,12 +40,12 @@ async def create_plugin(
     return plugin
 
 
-
 @router.put("/upload/{plugin_id}")
 async def upload_plugin(
     plugin_id: str,
     plugin_file: UploadFile,
-    service: PluginServiceDep,) -> None:
+    service: PluginServiceDep,
+) -> None:
     """Upload plugin"""
 
     await service.upload_plugin(plugin_id, plugin_file)
@@ -52,7 +54,8 @@ async def upload_plugin(
 @router.post("/run/{plugin_id}")
 async def run_plugin(
     plugin_id: str,
-    service: PluginServiceDep,) -> None:
+    service: PluginServiceDep,
+) -> list[IdentificatorModel]:
     """Run plugin"""
 
     return await service.run_plugin(plugin_id, 290.925, 38.961, 60)
