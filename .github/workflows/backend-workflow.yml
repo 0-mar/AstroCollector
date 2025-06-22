@@ -28,6 +28,8 @@ jobs:
       uses: astral-sh/setup-uv@v6
       with:
         working-directory: ac-backend
+    - name: path
+      run: pwd
     - name: Install the project
       run: uv sync --locked --all-extras --dev
     - name: Run mypy
