@@ -24,6 +24,7 @@ async def root() -> Any:
         "refcat": "apass",
     }
 
+    # test
     response = requests.post(url, headers=headers, json=data)
     return response.json()
 
