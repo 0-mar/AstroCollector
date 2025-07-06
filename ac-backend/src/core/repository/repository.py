@@ -27,14 +27,14 @@ class Repository(Generic[Entity]):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get(self, entity_id: str) -> Entity:
+    async def get(self, entity_id: UUID) -> Entity:
         result = await self.get_optional(entity_id)
         if result is None:
-            raise RepositoryException("Entity with ID " + entity_id + " not found")
+            raise RepositoryException("Entity with ID " + str(entity_id) + " not found")
         return result
 
-    async def get_optional(self, entity_id: str) -> Optional[Entity]:
-        return await self._session.get(self._model, UUID(entity_id))
+    async def get_optional(self, entity_id: UUID) -> Optional[Entity]:
+        return await self._session.get(self._model, entity_id)
 
     async def save(self, entity: Entity) -> Entity:
         try:
@@ -47,12 +47,12 @@ class Repository(Generic[Entity]):
 
         return entity
 
-    async def delete(self, entity_id: str) -> None:
+    async def delete(self, entity_id: UUID) -> None:
         entity = await self.get(entity_id)
         await self._session.delete(entity)
         await self._session.commit()
 
-    async def update(self, entity_id: str, update_data: dict[str, Any]) -> Entity:
+    async def update(self, entity_id: UUID, update_data: dict[str, Any]) -> Entity:
         entity = await self.get(entity_id)
 
         try:
