@@ -13,3 +13,11 @@ class PluginDto(BaseIdDto):
 class CreatePluginDto(BaseDto):
     name: str
     created_by: str
+
+
+class UpdatePluginDto(BaseIdDto):
+    name: str | None = None
+
+
+class UpdatePluginFileDto(BaseIdDto):
+    file_name: str
