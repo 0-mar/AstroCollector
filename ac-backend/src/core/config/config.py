@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     DB_PASSWORD: str = Field(..., alias="POSTGRES_PASSWORD")
     DB_PORT: int = Field(..., alias="POSTGRES_PORT")
     DB_NAME: str = Field(..., alias="POSTGRES_DB")
+    CACHE_PORT: str = Field(..., alias="REDIS_PORT")
 
     @computed_field  # type: ignore[prop-decorator]
     @property
