@@ -1,6 +1,6 @@
-from src.core.integration.schemas import IdentificatorModel
+from src.core.integration.schemas import StellarObjectIdentificatorDto
 
 
-class DaschIdentificatorModel(IdentificatorModel):
+class DaschStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
     gsc_bin_index: int
     ref_number: int

@@ -3,15 +3,33 @@ from typing import List, Any
 from fastapi import FastAPI
 from pydantic import BaseModel
 import requests
+from aiocache import Cache
 
-from src.core.integration.schemas import PhotometricDataModel
-from src.dasch.dasch_identificator_model import DaschIdentificatorModel
+from src.core.http_client import HttpClient
+from src.core.integration.schemas import PhotometricDataDto
+from src.dasch.dasch_identificator_model import DaschStellarObjectIdentificatorDto
 from src.dasch.dasch_plugin import DaschPlugin
 from src.plugin import plugin_router
+from src.data_retriever import router as data_router
+from src.core.config.config import settings
 
-app = FastAPI()
+
+async def on_start_up() -> None:
+    HttpClient()
+
+
+async def on_shutdown() -> None:
+    await HttpClient().get_session().close()
+
+
+app = FastAPI(on_startup=[on_start_up], on_shutdown=[on_shutdown])
+# cache: https://stackoverflow.com/questions/65686318/sharing-python-objects-across-multiple-workers
+plugin_cache = Cache(
+    Cache.REDIS, endpoint="localhost", port=settings.CACHE_PORT, namespace="main"
+)
 
 app.include_router(plugin_router.router)
+app.include_router(data_router.router)
 
 
 @app.get("/")
@@ -41,9 +59,9 @@ class Query(BaseModel):
 
 
 @app.post("/dasch")
-async def dasch(query: Query) -> List[PhotometricDataModel]:
+async def dasch(query: Query) -> List[PhotometricDataDto]:
     d = DaschPlugin()
-    m = DaschIdentificatorModel(
+    m = DaschStellarObjectIdentificatorDto(
         ra_deg=query.ra_deg,
         dec_deg=query.dec_deg,
         gsc_bin_index=137593564,

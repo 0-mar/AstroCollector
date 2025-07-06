@@ -3,6 +3,7 @@ import importlib.util
 import inspect
 import sys
 import uuid
+from uuid import UUID
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -17,11 +18,16 @@ from fastapi.concurrency import run_in_threadpool
 
 import plugins
 from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
-from src.core.integration.schemas import IdentificatorModel
+from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository
 from src.plugin.plugin_exceptions import NoPluginClassException
 from src.plugin.plugin_model import Plugin
-from src.plugin.plugin_schemas import PluginDto, CreatePluginDto
+from src.plugin.plugin_schemas import (
+    PluginDto,
+    CreatePluginDto,
+    UpdatePluginDto,
+    UpdatePluginFileDto,
+)
 
 PluginRepositoryDep = Annotated[Repository[Plugin], Depends(get_repository(Plugin))]
 PLUGIN_DIR = Path.joinpath(Path(__file__).parent.parent.parent, "plugins").resolve()
@@ -33,7 +39,9 @@ PLUGIN_DIR = Path.joinpath(Path(__file__).parent.parent.parent, "plugins").resol
 class PluginService:
     def __init__(self, repository: PluginRepositoryDep):
         self._repository = repository
-        self.plugins: dict[str, PhotometricCataloguePlugin[IdentificatorModel]] = dict()
+        self.plugins: dict[
+            str, PhotometricCataloguePlugin[StellarObjectIdentificatorDto]
+        ] = dict()
 
     def discover_plugins(self) -> None:
         # https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures
@@ -60,7 +68,7 @@ class PluginService:
 
     def _load_plugin(
         self, module_name: str, file_path: Path
-    ) -> Optional[PhotometricCataloguePlugin[IdentificatorModel]]:
+    ) -> Optional[PhotometricCataloguePlugin[StellarObjectIdentificatorDto]]:
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None:
             raise ImportError(f"Could not load spec from {file_path}")
@@ -78,7 +86,7 @@ class PluginService:
                 issubclass(cls, PhotometricCataloguePlugin)
                 and cls is not PhotometricCataloguePlugin
             ):
-                print(f"    Found plugin class: {cls.__module__}.{cls.__name__}")
+                print(f"Found plugin class: {cls.__module__}.{cls.__name__}")
                 return cls()
 
         return None
@@ -102,7 +110,7 @@ class PluginService:
         # the name.
         return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
-    async def get_plugin(self, plugin_id: str) -> PluginDto:
+    async def get_plugin(self, plugin_id: UUID) -> PluginDto:
         plugin = await self._repository.get(plugin_id)
         return PluginDto.model_validate(plugin)
 
@@ -113,8 +121,16 @@ class PluginService:
         plugin = await self._repository.save(plugin)
         return PluginDto.model_validate(plugin)
 
-    async def upload_plugin(self, plugin_id: str, plugin_file: UploadFile) -> None:
-        old_plugin = await self._repository.get(plugin_id)  # check if exists
+    async def update_plugin(self, update_dto: UpdatePluginDto) -> PluginDto:
+        # check if exists
+        await self.get_plugin(update_dto.id)
+
+        update_data = update_dto.model_dump(exclude_none=True)
+        plugin = await self._repository.update(update_dto.id, update_data)
+        return PluginDto.model_validate(plugin)
+
+    async def upload_plugin(self, plugin_id: UUID, plugin_file: UploadFile) -> None:
+        plugin_entity: Plugin = await self._repository.get(plugin_id)  # check if exists
 
         new_file_name = str(uuid.uuid4()) + ".py"
         plugin_file_path = Path.joinpath(PLUGIN_DIR, new_file_name).resolve()
@@ -122,25 +138,50 @@ class PluginService:
             while content := await plugin_file.read(1024):  # async read chunk
                 await out_file.write(content)  # async write chunk
 
-        plugin_dto = PluginDto.model_validate(old_plugin)
-        plugin_dto.file_name = new_file_name
-        await self._repository.update(str(old_plugin.id), plugin_dto.model_dump())
+        update_data = UpdatePluginFileDto(id=plugin_entity.id, file_name=new_file_name)
+        await self._repository.update(plugin_id, update_data.model_dump())
 
-    async def delete_plugin(self, plugin_id: str) -> None:
+    async def delete_plugin(self, plugin_id: UUID) -> None:
         plugin = await self._repository.get(plugin_id)
         plugin_file_path = Path.joinpath(PLUGIN_DIR, plugin.file_name).resolve()
-        plugin_file_path.unlink()
+        await run_in_threadpool(plugin_file_path.unlink)
         await self._repository.delete(plugin_id)
 
     async def list_plugins(
         self, offset: int = 0, **kwargs: dict[str, Any]
     ) -> List[PluginDto]:
+        # TODO: pagination?
         plugin_list = await self._repository.find(offset=offset, **kwargs)
         return list(map(PluginDto.model_validate, plugin_list))
 
+    async def plugins_dict(
+        self, offset: int = 0, **kwargs: dict[str, Any]
+    ) -> dict[str, PluginDto]:
+        plugin_list = await self._repository.find(offset=offset, **kwargs)
+        return dict(
+            map(
+                lambda plugin: (plugin.name, PluginDto.model_validate(plugin)),
+                plugin_list,
+            )
+        )
+
+    async def get_plugin_instance(
+        self, plugin_id: UUID
+    ) -> PhotometricCataloguePlugin[StellarObjectIdentificatorDto]:
+        db_plugin = await self._repository.get(plugin_id)
+        plugin_file_path = Path.joinpath(PLUGIN_DIR, db_plugin.file_name).resolve()
+
+        plugin = await run_in_threadpool(
+            self._load_plugin, db_plugin.file_name, plugin_file_path
+        )
+        if plugin is None:
+            raise NoPluginClassException()
+
+        return plugin
+
     async def run_plugin(
-        self, plugin_id: str, ra_deg: float, dec_deg: float, radius_arcsec: float
-    ) -> list[IdentificatorModel]:
+        self, plugin_id: UUID, ra_deg: float, dec_deg: float, radius_arcsec: float
+    ) -> list[StellarObjectIdentificatorDto]:
         db_plugin = await self._repository.get(plugin_id)
         plugin_file_path = Path.joinpath(PLUGIN_DIR, db_plugin.file_name).resolve()
         # needs to run in threadpool because of blocking operations
