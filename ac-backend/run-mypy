@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Change directory to the project root directory.
+cd "$(dirname "$0")"
+
+mypy src --strict --python-executable ".venv/bin/python"
