@@ -1,4 +1,5 @@
 import csv
+from _csv import _reader
 from typing import List
 from uuid import UUID
 
@@ -53,14 +54,14 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
 
     def _process_objects_csv(
         self,
-        reader,
-        object_ra_deg_idx,
-        object_dec_deg_idx,
-        gsc_bin_index_idx,
-        ref_number_idx,
+        reader: _reader,
+        object_ra_deg_idx: int,
+        object_dec_deg_idx: int,
+        gsc_bin_index_idx: int,
+        ref_number_idx: int,
         plugin_id: UUID,
     ) -> list[DaschStellarObjectIdentificatorDto]:
-        result = []
+        result: list[DaschStellarObjectIdentificatorDto] = []
         for row in reader:
             identificator_ra_deg = row[object_ra_deg_idx]
             identificator_dec_deg = row[object_dec_deg_idx]
@@ -122,9 +123,9 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         )
 
     def _process_photometric_data_csv(
-        self, reader, jd_idx, mag_idx, err_idx, plugin_id: UUID
+        self, reader: _reader, jd_idx: int, mag_idx: int, err_idx: int, plugin_id: UUID
     ) -> List[PhotometricDataDto]:
-        result = []
+        result: list[PhotometricDataDto] = []
         for row in reader:
             jd_str = row[jd_idx]
             mag_str = row[mag_idx]

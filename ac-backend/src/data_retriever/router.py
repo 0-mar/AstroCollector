@@ -36,12 +36,14 @@ async def find_object(
 @router.post("/retrieve/{plugin_id}", response_model=list[PhotometricDataDto])
 async def retrieve_data(
     service: StellarObjectServiceDep,
+    plugin_id: UUID,
     identificator_model: StellarObjectIdentificatorDto,
 ) -> list[PhotometricDataDto]:
+    identificator_model.plugin_id = plugin_id
     return await service.get_photometric_data(identificator_model)
 
 
-@router.post("/retrieve", response_model=list[PhotometricDataDto])
+@router.post("/retrieve", response_model=dict[UUID, list[PhotometricDataDto]])
 async def retrieve_data_multiple_sources(
     service: StellarObjectServiceDep,
     identificator_models: list[StellarObjectIdentificatorDto],

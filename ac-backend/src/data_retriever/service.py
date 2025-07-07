@@ -9,7 +9,7 @@ from src.core.integration.schemas import (
     PhotometricDataDto,
 )
 from src.data_retriever.schemas import SearchQueryRequestDto, FindObjectQueryRequestDto
-from src.plugin.plugin_router import PluginServiceDep
+from src.plugin.router import PluginServiceDep
 
 OBJECT_SEARCH_RADIUS = 10
 
@@ -18,7 +18,7 @@ class StellarObjectService:
     def __init__(self, plugin_service: PluginServiceDep):
         self._plugin_service = plugin_service
 
-    async def _resolve_name_to_coordinates(self, name) -> SkyCoord:
+    async def _resolve_name_to_coordinates(self, name: str) -> SkyCoord:
         """
         Resolves the given name to astronomical coordinates.
 
@@ -48,8 +48,8 @@ class StellarObjectService:
         result: dict[UUID, list[StellarObjectIdentificatorDto]] = {}
         for plugin_dto in plugins:
             plugin = await self._plugin_service.get_plugin_instance(plugin_dto.id)
-            objects = plugin.list_objects(
-                coords.ra.degree, coords.dec.degree, query.radius_arcsec
+            objects = await plugin.list_objects(
+                coords.ra.degree, coords.dec.degree, query.radius_arcsec, plugin_dto.id
             )
             result[plugin_dto.id] = objects
 

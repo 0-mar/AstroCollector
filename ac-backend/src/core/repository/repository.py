@@ -16,7 +16,6 @@ Entity = TypeVar("Entity", bound=DbEntity)
 LIMIT = 100
 
 
-# TODO: are operations correct?
 class Repository(Generic[Entity]):
     def __init__(self, model: type[Entity], session: AsyncSession):
         self._session = session

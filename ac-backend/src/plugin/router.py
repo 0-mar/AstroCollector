@@ -1,12 +1,11 @@
-from uuid import UUID
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, UploadFile
 
-from src.core.integration.schemas import StellarObjectIdentificatorDto
-from src.plugin.plugin_schemas import PluginDto, CreatePluginDto, UpdatePluginDto
-from src.plugin.plugin_service import PluginService
+from src.plugin.schemas import PluginDto, CreatePluginDto, UpdatePluginDto
+from src.plugin.service import PluginService
 
 PluginServiceDep = Annotated[PluginService, Depends(PluginService)]
 
@@ -23,7 +22,7 @@ router = APIRouter(
 async def list_plugins(
     service: PluginServiceDep,
     offset: int = 0,
-    filters=None,
+    filters: dict[str, Any] | None = None,
 ) -> list[PluginDto]:
     """List plugins."""
     if filters is None:
@@ -82,13 +81,3 @@ async def upload_plugin(
 @router.delete("/{plugin_id}")
 async def delete_plugin(plugin_id: UUID, service: PluginServiceDep) -> None:
     await service.delete_plugin(plugin_id)
-
-
-@router.post("/run/{plugin_id}")
-async def run_plugin(
-    plugin_id: UUID,
-    service: PluginServiceDep,
-) -> list[StellarObjectIdentificatorDto]:
-    """Run plugin"""
-
-    return await service.run_plugin(plugin_id, 290.925, 38.961, 60)

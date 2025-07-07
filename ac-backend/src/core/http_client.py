@@ -1,13 +1,14 @@
 from threading import Lock
+from typing import Dict, Any
 
 from aiohttp import ClientSession
 
 
 class SingletonMeta(type):
-    _instances = {}
-    _lock = Lock()
+    _instances: Dict[type, Any] = {}
+    _lock: Lock = Lock()
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         with cls._lock:
             if cls not in cls._instances:
                 instance = super().__call__(*args, **kwargs)

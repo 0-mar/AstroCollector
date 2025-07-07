@@ -20,9 +20,9 @@ import plugins
 from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository
-from src.plugin.plugin_exceptions import NoPluginClassException
-from src.plugin.plugin_model import Plugin
-from src.plugin.plugin_schemas import (
+from src.plugin.exceptions import NoPluginClassException
+from src.plugin.model import Plugin
+from src.plugin.schemas import (
     PluginDto,
     CreatePluginDto,
     UpdatePluginDto,
@@ -178,21 +178,6 @@ class PluginService:
             raise NoPluginClassException()
 
         return plugin
-
-    async def run_plugin(
-        self, plugin_id: UUID, ra_deg: float, dec_deg: float, radius_arcsec: float
-    ) -> list[StellarObjectIdentificatorDto]:
-        db_plugin = await self._repository.get(plugin_id)
-        plugin_file_path = Path.joinpath(PLUGIN_DIR, db_plugin.file_name).resolve()
-        # needs to run in threadpool because of blocking operations
-        plugin = await run_in_threadpool(
-            self._load_plugin, db_plugin.file_name, plugin_file_path
-        )
-        if plugin is None:
-            raise NoPluginClassException()
-
-        objects = plugin.list_objects(ra_deg, dec_deg, radius_arcsec)
-        return objects
 
 
 def get_plugin_service(repository: PluginRepositoryDep) -> PluginService:

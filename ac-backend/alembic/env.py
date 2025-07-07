@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 # IMPORTANT: You must import all models so that they are detected by Alembic
 from src.core.database.database import DbEntity
-from src.plugin.plugin_model import Plugin  # noqa: F401
+from src.plugin.model import Plugin  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
