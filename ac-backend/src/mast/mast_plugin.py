@@ -68,6 +68,7 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
         return results
 
     def __get_lc_data(self, lightcurve_table, results, identificator):
+        # TODO check time units (is it really in JD?)
         for time, flux, flux_err in lightcurve_table.iterrows(
             "time", "flux", "flux_err"
         ):
