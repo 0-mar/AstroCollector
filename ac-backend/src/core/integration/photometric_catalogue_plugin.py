@@ -3,6 +3,7 @@ from typing import TypeVar, List, Generic
 from uuid import UUID
 
 from aiohttp import ClientSession
+from astropy.coordinates import SkyCoord
 
 from src.core.http_client import HttpClient
 from src.core.integration.schemas import (
@@ -21,7 +22,7 @@ class PhotometricCataloguePlugin(Generic[T], ABC):
 
     @abstractmethod
     async def list_objects(
-        self, ra_deg: float, dec_deg: float, radius_arcsec: float, plugin_id: UUID
+        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
     ) -> List[T]:
         pass
 
