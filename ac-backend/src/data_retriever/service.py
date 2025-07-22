@@ -8,10 +8,10 @@ from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
     PhotometricDataDto,
 )
-from src.data_retriever.schemas import SearchQueryRequestDto, FindObjectQueryRequestDto
+from src.data_retriever.schemas import ConeSearchRequestDto, FindObjectRequestDto
 from src.plugin.router import PluginServiceDep
 
-OBJECT_SEARCH_RADIUS = 10
+OBJECT_SEARCH_RADIUS = 30
 
 
 class StellarObjectService:
@@ -27,16 +27,24 @@ class StellarObjectService:
         :return: An object representing the resolved coordinates of the celestial object.
         :rtype: SkyCoord
         """
+        # TODO add other coordinate resolving options (e.g. from astroquery etc.)
         coords = await run_in_threadpool(SkyCoord.from_name, name, cache="update")
         return coords
 
-    async def search_catalogues_by_coords(
-        self, query: SearchQueryRequestDto
-    ) -> dict[UUID, list[StellarObjectIdentificatorDto]]:
+    async def __cone_search(
+        self, plugin_id: UUID, coords: SkyCoord, radius_arcsec: float
+    ) -> list[StellarObjectIdentificatorDto]:
+        plugin_dto = await self._plugin_service.get_plugin(plugin_id)
+        plugin = await self._plugin_service.get_plugin_instance(plugin_dto.id)
+        return await plugin.list_objects(coords, radius_arcsec, plugin_dto.id)
+
+    async def catalogue_cone_search(
+        self, query: ConeSearchRequestDto
+    ) -> list[StellarObjectIdentificatorDto]:
         """
-        For all catalogues, search for objects within the given radius.
-        :param query: Sky coordinates of the celestial object (ICRS format, degrees) and radius to search around.
-        :return: Dictionary of catalogues and their corresponding objects. Key is the catalogues ID.
+        Performs cone search on a catalogue, identified by query.plugin_id
+        :param query:
+        :return: list of stellar objects search results
         """
         coords = SkyCoord(
             ra=query.right_ascension_deg * units.degree,
@@ -44,40 +52,18 @@ class StellarObjectService:
             frame="icrs",
         )
 
-        plugins = await self._plugin_service.list_plugins()
-        result: dict[UUID, list[StellarObjectIdentificatorDto]] = {}
-        for plugin_dto in plugins:
-            plugin = await self._plugin_service.get_plugin_instance(plugin_dto.id)
-            objects = await plugin.list_objects(
-                coords.ra.degree, coords.dec.degree, query.radius_arcsec, plugin_dto.id
-            )
-            result[plugin_dto.id] = objects
+        return await self.__cone_search(query.plugin_id, coords, query.radius_arcsec)
 
-        return result
-
-    async def find_stellar_object_in_catalogues(
-        self, query: FindObjectQueryRequestDto
-    ) -> dict[UUID, StellarObjectIdentificatorDto]:
+    async def find_stellar_object(
+        self, query: FindObjectRequestDto
+    ) -> list[StellarObjectIdentificatorDto]:
         """
-        Given a stellar object name, return the closest match in all catalogues.
+        Given a stellar object name, return all matches within radius of 30 arcsec.
         :param query:
-        :return:
+        :return: list of stellar objects search results
         """
         coords = await self._resolve_name_to_coordinates(query.name)
-        plugins = await self._plugin_service.list_plugins()
-        result: dict[UUID, StellarObjectIdentificatorDto] = {}
-        for plugin_dto in plugins:
-            plugin = await self._plugin_service.get_plugin_instance(plugin_dto.id)
-            stellar_objects = await plugin.list_objects(
-                coords.ra.degree, coords.dec.degree, OBJECT_SEARCH_RADIUS, plugin_dto.id
-            )
-
-            # object was found
-            if stellar_objects != []:
-                # TODO: which one to pick from the list?
-                result[plugin_dto.id] = stellar_objects[0]
-
-        return result
+        return await self.__cone_search(query.plugin_id, coords, OBJECT_SEARCH_RADIUS)
 
     async def get_photometric_data(
         self, identificator_model: StellarObjectIdentificatorDto

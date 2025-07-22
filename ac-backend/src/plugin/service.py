@@ -20,6 +20,7 @@ import plugins
 from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository
+from src.mast.mast_plugin import MastPlugin
 from src.plugin.exceptions import NoPluginClassException
 from src.plugin.model import Plugin
 from src.plugin.schemas import (
@@ -85,6 +86,7 @@ class PluginService:
             if (
                 issubclass(cls, PhotometricCataloguePlugin)
                 and cls is not PhotometricCataloguePlugin
+                and cls is not MastPlugin
             ):
                 print(f"Found plugin class: {cls.__module__}.{cls.__name__}")
                 return cls()

@@ -3,6 +3,7 @@ from _csv import _reader
 from typing import List
 from uuid import UUID
 
+from astropy.coordinates import SkyCoord
 from fastapi.concurrency import run_in_threadpool
 
 from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
@@ -21,11 +22,11 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         self.lightcurve_endpoint = f"{self.base_url}/dasch/dr7/lightcurve"
 
     async def list_objects(
-        self, ra_deg: float, dec_deg: float, radius_arcsec: float, plugin_id: UUID
+        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
     ) -> List[DaschStellarObjectIdentificatorDto]:
         query_body = {
-            "dec_deg": dec_deg,
-            "ra_deg": ra_deg,
+            "dec_deg": coords.dec.deg,
+            "ra_deg": coords.ra.deg,
             "radius_arcsec": radius_arcsec,
             "refcat": REFCAT_APASS,
         }
