@@ -26,7 +26,7 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
         super().__init__()
 
     @abstractmethod
-    def _get_target(self, id: int) -> str:
+    def _get_target(self) -> str:
         pass
 
     async def list_objects(
@@ -34,7 +34,10 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
     ) -> list[MastStellarObjectIdentificatorDto]:
         # querymethod: https://astroquery.readthedocs.io/en/latest/api.html
         search_results = await run_in_threadpool(
-            Catalogs.query_region, coords, radius=radius_arcsec / 3600, catalog="TIC"
+            Catalogs.query_region,
+            coords,
+            radius=radius_arcsec / 3600,
+            catalog=self._get_target(),
         )
         table = search_results["ID", "ra", "dec", "dstArcSec"]
 
@@ -51,7 +54,7 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
         self, identificator: MastStellarObjectIdentificatorDto
     ) -> list[PhotometricDataDto]:
         lcs: SearchResult = search_lightcurve(
-            self._get_target(identificator.id), mission="TESS"
+            f"{self._get_target()} {identificator.id}", mission="TESS"
         )
 
         results: list[PhotometricDataDto] = []

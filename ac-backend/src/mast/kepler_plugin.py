@@ -5,5 +5,5 @@ class TessPlugin(MastPlugin):
     def __init__(self) -> None:
         super().__init__()
 
-    def _get_target(self, id: int) -> str:
-        return f"KIC {id}"
+    def _get_target(self) -> str:
+        return "KIC"
