@@ -11,6 +11,7 @@ class StellarObjectIdentificatorDto(BaseModel):
 
 
 class PhotometricDataDto(BaseModel):
+    # TODO include other mags, such as vmag or vmag err
     plugin_id: UUID
     julian_date: float
     magnitude: float

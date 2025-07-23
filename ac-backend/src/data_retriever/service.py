@@ -28,6 +28,7 @@ class StellarObjectService:
         :rtype: SkyCoord
         """
         # TODO add other coordinate resolving options (e.g. from astroquery etc.)
+        # NameResolveError is raised when we cant resolve the coords
         coords = await run_in_threadpool(SkyCoord.from_name, name, cache="update")
         return coords
 

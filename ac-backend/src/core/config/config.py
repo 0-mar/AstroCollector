@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "AstroCollector"
     DEBUG: bool = False
+    APPLAUSE_TOKEN: str
 
     DB_USER: str = Field(..., alias="POSTGRES_USER")
     DB_PASSWORD: str = Field(..., alias="POSTGRES_PASSWORD")
