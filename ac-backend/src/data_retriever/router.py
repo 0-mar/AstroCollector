@@ -21,7 +21,7 @@ router = APIRouter(
 )
 
 
-@router.post("{plugin_id}/cone-search", response_model=list[Any])
+@router.post("/{plugin_id}/cone-search", response_model=list[Any])
 async def cone_search(
     service: StellarObjectServiceDep,
     search_query_dto: ConeSearchRequestDto,
@@ -31,7 +31,7 @@ async def cone_search(
     return await service.catalogue_cone_search(search_query_dto)
 
 
-@router.post("{plugin_id}/find-object", response_model=list[Any])
+@router.post("/{plugin_id}/find-object", response_model=list[Any])
 async def find_object(
     service: StellarObjectServiceDep,
     find_object_query_dto: FindObjectRequestDto,

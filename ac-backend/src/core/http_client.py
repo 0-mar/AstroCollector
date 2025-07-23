@@ -17,6 +17,7 @@ class SingletonMeta(type):
         return cls._instances[cls]
 
 
+# TODO httpx library instead of aiohttp
 class HttpClient(metaclass=SingletonMeta):
     _aiohttp_client: ClientSession
 
