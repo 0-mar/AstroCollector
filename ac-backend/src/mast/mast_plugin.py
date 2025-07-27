@@ -85,6 +85,6 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
                     plugin_id=identificator.plugin_id,
                     julian_date=time.jd,
                     magnitude=mag,
-                    error=mag_err,
+                    magnitude_error=mag_err,
                 )
             )

@@ -1,6 +1,5 @@
 import csv
-from _csv import _reader
-from typing import List
+from typing import List, Iterator
 from uuid import UUID
 
 from astropy.coordinates import SkyCoord
@@ -55,7 +54,7 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
 
     def _process_objects_csv(
         self,
-        reader: _reader,
+        reader: Iterator[list[str]],
         object_ra_deg_idx: int,
         object_dec_deg_idx: int,
         gsc_bin_index_idx: int,
@@ -124,7 +123,12 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         )
 
     def _process_photometric_data_csv(
-        self, reader: _reader, jd_idx: int, mag_idx: int, err_idx: int, plugin_id: UUID
+        self,
+        reader: Iterator[list[str]],
+        jd_idx: int,
+        mag_idx: int,
+        err_idx: int,
+        plugin_id: UUID,
     ) -> List[PhotometricDataDto]:
         result: list[PhotometricDataDto] = []
         for row in reader:
@@ -140,7 +144,10 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
 
             result.append(
                 PhotometricDataDto(
-                    julian_date=jd, magnitude=mag, error=err, plugin_id=plugin_id
+                    julian_date=jd,
+                    magnitude=mag,
+                    magnitude_error=err,
+                    plugin_id=plugin_id,
                 )
             )
 

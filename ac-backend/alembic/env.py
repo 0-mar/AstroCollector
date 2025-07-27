@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 # IMPORTANT: You must import all models so that they are detected by Alembic
 from src.core.database.database import DbEntity
 from src.plugin.model import Plugin  # noqa: F401
+from src.tasks.model import PhotometricData  # noqa: F401
+from src.tasks.model import StellarObjectIdentifier  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -44,7 +46,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.DATABASE_URL
+    url = settings.ASYNC_DATABASE_URL
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -72,7 +74,7 @@ async def run_migrations_online() -> None:
     """
 
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = settings.DATABASE_URL
+    configuration["sqlalchemy.url"] = settings.ASYNC_DATABASE_URL
 
     connectable = async_engine_from_config(
         configuration,

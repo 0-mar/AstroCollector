@@ -119,7 +119,7 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
                     plugin_id=identificator.plugin_id,
                     julian_date=jd_mid,
                     magnitude=bmag,
-                    error=bmagerr,
+                    magnitude_error=bmagerr,
                 )
             )
 

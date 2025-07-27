@@ -42,3 +42,9 @@ After making any changes to the pre commit config file, run
 ```shell
 pre-commit install
 ```
+
+## Inspect DB
+To connect to the postgres console, run
+```shell
+podman exec -it ac-database psql -U postgres -d astrocollectordb
+```

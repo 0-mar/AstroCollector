@@ -18,8 +18,16 @@ services:
     image: docker.io/redis:latest
     ports:
       - "${REDIS_PORT}:6379"
+
+  #worker:
+    #command: celery -A worker.celery worker --loglevel=info --logfile=logs/celery.log
+    #volumes:
+      #- celery:/usr/src/app
+    #depends_on:
+      #- redis
 networks:
   ac:
 
 volumes:
+  #celery:
   database:

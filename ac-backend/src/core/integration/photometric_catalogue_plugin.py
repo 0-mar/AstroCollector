@@ -5,7 +5,6 @@ from uuid import UUID
 from aiohttp import ClientSession
 from astropy.coordinates import SkyCoord
 
-from src.core.http_client import HttpClient
 from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
     PhotometricDataDto,
@@ -18,7 +17,13 @@ class PhotometricCataloguePlugin(Generic[T], ABC):
     _http_client: ClientSession
 
     def __init__(self) -> None:
-        self._http_client = HttpClient().get_session()
+        pass
+
+    async def init_plugin(self):
+        self._http_client = ClientSession()
+
+    async def close_session(self):
+        await self._http_client.close()
 
     @abstractmethod
     async def list_objects(

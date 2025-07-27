@@ -8,7 +8,7 @@ from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
     PhotometricDataDto,
 )
-from src.data_retriever.schemas import ConeSearchRequestDto, FindObjectRequestDto
+from src.tasks.schemas import ConeSearchRequestDto, FindObjectRequestDto
 from src.plugin.router import PluginServiceDep
 
 OBJECT_SEARCH_RADIUS = 30

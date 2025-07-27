@@ -3,7 +3,7 @@ from fastapi import FastAPI
 
 from src.core.config.config import settings
 from src.core.http_client import HttpClient
-from src.data_retriever import router as data_router
+from src.tasks import router as data_router
 from src.plugin import router as plugin_router
 
 

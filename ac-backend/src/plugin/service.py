@@ -10,7 +10,7 @@ from pathlib import Path
 import importlib
 import pkgutil
 from types import ModuleType
-from typing import Annotated, List, Optional, Any
+from typing import Annotated, Optional, Any
 
 from fastapi import Depends, UploadFile
 import aiofiles
@@ -19,7 +19,8 @@ from fastapi.concurrency import run_in_threadpool
 import plugins
 from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
-from src.core.repository.repository import Repository, get_repository
+from src.core.repository.repository import Repository, get_repository, LIMIT
+from src.core.schemas import PaginationResponseDto
 from src.mast.mast_plugin import MastPlugin
 from src.plugin.exceptions import NoPluginClassException
 from src.plugin.model import Plugin
@@ -150,21 +151,14 @@ class PluginService:
         await self._repository.delete(plugin_id)
 
     async def list_plugins(
-        self, offset: int = 0, **kwargs: dict[str, Any]
-    ) -> List[PluginDto]:
-        # TODO: pagination?
-        plugin_list = await self._repository.find(offset=offset, **kwargs)
-        return list(map(PluginDto.model_validate, plugin_list))
-
-    async def plugins_dict(
-        self, offset: int = 0, **kwargs: dict[str, Any]
-    ) -> dict[str, PluginDto]:
-        plugin_list = await self._repository.find(offset=offset, **kwargs)
-        return dict(
-            map(
-                lambda plugin: (plugin.name, PluginDto.model_validate(plugin)),
-                plugin_list,
-            )
+        self, offset: int = 0, count: int = LIMIT, **kwargs: dict[str, Any]
+    ) -> PaginationResponseDto[PluginDto]:
+        total_count, plugin_list = await self._repository.find(
+            offset=offset, count=count, **kwargs
+        )
+        data = list(map(PluginDto.model_validate, plugin_list))
+        return PaginationResponseDto[PluginDto](
+            data=data, count=len(data), total_items=total_count
         )
 
     async def get_plugin_instance(
@@ -179,6 +173,7 @@ class PluginService:
         if plugin is None:
             raise NoPluginClassException()
 
+        await plugin.init_plugin()
         return plugin
 
 
