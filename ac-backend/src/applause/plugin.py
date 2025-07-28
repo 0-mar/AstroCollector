@@ -79,6 +79,8 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
         self, plugin_id: UUID, result_table: Table
     ) -> list[ApplauseIdentificatorDto]:
         results = []
+        for row in result_table:
+            pass
         for ucac4_id, ra, dec, angdist in result_table.iterrows(
             "ucac4_id", "raj2000", "dej2000", "angdist"
         ):

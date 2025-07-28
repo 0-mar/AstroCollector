@@ -21,6 +21,9 @@ class Repository(Generic[Entity]):
         self._session = session
         self._model = model
 
+    def session(self):
+        return self._session
+
     async def find(
         self, offset: int = 0, count: int = LIMIT, **filters: dict[str, Any]
     ) -> tuple[int, list[Entity]]:

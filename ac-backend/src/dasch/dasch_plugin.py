@@ -1,5 +1,5 @@
 import csv
-from typing import List, Iterator
+from typing import List, Iterator, AsyncIterator
 from uuid import UUID
 
 from astropy.coordinates import SkyCoord
@@ -20,9 +20,9 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         self.querycat_endpoint = f"{self.base_url}/dasch/dr7/querycat"
         self.lightcurve_endpoint = f"{self.base_url}/dasch/dr7/lightcurve"
 
-    async def list_objects(
+    async def cone_search(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
-    ) -> List[DaschStellarObjectIdentificatorDto]:
+    ) -> AsyncIterator[List[DaschStellarObjectIdentificatorDto]]:
         query_body = {
             "dec_deg": coords.dec.deg,
             "ra_deg": coords.ra.deg,
@@ -42,17 +42,19 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         gsc_bin_index_idx = header.index("gsc_bin_index")
         ref_number_idx = header.index("ref_number")
 
-        return await run_in_threadpool(
-            self._process_objects_csv,
-            reader,
-            object_ra_deg_idx,
-            object_dec_deg_idx,
-            gsc_bin_index_idx,
-            ref_number_idx,
-            plugin_id,
-        )
+        # yield processed data chunks
+        while True:
+            batch = self._process_objects_batch(
+                reader,
+                object_ra_deg_idx,
+                object_dec_deg_idx,
+                gsc_bin_index_idx,
+                ref_number_idx,
+                plugin_id,
+            )
+            yield batch
 
-    def _process_objects_csv(
+    def _process_objects_batch(
         self,
         reader: Iterator[list[str]],
         object_ra_deg_idx: int,
@@ -62,7 +64,11 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         plugin_id: UUID,
     ) -> list[DaschStellarObjectIdentificatorDto]:
         result: list[DaschStellarObjectIdentificatorDto] = []
+
         for row in reader:
+            if len(result) >= self.batch_limit():
+                break
+
             identificator_ra_deg = row[object_ra_deg_idx]
             identificator_dec_deg = row[object_dec_deg_idx]
             identificator_gsc_bin_index = row[gsc_bin_index_idx]
@@ -92,9 +98,9 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         # curve = sess.lightcurve()
         # closest_object
 
-    async def get_photometric_data(
+    async def lightcurve_data(
         self, identificator: DaschStellarObjectIdentificatorDto
-    ) -> List[PhotometricDataDto]:
+    ) -> AsyncIterator[List[PhotometricDataDto]]:
         lc_body = {
             "gsc_bin_index": identificator.gsc_bin_index,
             "ref_number": identificator.ref_number,
@@ -113,16 +119,13 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         mag_idx = header.index("magcal_magdep")
         err_idx = header.index("magcal_magdep_rms")
 
-        return await run_in_threadpool(
-            self._process_photometric_data_csv,
-            reader,
-            jd_idx,
-            mag_idx,
-            err_idx,
-            identificator.plugin_id,
-        )
+        while True:
+            batch = self._process_photometric_data_batch(
+                reader, jd_idx, mag_idx, err_idx, identificator.plugin_id
+            )
+            yield batch
 
-    def _process_photometric_data_csv(
+    def _process_photometric_data_batch(
         self,
         reader: Iterator[list[str]],
         jd_idx: int,
@@ -132,6 +135,8 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
     ) -> List[PhotometricDataDto]:
         result: list[PhotometricDataDto] = []
         for row in reader:
+            if len(result) >= self.batch_limit():
+                break
             jd_str = row[jd_idx]
             mag_str = row[mag_idx]
             err_str = row[err_idx]

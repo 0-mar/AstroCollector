@@ -29,6 +29,17 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
     def _get_target(self) -> str:
         pass
 
+    async def cone_search(
+        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+    ) -> list[MastStellarObjectIdentificatorDto]:
+        # table = await run_in_threadpool(
+        #     Catalogs.query_region,
+        #     coords,
+        #     radius=radius_arcsec / 3600,
+        #     catalog=self._get_target(),
+        # )
+        pass
+
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
     ) -> list[MastStellarObjectIdentificatorDto]:

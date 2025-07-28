@@ -104,7 +104,6 @@ class AsyncDatabaseSessionManager:
             raise
         finally:
             await session.close()
-            await self._engine.dispose()
 
 
 async_sessionmanager = AsyncDatabaseSessionManager(settings.ASYNC_DATABASE_URL)
