@@ -173,7 +173,6 @@ class PluginService:
         if plugin is None:
             raise NoPluginClassException()
 
-        await plugin.init_plugin()
         return plugin
 
 

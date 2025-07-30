@@ -1,23 +1,32 @@
-import asyncio
+import functools
+from typing import Annotated
 from uuid import UUID
 
 from astropy.coordinates import SkyCoord
 from astropy import units
+from fastapi import BackgroundTasks, Depends
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import insert
 
 from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
 )
+from src.core.repository.repository import Repository, get_repository
 from src.data_retrieval.service import (
     StellarObjectIdentifierRepositoryDep,
     PhotometricDataRepositoryDep,
 )
-from src.tasks.model import StellarObjectIdentifier, PhotometricData
+from src.tasks.model import StellarObjectIdentifier, PhotometricData, Task
 from src.tasks.schemas import ConeSearchRequestDto, FindObjectRequestDto
 from src.plugin.router import PluginServiceDep
+from src.tasks.types import TaskStatus
 
 OBJECT_SEARCH_RADIUS = 30
+
+TaskRepositoryDep = Annotated[
+    Repository[Task],
+    Depends(get_repository(Task)),
+]
 
 
 class StellarObjectService:
@@ -26,22 +35,61 @@ class StellarObjectService:
         plugin_service: PluginServiceDep,
         soi_repository: StellarObjectIdentifierRepositoryDep,
         pd_repository: PhotometricDataRepositoryDep,
+        task_repository: TaskRepositoryDep,
+        background_tasks: BackgroundTasks,
     ) -> None:
         self._plugin_service = plugin_service
         self._soi_repository = soi_repository
         self._pd_repository = pd_repository
+        self._task_repository = task_repository
+        self._background_tasks = background_tasks
 
     async def _bulk_insert(self, session, data, mapping, task_id, table):
-        loop = asyncio.get_running_loop()
-        values = await loop.run_in_executor(
-            None,
-            lambda data_list, map_fn: [map_fn(task_id, dto) for dto in data_list],
+        values = await run_in_threadpool(
+            lambda data_list, map_fn, t_id: [map_fn(t_id, dto) for dto in data_list],
             data,
             mapping,
+            task_id,
         )
         stmt = insert(table)
         await session.execute(stmt, values)
         await session.commit()
+
+    @staticmethod
+    def _task(f):
+        @functools.wraps(f)
+        async def wrapper(self, *args, **kwargs):
+            print("fds")
+            task: Task = await self._task_repository.save(Task())
+            self._background_tasks.add_task(f, self, task.id, *args, **kwargs)
+
+            return task.id
+
+        return wrapper
+
+    @staticmethod
+    def _task_status(f):
+        @functools.wraps(f)
+        async def wrapper(self, task_id, *args, **kwargs):
+            print(f"tady {task_id}")
+            try:
+                await f(self, task_id, *args, **kwargs)
+            except Exception:
+                print("chyba")
+
+                result = await self._task_repository.update(
+                    task_id, {"status": TaskStatus.failed}
+                )
+                print(result)
+                # TODO log error
+            else:
+                print("fdastady")
+
+                await self._task_repository.update(
+                    task_id, {"status": TaskStatus.completed}
+                )
+
+        return wrapper
 
     async def _resolve_name_to_coordinates(self, name: str) -> SkyCoord:
         """
@@ -62,8 +110,9 @@ class StellarObjectService:
     ) -> None:
         plugin_dto = await self._plugin_service.get_plugin(plugin_id)
         plugin = await self._plugin_service.get_plugin_instance(plugin_dto.id)
+
         session = self._soi_repository.session()
-        async for data in plugin.cone_search(coords, radius_arcsec, plugin_id):
+        async for data in plugin.list_objects(coords, radius_arcsec, plugin_id):
             await self._bulk_insert(
                 session,
                 data,
@@ -72,9 +121,12 @@ class StellarObjectService:
                 StellarObjectIdentifier,
             )
 
-    async def catalogue_cone_search(self, query: ConeSearchRequestDto) -> None:
+    @_task
+    @_task_status
+    async def catalogue_cone_search(self, task_id: UUID, query: ConeSearchRequestDto):
         """
         Performs cone search on a catalogue, identified by query.plugin_id
+        :param task_id:
         :param query:
         :return: list of stellar objects search results
         """
@@ -84,19 +136,24 @@ class StellarObjectService:
             frame="icrs",
         )
 
-        await self.__cone_search(query.plugin_id, coords, query.radius_arcsec)
+        await self.__cone_search(query.plugin_id, coords, query.radius_arcsec, task_id)
 
-    async def find_stellar_object(self, query: FindObjectRequestDto) -> None:
+    @_task
+    @_task_status
+    async def find_stellar_object(self, task_id: UUID, query: FindObjectRequestDto):
         """
         Given a stellar object name, return all matches within radius of 30 arcsec.
+        :param task_id:
         :param query:
         :return: list of stellar objects search results
         """
         coords = await self._resolve_name_to_coordinates(query.name)
-        await self.__cone_search(query.plugin_id, coords, OBJECT_SEARCH_RADIUS)
+        await self.__cone_search(query.plugin_id, coords, OBJECT_SEARCH_RADIUS, task_id)
 
+    @_task
+    @_task_status
     async def get_photometric_data(
-        self, identificator_model: StellarObjectIdentificatorDto, task_id: UUID
+        self, task_id: UUID, identificator_model: StellarObjectIdentificatorDto
     ) -> None:
         """
         Retrieve photometric data for a given object using the corresponding plugin.
@@ -109,7 +166,7 @@ class StellarObjectService:
             identificator_model.plugin_id
         )
         session = self._pd_repository.session()
-        async for data in plugin.lightcurve_data(identificator_model):
+        async for data in plugin.get_photometric_data(identificator_model):
             await self._bulk_insert(
                 session,
                 data,
@@ -117,3 +174,7 @@ class StellarObjectService:
                 task_id,
                 PhotometricData,
             )
+
+    async def get_task_status(self, task_id: UUID) -> TaskStatus:
+        task = await self._task_repository.get(task_id)
+        return task.status

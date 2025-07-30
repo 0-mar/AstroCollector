@@ -1,10 +1,8 @@
 from typing import Annotated, Any
 from uuid import UUID
 
-from celery.result import AsyncResult
 from fastapi import APIRouter, Depends
 
-from src.core.celery import celery_worker
 from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
     PhotometricDataDto,
@@ -16,13 +14,12 @@ from src.tasks.schemas import (
     ConeSearchRequestDto,
     FindObjectRequestDto,
     TaskStatusDto,
-    STATUS_COMPLETED,
-    STATUS_FAILED,
-    STATUS_IN_PROGRESS,
     TaskIdDto,
 )
+from src.tasks.service import StellarObjectService
 
 DataServiceDep = Annotated[DataService, Depends(DataService)]
+StellarObjectServiceDep = Annotated[StellarObjectService, Depends(StellarObjectService)]
 
 router = APIRouter(
     prefix="/api/photometric-data",
@@ -33,22 +30,24 @@ router = APIRouter(
 
 @router.post("/submit-task/{plugin_id}/cone-search")
 async def cone_search(
+    so_service: StellarObjectServiceDep,
     search_query_dto: ConeSearchRequestDto,
     plugin_id: UUID,
 ) -> TaskIdDto:
     search_query_dto.plugin_id = plugin_id
-    task = celery_worker.cone_search.delay(search_query_dto)
-    return TaskIdDto(task_id=task.id)
+    task_id = await so_service.catalogue_cone_search(query=search_query_dto)
+    return TaskIdDto(task_id=task_id)
 
 
 @router.post("/submit-task/{plugin_id}/find-object")
 async def find_object(
+    so_service: StellarObjectServiceDep,
     find_object_query_dto: FindObjectRequestDto,
     plugin_id: UUID,
 ) -> TaskIdDto:
     find_object_query_dto.plugin_id = plugin_id
-    task = celery_worker.find_object.delay(find_object_query_dto.model_dump())
-    return TaskIdDto(task_id=task.id)
+    task_id = await so_service.find_stellar_object(query=find_object_query_dto)
+    return TaskIdDto(task_id=task_id)
 
 
 @router.post("/object-identifiers")
@@ -64,12 +63,15 @@ async def retrieve_objects_identifiers(
 
 @router.post("/submit-task/{plugin_id}/retrieve")
 async def submit_retrieve_data(
+    so_service: StellarObjectServiceDep,
     plugin_id: UUID,
     identificator_model: StellarObjectIdentificatorDto,
 ) -> TaskIdDto:
     identificator_model.plugin_id = plugin_id
-    task = celery_worker.get_photometric_data.delay(identificator_model)
-    return TaskIdDto(task_id=task.id)
+    task_id = await so_service.get_photometric_data(
+        identificator_model=identificator_model
+    )
+    return TaskIdDto(task_id=task_id)
 
 
 @router.post("/retrieve")
@@ -80,15 +82,7 @@ async def retrieve_data(
 
 
 @router.get("/task_status/{task_id}")
-async def get_task_status(task_id: UUID):
+async def get_task_status(task_id: UUID, so_service: StellarObjectServiceDep):
     """Endpoint to check the status of a task."""
-    task_result = AsyncResult(str(task_id))
-    task_status_dto = TaskStatusDto(task_id=task_id, status="")
-    if task_result.ready():  # If the task is done
-        task_status_dto.status = STATUS_COMPLETED
-    elif task_result.failed():  # If the task failed
-        task_status_dto.status = STATUS_FAILED
-    else:  # If the task is still in progress
-        task_status_dto.status = STATUS_IN_PROGRESS
-
-    return task_status_dto
+    task_result = await so_service.get_task_status(task_id)
+    return TaskStatusDto(task_id=task_id, status=task_result.value)

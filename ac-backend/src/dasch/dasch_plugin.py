@@ -1,5 +1,5 @@
 import csv
-from typing import List, Iterator, AsyncIterator
+from typing import List, Iterator, AsyncIterator, Any
 from uuid import UUID
 
 from astropy.coordinates import SkyCoord
@@ -20,9 +20,9 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         self.querycat_endpoint = f"{self.base_url}/dasch/dr7/querycat"
         self.lightcurve_endpoint = f"{self.base_url}/dasch/dr7/lightcurve"
 
-    async def cone_search(
+    async def _get_object_data(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
-    ) -> AsyncIterator[List[DaschStellarObjectIdentificatorDto]]:
+    ) -> AsyncIterator[Any]:
         query_body = {
             "dec_deg": coords.dec.deg,
             "ra_deg": coords.ra.deg,
@@ -42,9 +42,42 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         gsc_bin_index_idx = header.index("gsc_bin_index")
         ref_number_idx = header.index("ref_number")
 
+        while True:
+            yield (
+                reader,
+                object_ra_deg_idx,
+                object_dec_deg_idx,
+                gsc_bin_index_idx,
+                ref_number_idx,
+            )
+
+    async def list_objects(
+        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+    ) -> AsyncIterator[List[DaschStellarObjectIdentificatorDto]]:
+        query_body = {
+            "dec_deg": coords.dec.deg,
+            "ra_deg": coords.ra.deg,
+            "radius_arcsec": radius_arcsec,
+            "refcat": REFCAT_APASS,
+        }
+        async with self._http_client.post(
+            self.querycat_endpoint, json=query_body
+        ) as query_resp:
+            query_data = await query_resp.json()
+
+        # for blocking tasks, run in external threadpool
+        reader = await run_in_threadpool(csv.reader, query_data)
+
+        header = next(reader)
+        object_ra_deg_idx = header.index("ra_deg")
+        object_dec_deg_idx = header.index("dec_deg")
+        gsc_bin_index_idx = header.index("gsc_bin_index")
+        ref_number_idx = header.index("ref_number")
+
         # yield processed data chunks
         while True:
-            batch = self._process_objects_batch(
+            batch = await run_in_threadpool(
+                self._process_objects_batch,
                 reader,
                 object_ra_deg_idx,
                 object_dec_deg_idx,
@@ -98,7 +131,7 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         # curve = sess.lightcurve()
         # closest_object
 
-    async def lightcurve_data(
+    async def get_photometric_data(
         self, identificator: DaschStellarObjectIdentificatorDto
     ) -> AsyncIterator[List[PhotometricDataDto]]:
         lc_body = {
@@ -120,8 +153,13 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         err_idx = header.index("magcal_magdep_rms")
 
         while True:
-            batch = self._process_photometric_data_batch(
-                reader, jd_idx, mag_idx, err_idx, identificator.plugin_id
+            batch = await run_in_threadpool(
+                self._process_photometric_data_batch,
+                reader,
+                jd_idx,
+                mag_idx,
+                err_idx,
+                identificator.plugin_id,
             )
             yield batch
 
