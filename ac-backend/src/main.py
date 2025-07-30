@@ -3,8 +3,9 @@ from fastapi import FastAPI
 
 from src.core.config.config import settings
 from src.core.http_client import HttpClient
-from src.data_retriever import router as data_router
+from src.tasks import router as task_router
 from src.plugin import router as plugin_router
+from src.data_retrieval import router as data_router
 
 
 async def on_start_up() -> None:
@@ -22,4 +23,5 @@ plugin_cache = Cache(
 )
 
 app.include_router(plugin_router.router)
+app.include_router(task_router.router)
 app.include_router(data_router.router)

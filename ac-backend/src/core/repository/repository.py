@@ -2,7 +2,7 @@ from typing import TypeVar, Generic, Any, Optional
 from collections.abc import Callable
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +13,7 @@ from src.core.repository.exception import RepositoryException
 # using session correctly
 # https://docs.sqlalchemy.org/en/20/orm/session_basics.html
 Entity = TypeVar("Entity", bound=DbEntity)
-LIMIT = 100
+LIMIT = 1000
 
 
 class Repository(Generic[Entity]):
@@ -21,10 +21,26 @@ class Repository(Generic[Entity]):
         self._session = session
         self._model = model
 
-    async def find(self, offset: int = 0, **kwargs: dict[str, Any]) -> list[Entity]:
-        stmt = select(self._model).filter_by(**kwargs).offset(offset).limit(LIMIT)
+    def session(self):
+        return self._session
+
+    async def find(
+        self, offset: int = 0, count: int = LIMIT, **filters: dict[str, Any]
+    ) -> tuple[int, list[Entity]]:
+        count = count if count <= LIMIT else LIMIT
+
+        # count of all rows
+        total_items_stmt = (
+            select(func.count()).select_from(self._model).filter_by(**filters)
+        )
+        total_items_result = await self._session.execute(total_items_stmt)
+        total_items = total_items_result.scalar()
+
+        # get all rows
+        stmt = select(self._model).filter_by(**filters).offset(offset).limit(count)
         result = await self._session.execute(stmt)
-        return list(result.scalars().all())
+
+        return total_items, list(result.scalars().all())
 
     async def get(self, entity_id: UUID) -> Entity:
         result = await self.get_optional(entity_id)
@@ -57,6 +73,7 @@ class Repository(Generic[Entity]):
         try:
             for key, value in update_data.items():
                 setattr(entity, key, value)
+
             await self._session.commit()
             await self._session.refresh(entity)
 
@@ -67,6 +84,14 @@ class Repository(Generic[Entity]):
             raise RepositoryException(
                 f"Failed to update entity with id {entity_id}"
             ) from e
+
+    async def bulk_insert(self, data: list[Entity]) -> None:
+        try:
+            self._session.add_all(data)
+            await self._session.commit()
+        except SQLAlchemyError as e:
+            await self._session.rollback()
+            raise RepositoryException("Failed to insert bulk data") from e
 
 
 def get_repository(

@@ -1,5 +1,6 @@
 import math
 from abc import abstractmethod
+from typing import AsyncIterator, List
 from uuid import UUID
 
 from astropy.coordinates import SkyCoord
@@ -31,46 +32,55 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
 
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
-    ) -> list[MastStellarObjectIdentificatorDto]:
+    ) -> AsyncIterator[List[MastStellarObjectIdentificatorDto]]:
         # querymethod: https://astroquery.readthedocs.io/en/latest/api.html
-        search_results = await run_in_threadpool(
+        table = await run_in_threadpool(
             Catalogs.query_region,
             coords,
             radius=radius_arcsec / 3600,
             catalog=self._get_target(),
         )
-        table = search_results["ID", "ra", "dec", "dstArcSec"]
 
-        results = [
-            MastStellarObjectIdentificatorDto(
-                plugin_id=plugin_id, ra_deg=ra, dec_deg=dec, id=id, dstArcSec=dstArcSec
-            )
-            for id, ra, dec, dstArcSec in table
-        ]
+        results = await run_in_threadpool(
+            lambda: [
+                MastStellarObjectIdentificatorDto(
+                    plugin_id=plugin_id,
+                    ra_deg=ra,
+                    dec_deg=dec,
+                    id=id,
+                    dstArcSec=dstArcSec,
+                )
+                for id, ra, dec, dstArcSec in table.iterrows(
+                    "ID", "ra", "dec", "dstArcSec"
+                )
+            ]
+        )
 
-        return results
+        yield results
 
     async def get_photometric_data(
         self, identificator: MastStellarObjectIdentificatorDto
-    ) -> list[PhotometricDataDto]:
-        lcs: SearchResult = search_lightcurve(
-            f"{self._get_target()} {identificator.id}", mission="TESS"
+    ) -> AsyncIterator[list[PhotometricDataDto]]:
+        lightcurves: SearchResult = await run_in_threadpool(
+            search_lightcurve,
+            f"{self._get_target()} {identificator.id}",
+            # mission="TESS",
         )
 
+        for lightcurve in lightcurves:
+            yield await run_in_threadpool(self.__get_lc_data, lightcurve, identificator)
+
+    def __get_lc_data(
+        self, lightcurve, identificator: MastStellarObjectIdentificatorDto
+    ) -> list[PhotometricDataDto]:
         results: list[PhotometricDataDto] = []
-        for lc in lcs:
-            try:
-                lightcurve_table = await run_in_threadpool(lc.download)
+        try:
+            lightcurve_table = lightcurve.download()
 
-            except LightkurveError:
-                # error when downloading the lightcurve file
-                continue
+        except LightkurveError:
+            # error when downloading the lightcurve file
+            return results
 
-            self.__get_lc_data(lightcurve_table, results, identificator)
-
-        return results
-
-    def __get_lc_data(self, lightcurve_table, results, identificator):
         # TODO check time units (is it really in JD?)
         for time, flux, flux_err in lightcurve_table.iterrows(
             "time", "flux", "flux_err"
@@ -85,6 +95,12 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
                     plugin_id=identificator.plugin_id,
                     julian_date=time.jd,
                     magnitude=mag,
-                    error=mag_err,
+                    magnitude_error=mag_err,
+                    v_magnitude=None,
+                    v_magnitude_error=None,
+                    b_magnitude=None,
+                    b_magnitude_error=None,
                 )
             )
+
+        return results

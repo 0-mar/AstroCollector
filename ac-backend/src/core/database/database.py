@@ -32,7 +32,7 @@ import contextlib
 from typing import Any, AsyncIterator, Optional, AsyncGenerator
 from uuid import UUID
 
-from sqlalchemy import func
+from sqlalchemy import func, create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncSession,
@@ -40,7 +40,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncEngine,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from src.core.config.config import settings
 from src.core.database.exception import DatabaseSessionManagerException
@@ -58,7 +58,7 @@ class DbEntity(DeclarativeBase):
 # async session:
 # https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
 # Heavily inspired by https://praciano.com.br/fastapi-and-async-sqlalchemy-20-with-pytest-done-right.html
-class DatabaseSessionManager:
+class AsyncDatabaseSessionManager:
     def __init__(self, host: str, engine_kwargs: dict[str, Any] = {}):
         self._engine: Optional[AsyncEngine] = create_async_engine(host, **engine_kwargs)
         self._sessionmaker: Optional[async_sessionmaker[AsyncSession]] = (
@@ -106,11 +106,41 @@ class DatabaseSessionManager:
             await session.close()
 
 
-sessionmanager = DatabaseSessionManager(settings.DATABASE_URL)
+async_sessionmanager = AsyncDatabaseSessionManager(settings.ASYNC_DATABASE_URL)
 
 
 # Dependencies with yield - extra steps after finishing (session is automatically closed after the request finishes)
 # https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield
-async def get_db_session() -> AsyncGenerator[AsyncSession, Any]:
-    async with sessionmanager.session() as session:
+async def get_async_db_session() -> AsyncGenerator[AsyncSession, Any]:
+    async with async_sessionmanager.session() as session:
         yield session
+
+
+class DatabaseSessionManager:
+    def __init__(self, host: str):
+        self._engine = create_engine(host)
+        self._sessionmaker = sessionmaker(autocommit=False, bind=self._engine)
+
+    def session(self):
+        if self._sessionmaker is None:
+            raise DatabaseSessionManagerException(
+                "DatabaseSessionManager is not initialized"
+            )
+
+        session = self._sessionmaker()
+        try:
+            yield session
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+
+# sessionmanager = DatabaseSessionManager(settings.SYNC_DATABASE_URL)
+
+# Dependencies with yield - extra steps after finishing (session is automatically closed after the request finishes)
+# https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield
+# async def get_db_session():
+#    with sessionmanager.session() as session:
+#        yield session

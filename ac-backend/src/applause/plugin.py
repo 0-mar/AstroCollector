@@ -1,3 +1,4 @@
+from typing import AsyncGenerator
 from uuid import UUID
 
 from astropy.coordinates import SkyCoord
@@ -60,7 +61,7 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
 
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
-    ) -> list[ApplauseIdentificatorDto]:
+    ) -> AsyncGenerator[list[ApplauseIdentificatorDto]]:
         cone_search_query = f"""
         SELECT DISTINCT ON(ucac4_id) ucac4_id, raj2000, dej2000,
         DEGREES(SPOINT(RADIANS(raj2000), RADIANS(dej2000)) <-> SPOINT(RADIANS({coords.ra.deg}), RADIANS({coords.dec.deg}))) as angdist
@@ -71,9 +72,8 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
         result_table = await run_in_threadpool(
             self.__tap_query, cone_search_query, "PostgreSQL"
         )
-        obj_list = self.__get_object_data(plugin_id, result_table)
 
-        return obj_list
+        yield await run_in_threadpool(self.__get_object_data, plugin_id, result_table)
 
     def __get_object_data(
         self, plugin_id: UUID, result_table: Table
@@ -96,16 +96,14 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
 
     async def get_photometric_data(
         self, identificator: ApplauseIdentificatorDto
-    ) -> list[PhotometricDataDto]:
+    ) -> AsyncGenerator[list[PhotometricDataDto]]:
         lc_query = f"""SELECT ucac4_id,jd_mid, bmag, bmagerr, vmag, vmagerr FROM applause_dr3.lightcurve
         WHERE ucac4_id='{identificator.ucac4_id}'
         ORDER BY jd_mid"""
 
         result_table = await run_in_threadpool(self.__tap_query, lc_query, "PostgreSQL")
 
-        lc_list = self.__get_lc_data(result_table, identificator)
-
-        return lc_list
+        yield await run_in_threadpool(self.__get_lc_data, result_table, identificator)
 
     def __get_lc_data(
         self, lightcurve_table, identificator
@@ -119,7 +117,11 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
                     plugin_id=identificator.plugin_id,
                     julian_date=jd_mid,
                     magnitude=bmag,
-                    error=bmagerr,
+                    magnitude_error=bmagerr,
+                    v_magnitude=None,
+                    v_magnitude_error=None,
+                    b_magnitude=bmag,
+                    b_magnitude_error=bmagerr,
                 )
             )
 

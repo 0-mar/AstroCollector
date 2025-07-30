@@ -19,8 +19,13 @@ class Settings(BaseSettings):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def DATABASE_URL(self) -> str:
+    def ASYNC_DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@localhost:{self.DB_PORT}/{self.DB_NAME}"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def SYNC_DATABASE_URL(self) -> str:
+        return f"postgresql+psycopg3://{self.DB_USER}:{self.DB_PASSWORD}@localhost:{self.DB_PORT}/{self.DB_NAME}"
 
     model_config = SettingsConfigDict(
         env_file=(Path("../podman/.env"), Path(".env")),

@@ -4,6 +4,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, UploadFile
 
+from src.core.repository.repository import LIMIT
+from src.core.schemas import PaginationResponseDto
 from src.plugin.schemas import PluginDto, CreatePluginDto, UpdatePluginDto
 from src.plugin.service import PluginService
 
@@ -18,16 +20,17 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=list[PluginDto])
+@router.post("/list")
 async def list_plugins(
     service: PluginServiceDep,
     offset: int = 0,
+    count: int = LIMIT,
     filters: dict[str, Any] | None = None,
-) -> list[PluginDto]:
+) -> PaginationResponseDto[PluginDto]:
     """List plugins."""
     if filters is None:
         filters = {}
-    plugins = await service.list_plugins(offset, **filters)
+    plugins = await service.list_plugins(offset=offset, count=count, **filters)
     return plugins
 
 
