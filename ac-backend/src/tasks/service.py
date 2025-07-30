@@ -46,10 +46,7 @@ class StellarObjectService:
 
     async def _bulk_insert(self, session, data, mapping, task_id, table):
         values = await run_in_threadpool(
-            lambda data_list, map_fn, t_id: [map_fn(t_id, dto) for dto in data_list],
-            data,
-            mapping,
-            task_id,
+            lambda: [mapping(task_id, dto) for dto in data]
         )
         stmt = insert(table)
         await session.execute(stmt, values)
@@ -106,7 +103,12 @@ class StellarObjectService:
         return coords
 
     async def __cone_search(
-        self, plugin_id: UUID, coords: SkyCoord, radius_arcsec: float, task_id: UUID
+        self,
+        plugin_id: UUID,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        task_id: UUID,
+        discriminator: str,
     ) -> None:
         plugin_dto = await self._plugin_service.get_plugin(plugin_id)
         plugin = await self._plugin_service.get_plugin_instance(plugin_dto.id)
@@ -116,7 +118,11 @@ class StellarObjectService:
             await self._bulk_insert(
                 session,
                 data,
-                lambda t_id, dto: {"task_id": t_id, "identifier": dto.model_dump()},
+                lambda t_id, dto: {
+                    "type": discriminator,
+                    "task_id": t_id,
+                    "identifier": dto.model_dump(),
+                },
                 task_id,
                 StellarObjectIdentifier,
             )
