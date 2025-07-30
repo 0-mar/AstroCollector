@@ -1,5 +1,5 @@
 import csv
-from typing import List, Iterator, AsyncIterator, Any
+from typing import List, Iterator, AsyncIterator
 from uuid import UUID
 
 from astropy.coordinates import SkyCoord
@@ -19,37 +19,6 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         self.base_url = "https://api.starglass.cfa.harvard.edu/public"
         self.querycat_endpoint = f"{self.base_url}/dasch/dr7/querycat"
         self.lightcurve_endpoint = f"{self.base_url}/dasch/dr7/lightcurve"
-
-    async def _get_object_data(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
-    ) -> AsyncIterator[Any]:
-        query_body = {
-            "dec_deg": coords.dec.deg,
-            "ra_deg": coords.ra.deg,
-            "radius_arcsec": radius_arcsec,
-            "refcat": REFCAT_APASS,
-        }
-        async with self._http_client.post(
-            self.querycat_endpoint, json=query_body
-        ) as query_resp:
-            query_data = await query_resp.json()
-
-        reader = await run_in_threadpool(csv.reader, query_data)
-
-        header = next(reader)
-        object_ra_deg_idx = header.index("ra_deg")
-        object_dec_deg_idx = header.index("dec_deg")
-        gsc_bin_index_idx = header.index("gsc_bin_index")
-        ref_number_idx = header.index("ref_number")
-
-        while True:
-            yield (
-                reader,
-                object_ra_deg_idx,
-                object_dec_deg_idx,
-                gsc_bin_index_idx,
-                ref_number_idx,
-            )
 
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
@@ -200,10 +169,7 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
                     magnitude=mag,
                     magnitude_error=err,
                     plugin_id=plugin_id,
-                    b_magnitude=None,
-                    b_magnitude_error=None,
-                    v_magnitude=None,
-                    v_magnitude_error=None,
+                    light_filter=None,
                 )
             )
 

@@ -21,7 +21,4 @@ class PhotometricDataDto(BaseDto):
     julian_date: float
     magnitude: float
     magnitude_error: float
-    b_magnitude: float | None
-    b_magnitude_error: float | None
-    v_magnitude: float | None
-    v_magnitude_error: float | None
+    light_filter: str | None

@@ -2,7 +2,7 @@ import datetime
 from uuid import UUID
 
 import sqlalchemy
-from sqlalchemy import Double, func, DateTime
+from sqlalchemy import Double, func, DateTime, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -30,10 +30,7 @@ class PhotometricData(DbEntity):
     julian_date: Mapped[float] = mapped_column(Double, nullable=False)
     magnitude: Mapped[float] = mapped_column(Double, nullable=False)
     magnitude_error: Mapped[float] = mapped_column(Double, nullable=False)
-    b_magnitude: Mapped[float] = mapped_column(Double, nullable=True)
-    b_magnitude_error: Mapped[float] = mapped_column(Double, nullable=True)
-    v_magnitude: Mapped[float] = mapped_column(Double, nullable=True)
-    v_magnitude_error: Mapped[float] = mapped_column(Double, nullable=True)
+    light_filter: Mapped[str] = mapped_column(String, nullable=True)
 
 
 class StellarObjectIdentifier(DbEntity):
