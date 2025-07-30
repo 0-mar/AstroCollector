@@ -73,6 +73,7 @@ class Repository(Generic[Entity]):
         try:
             for key, value in update_data.items():
                 setattr(entity, key, value)
+
             await self._session.commit()
             await self._session.refresh(entity)
 
@@ -83,6 +84,14 @@ class Repository(Generic[Entity]):
             raise RepositoryException(
                 f"Failed to update entity with id {entity_id}"
             ) from e
+
+    async def bulk_insert(self, data: list[Entity]) -> None:
+        try:
+            self._session.add_all(data)
+            await self._session.commit()
+        except SQLAlchemyError as e:
+            await self._session.rollback()
+            raise RepositoryException("Failed to insert bulk data") from e
 
 
 def get_repository(

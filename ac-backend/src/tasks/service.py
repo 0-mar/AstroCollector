@@ -6,7 +6,6 @@ from astropy.coordinates import SkyCoord
 from astropy import units
 from fastapi import BackgroundTasks, Depends
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import insert
 
 from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
@@ -44,14 +43,6 @@ class StellarObjectService:
         self._task_repository = task_repository
         self._background_tasks = background_tasks
 
-    async def _bulk_insert(self, session, data, mapping, task_id, table):
-        values = await run_in_threadpool(
-            lambda: [mapping(task_id, dto) for dto in data]
-        )
-        stmt = insert(table)
-        await session.execute(stmt, values)
-        await session.commit()
-
     @staticmethod
     def _task(f):
         @functools.wraps(f)
@@ -68,20 +59,15 @@ class StellarObjectService:
     def _task_status(f):
         @functools.wraps(f)
         async def wrapper(self, task_id, *args, **kwargs):
-            print(f"tady {task_id}")
             try:
                 await f(self, task_id, *args, **kwargs)
             except Exception:
-                print("chyba")
-
-                result = await self._task_repository.update(
+                await self._task_repository.update(
                     task_id, {"status": TaskStatus.failed}
                 )
-                print(result)
+                raise
                 # TODO log error
             else:
-                print("fdastady")
-
                 await self._task_repository.update(
                     task_id, {"status": TaskStatus.completed}
                 )
@@ -108,24 +94,20 @@ class StellarObjectService:
         coords: SkyCoord,
         radius_arcsec: float,
         task_id: UUID,
-        discriminator: str,
     ) -> None:
         plugin_dto = await self._plugin_service.get_plugin(plugin_id)
         plugin = await self._plugin_service.get_plugin_instance(plugin_dto.id)
 
-        session = self._soi_repository.session()
         async for data in plugin.list_objects(coords, radius_arcsec, plugin_id):
-            await self._bulk_insert(
-                session,
-                data,
-                lambda t_id, dto: {
-                    "type": discriminator,
-                    "task_id": t_id,
-                    "identifier": dto.model_dump(),
-                },
-                task_id,
-                StellarObjectIdentifier,
+            values = await run_in_threadpool(
+                lambda: [
+                    StellarObjectIdentifier(
+                        identifier=dto.model_dump(), task_id=task_id
+                    )
+                    for dto in data
+                ]
             )
+            await self._soi_repository.bulk_insert(values)
 
     @_task
     @_task_status
@@ -171,15 +153,14 @@ class StellarObjectService:
         plugin = await self._plugin_service.get_plugin_instance(
             identificator_model.plugin_id
         )
-        session = self._pd_repository.session()
+
         async for data in plugin.get_photometric_data(identificator_model):
-            await self._bulk_insert(
-                session,
-                data,
-                lambda t_id, dto: {"task_id": t_id, **dto.model_dump()},
-                task_id,
-                PhotometricData,
+            values = await run_in_threadpool(
+                lambda: [
+                    PhotometricData(**dto.model_dump(), task_id=task_id) for dto in data
+                ]
             )
+            await self._pd_repository.bulk_insert(values)
 
     async def get_task_status(self, task_id: UUID) -> TaskStatus:
         task = await self._task_repository.get(task_id)

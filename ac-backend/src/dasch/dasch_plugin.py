@@ -85,6 +85,11 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
                 ref_number_idx,
                 plugin_id,
             )
+
+            if batch == []:
+                # Signals end of iterator
+                return
+
             yield batch
 
     def _process_objects_batch(
@@ -161,6 +166,10 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
                 err_idx,
                 identificator.plugin_id,
             )
+
+            if batch == []:
+                return
+
             yield batch
 
     def _process_photometric_data_batch(
@@ -191,6 +200,10 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
                     magnitude=mag,
                     magnitude_error=err,
                     plugin_id=plugin_id,
+                    b_magnitude=None,
+                    b_magnitude_error=None,
+                    v_magnitude=None,
+                    v_magnitude_error=None,
                 )
             )
 

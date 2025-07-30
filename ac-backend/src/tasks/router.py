@@ -1,14 +1,11 @@
-from typing import Annotated, Any
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
 from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
-    PhotometricDataDto,
 )
-from src.core.schemas import PaginationResponseDto
-from src.data_retrieval.schemas import StellarObjectIdentifierDto
 from src.data_retrieval.service import DataService
 from src.tasks.schemas import (
     ConeSearchRequestDto,
@@ -22,8 +19,8 @@ DataServiceDep = Annotated[DataService, Depends(DataService)]
 StellarObjectServiceDep = Annotated[StellarObjectService, Depends(StellarObjectService)]
 
 router = APIRouter(
-    prefix="/api/photometric-data",
-    tags=["photometric-data"],
+    prefix="/api/tasks",
+    tags=["tasks"],
     responses={404: {"description": "Not found"}},
 )
 
@@ -50,18 +47,7 @@ async def find_object(
     return TaskIdDto(task_id=task_id)
 
 
-@router.post("/object-identifiers")
-async def retrieve_objects_identifiers(
-    service: DataServiceDep, filters: dict[str, Any] | None = None
-) -> PaginationResponseDto[StellarObjectIdentifierDto]:
-    """List identifiers."""
-    if filters is None:
-        filters = {}
-    identifiers = await service.list_soi(**filters)
-    return identifiers
-
-
-@router.post("/submit-task/{plugin_id}/retrieve")
+@router.post("/submit-task/{plugin_id}/photometric-data")
 async def submit_retrieve_data(
     so_service: StellarObjectServiceDep,
     plugin_id: UUID,
@@ -72,13 +58,6 @@ async def submit_retrieve_data(
         identificator_model=identificator_model
     )
     return TaskIdDto(task_id=task_id)
-
-
-@router.post("/retrieve")
-async def retrieve_data(
-    service: DataServiceDep, filters: dict[str, Any] | None = None
-) -> PaginationResponseDto[PhotometricDataDto]:
-    return await service.list_photometric_data(**filters)
 
 
 @router.get("/task_status/{task_id}")

@@ -64,7 +64,7 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
         lightcurves: SearchResult = await run_in_threadpool(
             search_lightcurve,
             f"{self._get_target()} {identificator.id}",
-            mission="TESS",
+            # mission="TESS",
         )
 
         for lightcurve in lightcurves:
@@ -96,6 +96,10 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
                     julian_date=time.jd,
                     magnitude=mag,
                     magnitude_error=mag_err,
+                    v_magnitude=None,
+                    v_magnitude_error=None,
+                    b_magnitude=None,
+                    b_magnitude_error=None,
                 )
             )
 
