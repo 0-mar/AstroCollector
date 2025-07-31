@@ -13,6 +13,7 @@ dependencies = [
     "astroquery>=0.4.10",
     "asyncio>=3.4.3",
     "asyncpg>=0.30.0",
+    "beautifulsoup4>=4.13.4",
     "celery>=5.5.3",
     "fastapi>=0.115.12",
     "lightkurve>=2.5.1",
