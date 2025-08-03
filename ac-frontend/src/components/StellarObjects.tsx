@@ -45,7 +45,7 @@ export default function StellarObjects({taskId, setSelectedObjects, setLightCurv
         enabled: taskStatusQuery.data?.data.status === 'COMPLETED'
     })
 
-    const handleCheckboxChange = (isChecked, id, identifier) => {
+    /*const handleCheckboxChange = (isChecked, id, identifier) => {
         setSelectedObjects((prevState) => {
             console.log(isChecked)
             console.log(identifier)
@@ -60,7 +60,7 @@ export default function StellarObjects({taskId, setSelectedObjects, setLightCurv
 
             return updatedState
         })
-    }
+    }*/
 
     return (
         <>
@@ -81,7 +81,7 @@ export default function StellarObjects({taskId, setSelectedObjects, setLightCurv
                         {resultsQuery.data?.data.data.map(stellarObject =>
                             <tr key={stellarObject.id}>
                                 {/*<td><input id={"checkbox-" + stellarObject.id} type="checkbox" checked={false} onChange={e => handleCheckboxChange(e.target.checked, stellarObject.id, stellarObject.identifier)}/></td>*/}
-                                <td><Checkbox id={"checkbox-" + stellarObject.id} identifier={stellarObject.identifier} setSelectedObjects={setSelectedObjects} setLightCurveBtnDisabled={setLightCurveBtnDisabled}/></td>
+                                <td><Checkbox id={stellarObject.id} identifier={stellarObject.identifier} setSelectedObjects={setSelectedObjects} setLightCurveBtnDisabled={setLightCurveBtnDisabled}/></td>
                                 <td>{stellarObject.identifier.ra_deg}</td>
                                 <td>{stellarObject.identifier.dec_deg}</td>
                             </tr>)}
