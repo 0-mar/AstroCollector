@@ -1,6 +1,5 @@
-import '../styles.css'
-import StellarObjectsCatalogList from "@/components/StellarObjectsCatalogList.tsx";
 import {useState} from "react";
+import StellarObjectsCatalogList from "@/components/StellarObjectsCatalogList.tsx";
 import LightcurveSection from "@/components/LightcurveSection.tsx";
 
 export default function StellarObjectsTable({formData, pluginData}) {

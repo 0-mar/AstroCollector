@@ -1,4 +1,3 @@
-import '../styles.css'
 export default function SubmitButton(pluginQuery) {
     if (pluginQuery.isPending) {
         return <p>Loading plugins...</p>

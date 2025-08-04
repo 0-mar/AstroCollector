@@ -2,10 +2,10 @@ import {createFileRoute} from '@tanstack/react-router'
 import {useForm} from "react-hook-form"
 import {yupResolver} from "@hookform/resolvers/yup"
 import * as yup from "yup"
-import {axiosInstance} from "@/features/baseApi.ts";
 import {useQuery} from '@tanstack/react-query';
-import SubmitButton from "@/components/SubmitButton";
 import {useState} from "react";
+import {axiosInstance} from "@/features/baseApi.ts";
+import SubmitButton from "@/components/SubmitButton.tsx";
 import StellarObjectsTable from "@/components/StellarObjectsTable.tsx";
 
 

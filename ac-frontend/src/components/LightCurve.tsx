@@ -1,6 +1,17 @@
 import {useQueries, useQuery} from "@tanstack/react-query";
-import {axiosInstance} from "@/features/baseApi.ts";
 import {useEffect, useState} from "react";
+import {axiosInstance} from "@/features/baseApi.ts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../components/ui/tabs"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/../components/ui/table"
+import LightCurvePlot from "@/components/LightCurvePlot.tsx";
+
 
 export default function LightCurve({taskIds}) {
     const taskStatusQueries = useQueries({
@@ -47,7 +58,37 @@ export default function LightCurve({taskIds}) {
 
     return (
         <>
-            {lightCurveData.map(lcData => <p>{JSON.stringify(lcData)}</p>)}
+            <Tabs defaultValue="lightcurve">
+                <TabsList>
+                    <TabsTrigger value="lightcurve">Light Curve</TabsTrigger>
+                    <TabsTrigger value="datatable">Data table</TabsTrigger>
+                </TabsList>
+                <TabsContent value="lightcurve">
+                    <LightCurvePlot lightCurveData={lightCurveData}></LightCurvePlot>
+                </TabsContent>
+                <TabsContent value="datatable">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Julian Date</TableHead>
+                                <TableHead>Magnitude</TableHead>
+                                <TableHead>Magnitude error</TableHead>
+                                <TableHead>Light filter</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {lightCurveData.map((lcData) =>
+                                <TableRow>
+                                    <TableCell>{lcData.julian_date}</TableCell>
+                                    <TableCell>{lcData.magnitude}</TableCell>
+                                    <TableCell>{lcData.magnitude_error}</TableCell>
+                                    <TableCell>{lcData.light_filter === null ? '' : lcData.light_filter}</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </TabsContent>
+            </Tabs>
         </>
     )
 }
