@@ -1,6 +1,8 @@
 import Plot from 'react-plotly.js';
+import * as React from "react";
 
-export default function LightCurvePlot({lightCurveData}) {
+function LightCurvePlot({lightCurveData}) {
+
     const jd = lightCurveData.map((data) => data.julian_date);
     const mag = lightCurveData.map((point) => point.magnitude);
     const magError = lightCurveData.map((point) => point.magnitude_error);
@@ -48,3 +50,6 @@ export default function LightCurvePlot({lightCurveData}) {
         />
     );
 }
+
+// prevent the plot from rerendering, when the data has not changed
+export default React.memo(LightCurvePlot);

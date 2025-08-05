@@ -44,23 +44,6 @@ export default function StellarObjects({taskId, setSelectedObjects, setLightCurv
         enabled: taskStatusQuery.data?.data.status === 'COMPLETED'
     })
 
-    /*const handleCheckboxChange = (isChecked, id, identifier) => {
-        setSelectedObjects((prevState) => {
-            console.log(isChecked)
-            console.log(identifier)
-            const updatedState = {...prevState}
-            if (isChecked) {
-                updatedState[id] = identifier
-            } else {
-                delete updatedState[id]
-            }
-            console.log(updatedState)
-            setLightCurveBtnDisabled(Object.keys(updatedState).length === 0)
-
-            return updatedState
-        })
-    }*/
-
     return (
         <>
             {taskStatusQuery.data?.data.status === 'IN_PROGRESS' && <p>Querying for data in the catalog...</p>}

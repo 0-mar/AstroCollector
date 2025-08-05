@@ -1,15 +1,15 @@
 import {useQueries} from "@tanstack/react-query";
 import {axiosInstance} from "@/features/baseApi.ts";
 import LightCurve from "@/components/LightCurve.tsx";
+import {zip} from "@/utils/zip.ts";
 
 export default function LightcurveSection({selectedObjectIdentifiers}) {
-    console.log(JSON.stringify(selectedObjectIdentifiers))
     const lightcurveTaskQueries = useQueries({
-        queries: Object.keys(selectedObjectIdentifiers).map((id) => {
-            const identifier = selectedObjectIdentifiers[id]
+        queries: Object.values(selectedObjectIdentifiers).map((identifier) => {
             return {
-                queryKey: ['objectIdentifier', id],
+                queryKey: ['objectIdentifier', `${identifier.plugin_id}_${identifier.ra_deg}_${identifier.dec_deg}`],
                 queryFn: () => axiosInstance.post(`/tasks/submit-task/${identifier.plugin_id}/photometric-data`, identifier),
+                staleTime: 1000 * 60 * 5
             }
         }),
     });
@@ -32,6 +32,9 @@ export default function LightcurveSection({selectedObjectIdentifiers}) {
                     taskIds={lightcurveTaskQueries
                         .filter((query) => query.isSuccess)
                         .map((query) => query.data.data.task_id)}
+                    objectIdentifiers={zip(lightcurveTaskQueries, Object.values(selectedObjectIdentifiers))
+                        .filter(([query, identifier]) => query.isSuccess)
+                        .map(([query, identifier]) => identifier)}
                 />
             )}
         </>

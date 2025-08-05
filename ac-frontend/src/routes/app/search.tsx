@@ -26,13 +26,11 @@ const schema = yup
         const hasCoords = value.rightAscension != null && value.declination != null && value.radius != null
 
         if ((hasObjectName && hasCoords) || (!hasObjectName && !hasCoords)) {
-            console.log("nok")
             return this.createError({
                 message: 'Provide object name, or coordinates and radius',
                 path: "global",
             });
         }
-        console.log("ok")
         return true;
     })
 
