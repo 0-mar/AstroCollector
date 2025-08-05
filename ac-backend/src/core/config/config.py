@@ -1,4 +1,6 @@
+import logging
 from pathlib import Path
+from typing import Any
 
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,6 +19,8 @@ class Settings(BaseSettings):
     DB_NAME: str = Field(..., alias="POSTGRES_DB")
     CACHE_PORT: str = Field(..., alias="REDIS_PORT")
 
+    LOGGING_CONSOLE_LEVEL: int = logging.INFO
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def ASYNC_DATABASE_URL(self) -> str:
@@ -26,6 +30,36 @@ class Settings(BaseSettings):
     @property
     def SYNC_DATABASE_URL(self) -> str:
         return f"postgresql+psycopg3://{self.DB_USER}:{self.DB_PASSWORD}@localhost:{self.DB_PORT}/{self.DB_NAME}"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def LOGGING_CONFIG(self) -> dict[str, Any]:
+        return {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "base": {
+                    "()": "uvicorn.logging.DefaultFormatter",
+                    "fmt": "%(asctime)s : %(name)s : %(levelname)s : %(message)s",
+                }
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "level": self.LOGGING_CONSOLE_LEVEL,
+                    "formatter": "base",
+                    "stream": "ext://sys.stdout",
+                },
+            },
+            "loggers": {
+                "root": {
+                    "level": "DEBUG",
+                    "handlers": [
+                        "console",
+                    ],
+                },
+            },
+        }
 
     model_config = SettingsConfigDict(
         env_file=(Path("../podman/.env"), Path(".env")),

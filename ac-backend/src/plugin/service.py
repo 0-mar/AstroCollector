@@ -6,6 +6,7 @@ import uuid
 from uuid import UUID
 from collections.abc import Iterator
 from pathlib import Path
+import logging
 
 import importlib
 import pkgutil
@@ -36,6 +37,8 @@ PLUGIN_DIR = Path.joinpath(Path(__file__).parent.parent.parent, "plugins").resol
 
 # What about plugin cache?
 # https://stackoverflow.com/questions/65041691/is-python-dictionary-async-safe
+
+logger = logging.getLogger(__name__)
 
 
 class PluginService:
@@ -73,10 +76,12 @@ class PluginService:
     ) -> Optional[PhotometricCataloguePlugin[StellarObjectIdentificatorDto]]:
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None:
+            logger.error(f"Could not load spec from {file_path}")
             raise ImportError(f"Could not load spec from {file_path}")
         plugin_module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = plugin_module
         if spec.loader is None:
+            logger.error(f"Could not load loader from {file_path}")
             raise ImportError(f"Could not load loader from {file_path}")
         spec.loader.exec_module(plugin_module)
 
@@ -89,7 +94,7 @@ class PluginService:
                 and cls is not PhotometricCataloguePlugin
                 and cls is not MastPlugin
             ):
-                print(f"Found plugin class: {cls.__module__}.{cls.__name__}")
+                logger.info(f"Found plugin class: {cls.__module__}.{cls.__name__}")
                 return cls()
 
         return None
