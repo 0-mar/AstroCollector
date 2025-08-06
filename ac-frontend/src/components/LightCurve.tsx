@@ -1,6 +1,6 @@
 import {useQueries, useQuery} from "@tanstack/react-query";
 import {useEffect, useState} from "react";
-import {axiosInstance} from "@/features/baseApi.ts";
+import {axiosInstance} from "@/features/api/baseApi.ts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../components/ui/tabs"
 import {
     Table,

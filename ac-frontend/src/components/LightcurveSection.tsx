@@ -1,5 +1,5 @@
 import {useQueries} from "@tanstack/react-query";
-import {axiosInstance} from "@/features/baseApi.ts";
+import {axiosInstance} from "@/features/api/baseApi.ts";
 import LightCurve from "@/components/LightCurve.tsx";
 import {zip} from "@/utils/zip.ts";
 

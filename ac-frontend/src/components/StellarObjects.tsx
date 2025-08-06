@@ -1,6 +1,6 @@
 import {useQuery} from "@tanstack/react-query";
 import {useState} from "react";
-import {axiosInstance} from "@/features/baseApi.ts";
+import {axiosInstance} from "@/features/api/baseApi.ts";
 
 const Checkbox = ({id, identifier, setSelectedObjects, setLightCurveBtnDisabled}) => {
     const [checked, setChecked] = useState(false);

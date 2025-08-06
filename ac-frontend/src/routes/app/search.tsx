@@ -4,7 +4,7 @@ import {yupResolver} from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import {useQuery} from '@tanstack/react-query';
 import {useState} from "react";
-import {axiosInstance} from "@/features/baseApi.ts";
+import {axiosInstance} from "@/features/api/baseApi.ts";
 import SubmitButton from "@/components/SubmitButton.tsx";
 import StellarObjectsTable from "@/components/StellarObjectsTable.tsx";
 

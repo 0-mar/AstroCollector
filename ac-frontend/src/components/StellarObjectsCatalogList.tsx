@@ -1,6 +1,6 @@
 import '../styles.css'
 import {useQuery} from "@tanstack/react-query";
-import {axiosInstance} from "@/features/baseApi.ts";
+import {axiosInstance} from "@/features/api/baseApi.ts";
 import StellarObjects from "@/components/StellarObjects.tsx";
 
 export default function StellarObjectsCatalogList({formData, plugin, setSelectedObjects, setLightCurveBtnDisabled}) {
