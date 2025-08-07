@@ -22,16 +22,18 @@ type IdentifierCheckboxProps = {
     id: string,
     identifier: StellarObjectIdentifierDto,
     setSelectedObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>,
-    setLightCurveBtnDisabled: React.Dispatch<React.SetStateAction<boolean>>
+    setLightCurveBtnDisabled: React.Dispatch<React.SetStateAction<boolean>>,
+    initialChecked: boolean
 };
 
 const IdentifierCheckbox = ({
                                 id,
                                 identifier,
                                 setSelectedObjectIdentifiers,
-                                setLightCurveBtnDisabled
+                                setLightCurveBtnDisabled,
+                                initialChecked
                             }: IdentifierCheckboxProps) => {
-    const [checked, setChecked] = useState(false);
+    const [checked, setChecked] = useState(initialChecked);
 
     const handleCheckedChange = (isChecked: boolean) => {
         setChecked(isChecked)
@@ -60,6 +62,7 @@ const IdentifierCheckbox = ({
 type StellarObjectsListProps = {
     formData: SearchValues,
     plugin: PluginDto,
+    selectedObjectIdentifiers: Identifiers,
     setSelectedObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>,
     setLightCurveBtnDisabled: React.Dispatch<React.SetStateAction<boolean>>
 };
@@ -68,6 +71,7 @@ type StellarObjectsListProps = {
 const StellarObjectsList = ({
                                 formData,
                                 plugin,
+                                selectedObjectIdentifiers,
                                 setSelectedObjectIdentifiers,
                                 setLightCurveBtnDisabled
                             }: StellarObjectsListProps) => {
@@ -102,6 +106,7 @@ const StellarObjectsList = ({
             }
             return data.status === TaskStatus.COMPLETED || data.status === TaskStatus.FAILED ? false : 1000;
         },
+        staleTime: Infinity,
         enabled: taskQuery.isSuccess
     });
 
@@ -163,7 +168,7 @@ const StellarObjectsList = ({
                 {stellarObjectsResultsQuery.data.data.map((identifier) =>
                     <TableRow key={identifier.id}>
                         <TableCell>
-                            <IdentifierCheckbox id={identifier.id} identifier={identifier.identifier}
+                            <IdentifierCheckbox id={identifier.id} identifier={identifier.identifier} initialChecked={selectedObjectIdentifiers.hasOwnProperty(identifier.id)}
                                                 setSelectedObjectIdentifiers={setSelectedObjectIdentifiers}
                                                 setLightCurveBtnDisabled={setLightCurveBtnDisabled}/>
                         </TableCell>

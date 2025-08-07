@@ -5,17 +5,13 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/../components/ui/tabs"
 import StellarObjectsList from "@/components/search/menu/StellarObjectsList.tsx";
 import {Button} from "@/../components/ui/button"
 import LoadingError from "@/components/loading/LoadingError.tsx";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {useQueryClient} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 
 type StellarObjectsMenuProps = {
     formData: SearchValues
     pluginData: PluginDto[]
-    lightCurveBtnDisabled: boolean
-    setLightCurveBtnDisabled: React.Dispatch<React.SetStateAction<boolean>>
-    selectedObjectIdentifiers: Identifiers
-    setSelectedObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>
     setLightcurveSectionVisible: React.Dispatch<React.SetStateAction<boolean>>
     setCurrentObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>
 };
@@ -23,13 +19,12 @@ type StellarObjectsMenuProps = {
 const StellarObjectsMenu = ({
                                 formData,
                                 pluginData,
-                                lightCurveBtnDisabled,
-                                setLightCurveBtnDisabled,
-                                selectedObjectIdentifiers,
-                                setSelectedObjectIdentifiers,
                                 setLightcurveSectionVisible,
                                 setCurrentObjectIdentifiers
                             }: StellarObjectsMenuProps) => {
+
+    const [selectedObjectIdentifiers, setSelectedObjectIdentifiers] = useState<Identifiers>({})
+    const [lightCurveBtnDisabled, setLightCurveBtnDisabled] = useState(true)
 
     const queryClient = useQueryClient();
     useEffect(() => {
@@ -61,7 +56,7 @@ const StellarObjectsMenu = ({
     }
 
     return (
-        <div>
+        <>
             <Tabs defaultValue={pluginData[0].id}>
                 <TabsList>
                     {pluginData.map(plugin =>
@@ -72,6 +67,7 @@ const StellarObjectsMenu = ({
                 {pluginData.map(plugin =>
                     <TabsContent key={`content_${plugin.id}`} value={plugin.id}>
                         <StellarObjectsList formData={formData} plugin={plugin}
+                                            selectedObjectIdentifiers={selectedObjectIdentifiers}
                                             setSelectedObjectIdentifiers={setSelectedObjectIdentifiers}
                                             setLightCurveBtnDisabled={setLightCurveBtnDisabled}/>
                     </TabsContent>)}
@@ -79,11 +75,12 @@ const StellarObjectsMenu = ({
             <Button disabled={lightCurveBtnDisabled} onClick={() => {
                 setLightcurveSectionVisible(true);
                 setCurrentObjectIdentifiers(selectedObjectIdentifiers);
+                console.log(selectedObjectIdentifiers);
             }}>
                 Show light curve
             </Button>
 
-        </div>
+        </>
     )
 }
 
