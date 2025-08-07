@@ -83,12 +83,13 @@ const StellarObjectsList = ({
     const endpoint = formData.objectName !== "" ? "find-object" : "cone-search"
 
     const taskQuery = useQuery({
-        queryKey: [`plugin_${plugin.id}`],
+        queryKey: [`plugin_${plugin.id}`, formData],
         queryFn: () => BaseApi.post<SubmitTaskDto>("/tasks/submit-task/" + plugin.id + "/" + endpoint, body),
+        staleTime: Infinity
     })
 
     const taskStatusQuery = useQuery({
-        queryKey: [`task_plugin_${plugin.id}`],
+        queryKey: [`task_plugin_${plugin.id}`, formData],
         queryFn: () => {
             // get task ID. The ID will be ALWAYS present, since the query starts only when the taskQuery was successful
             const taskId = taskQuery.data?.task_id
@@ -105,13 +106,14 @@ const StellarObjectsList = ({
     });
 
     const stellarObjectsResultsQuery = useQuery({
-        queryKey: [`task_plugin_${plugin.id}_results`],
+        queryKey: [`task_plugin_${plugin.id}_results`, formData],
         queryFn: () => {
             // get task ID. The ID will be ALWAYS present, since the query starts only when the taskQuery was successful
             const taskId = taskQuery.data?.task_id
             return BaseApi.post<PaginationResponse<Identifier>>(`/retrieve/object-identifiers/${taskId}`, {task_id: taskId})
         },
-        enabled: taskStatusQuery.data?.status === TaskStatus.COMPLETED
+        enabled: taskStatusQuery.data?.status === TaskStatus.COMPLETED,
+        staleTime: Infinity
     });
 
 

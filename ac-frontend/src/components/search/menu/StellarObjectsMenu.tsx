@@ -5,6 +5,9 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/../components/ui/tabs"
 import StellarObjectsList from "@/components/search/menu/StellarObjectsList.tsx";
 import {Button} from "@/../components/ui/button"
 import LoadingError from "@/components/loading/LoadingError.tsx";
+import {useEffect} from "react";
+import {useQueryClient} from "@tanstack/react-query";
+import BaseApi from "@/features/api/baseApi.ts";
 
 type StellarObjectsMenuProps = {
     formData: SearchValues
@@ -27,6 +30,31 @@ const StellarObjectsMenu = ({
                                 setLightcurveSectionVisible,
                                 setCurrentObjectIdentifiers
                             }: StellarObjectsMenuProps) => {
+
+    const queryClient = useQueryClient();
+    useEffect(() => {
+        pluginData.forEach(plugin => {
+            console.log("Prefetching plugin", plugin.id);
+            const body = formData.objectName !== "" ?
+                {name: formData.objectName, plugin_id: plugin.id} :
+                {
+                    right_ascension_deg: formData.rightAscension,
+                    declination_deg: formData.declination,
+                    radius: formData.radius,
+                    plugin_id: plugin.id
+                };
+
+            const endpoint = formData.objectName !== "" ? "find-object" : "cone-search";
+
+            // Prefetch Submit Task (same as taskQuery)
+            queryClient.prefetchQuery({
+                queryKey: [`plugin_${plugin.id}`, formData],
+                queryFn: () => BaseApi.post("/tasks/submit-task/" + plugin.id + "/" + endpoint, body),
+                staleTime: Infinity
+            });
+        });
+    }, [pluginData, formData, queryClient]);
+
     if (pluginData.length === 0) {
         return <LoadingError title={"Database contains no catalogs"}
                              description={"Please contact the admins to add catalogs to the database."}/>
