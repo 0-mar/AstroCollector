@@ -1,3 +1,6 @@
+import logging
+import logging.config
+
 from aiocache import Cache
 from fastapi import FastAPI
 
@@ -8,9 +11,12 @@ from src.plugin import router as plugin_router
 from src.data_retrieval import router as data_router
 from fastapi.middleware.cors import CORSMiddleware
 
+logger = logging.getLogger(__name__)
+
 
 async def on_start_up() -> None:
     HttpClient()
+    logging.config.dictConfig(settings.LOGGING_CONFIG)
 
 
 async def on_shutdown() -> None:

@@ -1,9 +1,16 @@
 import Plot from 'react-plotly.js';
+import * as React from "react";
+import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
 
-export default function LightCurvePlot({lightCurveData}) {
+type LightCurvePlotProps = {
+    lightCurveData: PhotometricDataDto[]
+}
+
+const LightCurvePlot = ({lightCurveData}: LightCurvePlotProps) => {
+
     const jd = lightCurveData.map((data) => data.julian_date);
-    const mag = lightCurveData.map((point) => point.magnitude);
-    const magError = lightCurveData.map((point) => point.magnitude_error);
+    const mag = lightCurveData.map((data) => data.magnitude);
+    const magError = lightCurveData.map((data) => data.magnitude_error);
 
     return (
         <Plot
@@ -48,3 +55,6 @@ export default function LightCurvePlot({lightCurveData}) {
         />
     );
 }
+
+// prevent the plot from rerendering, when the data has not changed
+export default React.memo(LightCurvePlot);
