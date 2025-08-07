@@ -10,7 +10,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/../components/ui/table"
-import LightCurvePlot from "@/components/LightCurvePlot.tsx";
+import LightCurvePlot from "@/components/search/lightcurve/LightCurvePlot.tsx";
 
 
 export default function LightCurve({taskIds, objectIdentifiers}) {
