@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppTestRouteImport } from './routes/app/test'
 import { Route as AppSearchRouteImport } from './routes/app/search'
 
 const AppRouteRoute = AppRouteRouteImport.update({
@@ -24,11 +23,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppTestRoute = AppTestRouteImport.update({
-  id: '/test',
-  path: '/test',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppSearchRoute = AppSearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -39,27 +33,24 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/app/search': typeof AppSearchRoute
-  '/app/test': typeof AppTestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/app/search': typeof AppSearchRoute
-  '/app/test': typeof AppTestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/app/search': typeof AppSearchRoute
-  '/app/test': typeof AppTestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/app/search' | '/app/test'
+  fullPaths: '/' | '/app' | '/app/search'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/app/search' | '/app/test'
-  id: '__root__' | '/' | '/app' | '/app/search' | '/app/test'
+  to: '/' | '/app' | '/app/search'
+  id: '__root__' | '/' | '/app' | '/app/search'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -83,13 +74,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/test': {
-      id: '/app/test'
-      path: '/test'
-      fullPath: '/app/test'
-      preLoaderRoute: typeof AppTestRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/app/search': {
       id: '/app/search'
       path: '/search'
@@ -102,12 +86,10 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteRouteChildren {
   AppSearchRoute: typeof AppSearchRoute
-  AppTestRoute: typeof AppTestRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSearchRoute: AppSearchRoute,
-  AppTestRoute: AppTestRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
