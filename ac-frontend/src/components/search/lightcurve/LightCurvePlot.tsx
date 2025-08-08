@@ -33,7 +33,7 @@ const LightCurvePlot = ({lightCurveData}: LightCurvePlotProps) => {
                 },
             ]}
             layout={{
-                title: "Light Curve",
+                title: {text: "Light Curve"},
                 xaxis: {
                     title: "Julian Date",
                     type: "linear",

@@ -4,19 +4,31 @@ Built with *Python 3.13.5*, using the UV package manager
 ## DEV - Running the app
 Start services, such as the DB
 ```shell
-cd ../podman
+cd ../dev
 podman-compose up -d
 cd ../ac-backend
 ```
 
 Then apply migrations
 ```shell
+POSTGRES_USER=postgres \
+POSTGRES_PASSWORD=postgres \
+POSTGRES_PORT=5432 \
+POSTGRES_DB=astrocollectordb \
+POSTGRES_HOST=localhost \
+REDIS_PORT=6379 \
 alembic upgrade head
 ```
 
 Run the app with
 ```shell
 source .venv/bin/activate
+POSTGRES_USER=postgres \
+POSTGRES_PASSWORD=postgres \
+POSTGRES_PORT=5432 \
+POSTGRES_DB=astrocollectordb \
+POSTGRES_HOST=localhost \
+REDIS_PORT=6379 \
 python -m uvicorn src.main:app --reload
 ```
 

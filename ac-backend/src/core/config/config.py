@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     DB_PASSWORD: str = Field(..., alias="POSTGRES_PASSWORD")
     DB_PORT: int = Field(..., alias="POSTGRES_PORT")
     DB_NAME: str = Field(..., alias="POSTGRES_DB")
+    DB_HOST: str = Field(..., alias="POSTGRES_HOST")
     CACHE_PORT: str = Field(..., alias="REDIS_PORT")
 
     LOGGING_CONSOLE_LEVEL: int = logging.INFO
@@ -24,12 +25,12 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def ASYNC_DATABASE_URL(self) -> str:
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@localhost:{self.DB_PORT}/{self.DB_NAME}"
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SYNC_DATABASE_URL(self) -> str:
-        return f"postgresql+psycopg3://{self.DB_USER}:{self.DB_PASSWORD}@localhost:{self.DB_PORT}/{self.DB_NAME}"
+        return f"postgresql+psycopg3://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -62,7 +63,7 @@ class Settings(BaseSettings):
         }
 
     model_config = SettingsConfigDict(
-        env_file=(Path("../podman/.env"), Path(".env")),
+        env_file=(Path(".env")),
         env_file_encoding="utf-8",
         populate_by_name=True,
     )

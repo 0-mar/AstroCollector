@@ -1,0 +1,61 @@
+services:
+  database:
+    image: docker.io/postgres:latest
+    container_name: ac-database
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ac
+    volumes:
+      - database:/var/lib/postgresql/data/
+
+  redis:
+    image: docker.io/redis:latest
+
+  api:
+    build:
+      context: ../ac-backend
+      args:
+        PRODUCTION: ${PRODUCTION}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      REDIS_PORT: ${REDIS_PORT}
+    container_name: ac-api
+    ports:
+      - "${API_PORT}:8082"
+    networks:
+      - ac
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../ac-frontend
+      args:
+        PRODUCTION: ${PRODUCTION}
+
+    container_name: ac-frontend
+    ports:
+      - "${WEB_PORT}:80"
+    networks:
+      - ac
+    depends_on:
+      - api
+
+networks:
+  ac:
+
+volumes:
+  database:
