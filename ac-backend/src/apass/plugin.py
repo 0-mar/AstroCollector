@@ -89,7 +89,8 @@ class ApassPlugin(PhotometricCataloguePlugin[ApassIdentificatorDto]):
             values = record.split(",")
             result.append(
                 PhotometricDataDto(
-                    julian_date=float(values[0]),
+                    julian_date=float(values[0])
+                    + 2400000,  # hjd-24e5 = HJD - 2 400 000
                     magnitude=float(values[1]),
                     magnitude_error=float(values[2]),
                     plugin_id=plugin_id,

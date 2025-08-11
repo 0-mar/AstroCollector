@@ -97,7 +97,7 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
     async def get_photometric_data(
         self, identificator: ApplauseIdentificatorDto
     ) -> AsyncGenerator[list[PhotometricDataDto]]:
-        lc_query = f"""SELECT ucac4_id,jd_mid, bmag, bmagerr, vmag, vmagerr FROM applause_dr3.lightcurve
+        lc_query = f"""SELECT ucac4_id,hjd_mid, bmag, bmagerr, vmag, vmagerr FROM applause_dr3.lightcurve
         WHERE ucac4_id='{identificator.ucac4_id}'
         ORDER BY jd_mid"""
 
@@ -109,16 +109,26 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
         self, lightcurve_table, identificator
     ) -> list[PhotometricDataDto]:
         results: list[PhotometricDataDto] = []
-        for jd_mid, bmag, bmagerr in lightcurve_table.iterrows(
-            "jd_mid", "bmag", "bmagerr"
+        for hjd_mid, bmag, bmagerr, vmag, vmagerr in lightcurve_table.iterrows(
+            "hjd_mid", "bmag", "bmagerr", "vmag", "vmagerr"
         ):
             results.append(
                 PhotometricDataDto(
                     plugin_id=identificator.plugin_id,
-                    julian_date=jd_mid,
+                    julian_date=hjd_mid,
                     magnitude=bmag,
                     magnitude_error=bmagerr,
                     light_filter="B",
+                )
+            )
+
+            results.append(
+                PhotometricDataDto(
+                    plugin_id=identificator.plugin_id,
+                    julian_date=hjd_mid,
+                    magnitude=vmag,
+                    magnitude_error=vmagerr,
+                    light_filter="V",
                 )
             )
 
