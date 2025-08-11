@@ -6,10 +6,18 @@ from astropy.coordinates import SkyCoord
 from fastapi.concurrency import run_in_threadpool
 
 from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
-from src.core.integration.schemas import PhotometricDataDto
-from src.dasch.dasch_identificator_model import DaschStellarObjectIdentificatorDto
+from src.core.integration.schemas import (
+    PhotometricDataDto,
+    StellarObjectIdentificatorDto,
+)
+
 
 REFCAT_APASS = "apass"
+
+
+class DaschStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
+    gsc_bin_index: int
+    ref_number: int
 
 
 class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]):

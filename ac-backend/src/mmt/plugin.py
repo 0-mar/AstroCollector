@@ -80,6 +80,8 @@ class Mmt9Plugin(PhotometricCataloguePlugin[Mmt9IdentificatorDto]):
     ) -> List[PhotometricDataDto]:
         result: list[PhotometricDataDto] = []
 
+        # TODO convert time units to HJD / or convert times from other sources to BJD_TDB
+
         for record in data.lcs:
             for i in range(len(record["mags"])):
                 result.append(
