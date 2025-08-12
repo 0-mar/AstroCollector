@@ -72,7 +72,6 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
 
     // TODO: Pagination
     const [lightCurveData, setLightCurveData] = useState<PhotometricDataDto[]>([])
-    const [bands, setBands] = useState<string[]>([])
 
     // FIXME: BUG: sometimes when changing between table and plot tabs and changing selected objects, after clicking Show lightcurve the data does not change
     useEffect(() => {
