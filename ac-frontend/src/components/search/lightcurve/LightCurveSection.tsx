@@ -3,18 +3,22 @@ import BaseApi from "@/features/api/baseApi.ts";
 import type {Identifiers} from "@/features/search/menu/types.ts";
 import {type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/api/types.ts";
 import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import type {PaginationResponse} from "@/features/api/types.ts";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../../../../components/ui/tabs.tsx";
 import LightCurvePlot from "@/components/search/lightcurve/LightCurvePlot.tsx";
 import LightCurveTable from "@/components/search/lightcurve/LightCurveTable.tsx";
+import LightCurvePanel from "@/components/search/lightcurve/LightCurvePanel.tsx";
+import type {PluginDto} from "@/features/search/types.ts";
 
 
 type LightCurveSectionProps = {
     currentObjectIdentifiers: Identifiers
+    pluginData: PluginDto[]
 }
 
-const LightCurveSection = ({currentObjectIdentifiers}: LightCurveSectionProps) => {
+
+const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSectionProps) => {
     const lightcurveTaskQueries = useQueries({
         queries: Object.values(currentObjectIdentifiers).map((identifier) => {
             return {
@@ -58,8 +62,17 @@ const LightCurveSection = ({currentObjectIdentifiers}: LightCurveSectionProps) =
         }),
     })
 
+    const pluginNames: Record<string, string> = useMemo(() => {
+        const names: Record<string, string> = {};
+        pluginData.forEach((plugin) => {
+            names[plugin.id] = plugin.name;
+        });
+        return names;
+    }, [pluginData])
+
     // TODO: Pagination
     const [lightCurveData, setLightCurveData] = useState<PhotometricDataDto[]>([])
+
     // FIXME: BUG: sometimes when changing between table and plot tabs and changing selected objects, after clicking Show lightcurve the data does not change
     useEffect(() => {
         const newData: PhotometricDataDto[] = [];
@@ -77,7 +90,8 @@ const LightCurveSection = ({currentObjectIdentifiers}: LightCurveSectionProps) =
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resultQueries.map((q) => q.status).join(",")]);
 
-
+    const [showErrorBars, setShowErrorBars] = useState(false)
+    const [groupBy, setGroupBy] = useState("sources")
     // TODO: Show errors/loading - but how exactly? As toasts or some kind of overlay?
 
     return (
@@ -88,7 +102,8 @@ const LightCurveSection = ({currentObjectIdentifiers}: LightCurveSectionProps) =
                     <TabsTrigger value="datatable">Data table</TabsTrigger>
                 </TabsList>
                 <TabsContent value="lightcurve">
-                    <LightCurvePlot lightCurveData={lightCurveData}></LightCurvePlot>
+                    <LightCurvePanel showErrorBars={showErrorBars} setShowErrorBars={setShowErrorBars} setGroupBy={setGroupBy} groupBy={groupBy}/>
+                    <LightCurvePlot showErrorBars={showErrorBars} pluginNames={pluginNames} lightCurveData={lightCurveData} groupBy={groupBy}></LightCurvePlot>
                 </TabsContent>
                 <TabsContent value="datatable">
                     <LightCurveTable lightCurveData={lightCurveData} />

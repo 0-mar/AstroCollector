@@ -75,7 +75,6 @@ const StellarObjectsMenu = ({
             <Button disabled={lightCurveBtnDisabled} onClick={() => {
                 setLightcurveSectionVisible(true);
                 setCurrentObjectIdentifiers(selectedObjectIdentifiers);
-                console.log(selectedObjectIdentifiers);
             }}>
                 Show light curve
             </Button>

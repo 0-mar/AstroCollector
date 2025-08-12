@@ -1,54 +1,148 @@
 import Plot from 'react-plotly.js';
 import * as React from "react";
 import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
+import {colorFromId} from "@/utils/color.ts";
+import {useMemo} from "react";
 
 type LightCurvePlotProps = {
+    showErrorBars: boolean,
+    pluginNames: Record<string, string>,
     lightCurveData: PhotometricDataDto[]
+    groupBy: string,
 }
 
-const LightCurvePlot = ({lightCurveData}: LightCurvePlotProps) => {
+type LCData = {
+    jds: number[],
+    mags: number[],
+    magErrors: number[],
+    bands: string[]
+}
 
-    const jd = lightCurveData.map((data) => data.julian_date);
-    const mag = lightCurveData.map((data) => data.magnitude);
-    const magError = lightCurveData.map((data) => data.magnitude_error);
+const unknownBand = "Unknown"
 
-    return (
-        <Plot
-            data={[
-                {
-                    x: jd,
-                    y: mag,
+
+const LightCurvePlot = ({showErrorBars, pluginNames, lightCurveData, groupBy}: LightCurvePlotProps) => {
+    const sourceGroupedLcData = useMemo(() => {
+        const groupedLcData: Record<string, LCData> = {};
+
+        lightCurveData.forEach((dto) => {
+            if (dto.plugin_id in groupedLcData) {
+                groupedLcData[dto.plugin_id].jds.push(dto.julian_date);
+                groupedLcData[dto.plugin_id].mags.push(dto.magnitude);
+                groupedLcData[dto.plugin_id].magErrors.push(dto.magnitude_error);
+                groupedLcData[dto.plugin_id].bands.push(dto.light_filter ?? unknownBand)
+            } else {
+                groupedLcData[dto.plugin_id] = {
+                    jds: [dto.julian_date],
+                    mags: [dto.magnitude],
+                    magErrors: [dto.magnitude_error],
+                    bands: [dto.light_filter ?? unknownBand]
+                }
+            }
+        });
+
+        return groupedLcData;
+    }, [lightCurveData])
+
+    const bandGroupedLcData = useMemo(() => {
+        const bandGroupedLcData: Record<string, LCData> = {};
+
+        lightCurveData.forEach((dto) => {
+            if ((dto.light_filter ?? unknownBand) in bandGroupedLcData) {
+                bandGroupedLcData[dto.light_filter ?? unknownBand].jds.push(dto.julian_date);
+                bandGroupedLcData[dto.light_filter ?? unknownBand].mags.push(dto.magnitude);
+                bandGroupedLcData[dto.light_filter ?? unknownBand].magErrors.push(dto.magnitude_error);
+                bandGroupedLcData[dto.light_filter ?? unknownBand].bands.push(dto.light_filter ?? unknownBand)
+            } else {
+                bandGroupedLcData[dto.light_filter ?? unknownBand] = {
+                    jds: [dto.julian_date],
+                    mags: [dto.magnitude],
+                    magErrors: [dto.magnitude_error],
+                    bands: [dto.light_filter ?? unknownBand]
+                }
+            }
+        });
+
+        return bandGroupedLcData;
+    }, [lightCurveData])
+
+
+    const plotData = useMemo(() => {
+        if (groupBy === "sources") {
+            return Object.entries(sourceGroupedLcData).map(([plugin_id, lcData]) => {
+                const hoverTemplate =
+                    showErrorBars ? ('JD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                    ) : (
+                        'JD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                    )
+                return {
+                    x: lcData.jds,
+                    y: lcData.mags,
+                    customdata: lcData.bands,
                     error_y: {
                         type: "data",
-                        array: magError,
-                        visible: true,
+                        array: lcData.magErrors,
+                        visible: showErrorBars,
                         // thickness: 1,
                         // width: 5,
                     },
                     type: "scattergl",
                     mode: "markers",
-                    // name: "Magnitude",
-                    // marker: { color: "blue", size: 6 },
+                    name: pluginNames[plugin_id],
+                    marker: { color: colorFromId(plugin_id)},
+                    hovertemplate: hoverTemplate
                     // line: { shape: "linear" },
+                }
+            });
+        }
+
+        return Object.entries(bandGroupedLcData).map(([band, lcData]) => {
+            const hoverTemplate =
+                showErrorBars ? ('JD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                ) : (
+                    'JD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                )
+            return {
+                x: lcData.jds,
+                y: lcData.mags,
+                customdata: lcData.bands,
+                error_y: {
+                    type: "data",
+                    array: lcData.magErrors,
+                    visible: showErrorBars,
+                    // thickness: 1,
+                    // width: 5,
                 },
-            ]}
+                type: "scattergl",
+                mode: "markers",
+                name: band,
+                marker: { color: colorFromId(band)},
+                hovertemplate: hoverTemplate
+                // line: { shape: "linear" },
+            }
+        });
+    }, [groupBy, showErrorBars, sourceGroupedLcData, bandGroupedLcData])
+
+    return (
+        <Plot
+            data={plotData}
             layout={{
                 title: {text: "Light Curve"},
                 xaxis: {
-                    title: "Julian Date",
+                    title: {text: "Julian Date"},
                     type: "linear",
                 },
                 yaxis: {
-                    title: "Magnitude",
-                    // autorange: "reversed", // Lower mag = brighter
+                    title: {text: "Magnitude"},
+                    autorange: "reversed", // Lower mag = brighter
                 },
                 dragmode: "pan",
                 //   hovermode: "closest",
             }}
             config={{
-                //   responsive: true,
+                responsive: true,
                 scrollZoom: true, // enables scroll zoom
-                //   displaylogo: false,
+                displaylogo: false,
                 //   modeBarButtonsToRemove: ["lasso2d", "select2d"],
             }}
             style={{ width: "100%", height: "500px" }}
