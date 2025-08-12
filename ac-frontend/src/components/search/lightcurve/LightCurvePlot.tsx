@@ -22,11 +22,6 @@ const unknownBand = "Unknown"
 
 
 const LightCurvePlot = ({showErrorBars, pluginNames, lightCurveData, groupBy}: LightCurvePlotProps) => {
-
-    //const jd = lightCurveData.map((data) => data.julian_date);
-    //const mag = lightCurveData.map((data) => data.magnitude);
-    //const magError = lightCurveData.map((data) => data.magnitude_error);
-
     const sourceGroupedLcData = useMemo(() => {
         const groupedLcData: Record<string, LCData> = {};
 
@@ -128,64 +123,6 @@ const LightCurvePlot = ({showErrorBars, pluginNames, lightCurveData, groupBy}: L
         });
     }, [groupBy, showErrorBars, sourceGroupedLcData, bandGroupedLcData])
 
-
-    /*const data: Record<string, LCData> = {};
-    lightCurveData.forEach((dto) => {
-        if (dto.plugin_id in data) {
-            data[dto.plugin_id].jds.push(dto.julian_date);
-            data[dto.plugin_id].mags.push(dto.magnitude);
-            data[dto.plugin_id].magErrors.push(dto.magnitude_error);
-        } else {
-            pluginColors[dto.plugin_id] = generateColor();
-            setPluginColors(pluginColors)
-            data[dto.plugin_id] = {
-                jds: [dto.julian_date],
-                mags: [dto.magnitude],
-                magErrors: [dto.magnitude_error],
-            }
-        }
-    });
-    console.log(pluginColors)
-
-    const plotData = Object.entries(data).map(([plugin_id, lcData]) => {
-        return {
-        x: lcData.jds,
-            y: lcData.mags,
-            error_y: {
-                type: "data",
-                array: lcData.magErrors,
-                visible: showErrorBars,
-                // thickness: 1,
-                // width: 5,
-            },
-            type: "scattergl",
-            mode: "markers",
-            name: plugin_id,
-            marker: { color: pluginColors[plugin_id]},
-            // line: { shape: "linear" },
-        }
-    });*/
-
-
-    /*[
-        {
-            x: jd,
-            y: mag,
-            error_y: {
-                type: "data",
-                array: magError,
-                visible: showErrorBars,
-                // thickness: 1,
-                // width: 5,
-            },
-            type: "scattergl",
-            mode: "markers",
-            // name: "Magnitude",
-            // marker: { color: "blue", size: 6 },
-            // line: { shape: "linear" },
-        },
-    ]*/
-
     return (
         <Plot
             data={plotData}
@@ -215,4 +152,3 @@ const LightCurvePlot = ({showErrorBars, pluginNames, lightCurveData, groupBy}: L
 
 // prevent the plot from rerendering, when the data has not changed
 export default React.memo(LightCurvePlot);
-// export default LightCurvePlot;
