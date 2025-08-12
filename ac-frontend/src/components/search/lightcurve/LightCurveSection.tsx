@@ -72,6 +72,7 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
 
     // TODO: Pagination
     const [lightCurveData, setLightCurveData] = useState<PhotometricDataDto[]>([])
+    const [bands, setBands] = useState<string[]>([])
 
     // FIXME: BUG: sometimes when changing between table and plot tabs and changing selected objects, after clicking Show lightcurve the data does not change
     useEffect(() => {
@@ -91,6 +92,7 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
     }, [resultQueries.map((q) => q.status).join(",")]);
 
     const [showErrorBars, setShowErrorBars] = useState(false)
+    const [groupBy, setGroupBy] = useState("sources")
     // TODO: Show errors/loading - but how exactly? As toasts or some kind of overlay?
 
     return (
@@ -101,8 +103,8 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                     <TabsTrigger value="datatable">Data table</TabsTrigger>
                 </TabsList>
                 <TabsContent value="lightcurve">
-                    <LightCurvePanel showErrorBars={showErrorBars} setShowErrorBars={setShowErrorBars}/>
-                    <LightCurvePlot showErrorBars={showErrorBars} pluginNames={pluginNames} lightCurveData={lightCurveData}></LightCurvePlot>
+                    <LightCurvePanel showErrorBars={showErrorBars} setShowErrorBars={setShowErrorBars} setGroupBy={setGroupBy} groupBy={groupBy}/>
+                    <LightCurvePlot showErrorBars={showErrorBars} pluginNames={pluginNames} lightCurveData={lightCurveData} groupBy={groupBy}></LightCurvePlot>
                 </TabsContent>
                 <TabsContent value="datatable">
                     <LightCurveTable lightCurveData={lightCurveData} />

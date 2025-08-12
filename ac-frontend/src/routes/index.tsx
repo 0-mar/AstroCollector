@@ -6,13 +6,6 @@ export const Route = createFileRoute('/')({
     component: App,
 })
 
-type LightCurvePoint = {
-    jd: number;         // Julian Date
-    mag: number;        // Magnitude
-    magError: number;   // Magnitude error
-};
-
-
 function App() {
     const data = [
         {jd: 2451545.0, mag: 12.3, magError: 0.1},
@@ -77,11 +70,27 @@ function App() {
                         marker: {color: "blue", size: 6},
                         line: {shape: "linear"},
                     },
+                    {
+                        x: jd,
+                        y: mag,
+                        error_y: {
+                            type: "data",
+                            array: magError,
+                            visible: true,
+                            // thickness: 1,
+                            // width: 5,
+                        },
+                        type: "scattergl",
+                        mode: "markers",
+                        name: "FDSFSD",
+                        marker: {color: "#3b547d", size: 9},
+                        line: {shape: "linear"},
+                    },
                 ]}
                 layout={{
                     title: "Light Curve",
                     xaxis: {
-                        title: "Julian Date",
+                        title: {text: "Julian Date"},
                         automargin: true
                         // type: "linear",
                     },
