@@ -35,7 +35,7 @@ function TestComponent() {
             </div>
             <div>
                 {lightcurveSectionVisible &&
-                    <LightCurveSection currentObjectIdentifiers={currentObjectIdentifiers}/>}
+                    <LightCurveSection currentObjectIdentifiers={currentObjectIdentifiers} pluginData={pluginData}/>}
             </div>
         </div>
     )
