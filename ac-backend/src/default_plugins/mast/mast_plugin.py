@@ -4,6 +4,7 @@ from typing import AsyncIterator, List
 from uuid import UUID
 
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 
 from fastapi.concurrency import run_in_threadpool
 from lightkurve import SearchResult, search_lightcurve, LightkurveError
@@ -14,11 +15,9 @@ from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
 )
 
-from astroquery.mast import Catalogs
-
 
 class MastStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
-    id: int
+    id: str
     dstArcSec: float
 
 
@@ -28,43 +27,60 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
 
     @abstractmethod
     def _get_target(self) -> str:
+        # TIC, KIC, EPIC
+        pass
+
+    @abstractmethod
+    def _get_mission(self) -> str:
+        # TESS, Kepler, K2
         pass
 
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
     ) -> AsyncIterator[List[MastStellarObjectIdentificatorDto]]:
-        # querymethod: https://astroquery.readthedocs.io/en/latest/api.html
-        table = await run_in_threadpool(
-            Catalogs.query_region,
+        sr: SearchResult = await run_in_threadpool(
+            search_lightcurve,
             coords,
             radius=radius_arcsec / 3600,
-            catalog=self._get_target(),
+            mission=self._get_mission(),
         )
+        if len(sr.table) == 0:
+            yield []
+        else:
+            mask = ["target_name", "s_ra", "s_dec", "distance"]
+            unique_targets = Table.from_pandas(
+                sr.table[mask]
+                .to_pandas()
+                .drop_duplicates("target_name")
+                .reset_index(drop=True)
+            )
 
-        results = await run_in_threadpool(
-            lambda: [
+            yield [
                 MastStellarObjectIdentificatorDto(
                     plugin_id=plugin_id,
-                    ra_deg=ra,
-                    dec_deg=dec,
-                    id=id,
-                    dstArcSec=dstArcSec,
+                    ra_deg=s_ra,
+                    dec_deg=s_dec,
+                    id=target_name,
+                    dstArcSec=float(distance),
                 )
-                for id, ra, dec, dstArcSec in table.iterrows(
-                    "ID", "ra", "dec", "dstArcSec"
+                for target_name, s_ra, s_dec, distance in unique_targets.iterrows(
+                    "target_name", "s_ra", "s_dec", "distance"
                 )
             ]
-        )
-
-        yield results
 
     async def get_photometric_data(
         self, identificator: MastStellarObjectIdentificatorDto
     ) -> AsyncIterator[list[PhotometricDataDto]]:
+        target = (
+            identificator.id
+            if not identificator.id.isdigit()
+            else f"{self._get_target()} {identificator.id}"
+        )
+
         lightcurves: SearchResult = await run_in_threadpool(
             search_lightcurve,
-            f"{self._get_target()} {identificator.id}",
-            # mission="TESS",
+            target,
+            mission=self._get_mission(),
         )
 
         for lightcurve in lightcurves:
