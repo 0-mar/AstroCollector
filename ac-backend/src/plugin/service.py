@@ -17,12 +17,12 @@ from fastapi import Depends, UploadFile
 import aiofiles
 from fastapi.concurrency import run_in_threadpool
 
-import plugins
+from src import default_plugins
 from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository, LIMIT
 from src.core.schemas import PaginationResponseDto
-from src.mast.mast_plugin import MastPlugin
+from src.default_plugins.mast.mast_plugin import MastPlugin
 from src.plugin.exceptions import NoPluginClassException
 from src.plugin.model import Plugin
 from src.plugin.schemas import (
@@ -47,29 +47,6 @@ class PluginService:
         self.plugins: dict[
             str, PhotometricCataloguePlugin[StellarObjectIdentificatorDto]
         ] = dict()
-
-    def discover_plugins(self) -> None:
-        # https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures
-        # https://mwax911.medium.com/building-a-plugin-architecture-with-python-7b4ab39ad4fc
-        # https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/
-        # https://www.guidodiepen.nl/2019/02/implementing-a-simple-plugin-framework-in-python/
-
-        # iterate over all .py files
-        # for plugin_file_path in self.plugin_path_dir.rglob('*.py'):
-        #     # because path is object not string
-        #     path_in_str = str(plugin_file_path)
-        #
-        #     self.import_from_path(path_in_str)
-
-        # self.discovered_plugins = {
-        #     name: importlib.import_module(name)
-        #     for finder, name, ispkg
-        #     in self.iter_namespace(plugins)
-        # }
-
-        for finder, name, ispkg in self.iter_namespace(plugins):
-            plugin_module: ModuleType = importlib.import_module(name)
-            self.__register_plugins(plugin_module)
 
     def _load_plugin(
         self, module_name: str, file_path: Path
@@ -98,25 +75,6 @@ class PluginService:
                 return cls()
 
         return None
-
-    def __register_plugins(self, plugin_module: ModuleType) -> None:
-        clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
-        for _, cls in clsmembers:
-            # Only add classes that are a sub class of PhotometricCataloguePlugin,
-            # but NOT PhotometricCataloguePlugin itself
-            if (
-                issubclass(cls, PhotometricCataloguePlugin)
-                and cls is not PhotometricCataloguePlugin
-            ):
-                print(f"    Found plugin class: {cls.__module__}.{cls.__name__}")
-                self.plugins[cls.__name__] = cls()
-
-    def iter_namespace(self, ns_pkg: ModuleType) -> Iterator[pkgutil.ModuleInfo]:
-        # Specifying the second argument (prefix) to iter_modules makes the
-        # returned name an absolute name instead of a relative one. This allows
-        # import_module to work without having to do additional modification to
-        # the name.
-        return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
     async def get_plugin(self, plugin_id: UUID) -> PluginDto:
         plugin = await self._repository.get(plugin_id)
@@ -179,6 +137,69 @@ class PluginService:
             raise NoPluginClassException()
 
         return plugin
+
+    async def create_default_plugins(self):
+        # https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures
+        # https://mwax911.medium.com/building-a-plugin-architecture-with-python-7b4ab39ad4fc
+        # https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/
+        # https://www.guidodiepen.nl/2019/02/implementing-a-simple-plugin-framework-in-python/
+
+        # iterate over all .py files
+        # for plugin_file_path in self.plugin_path_dir.rglob('*.py'):
+        #     # because path is object not string
+        #     path_in_str = str(plugin_file_path)
+        #
+        #     self.import_from_path(path_in_str)
+
+        # self.discovered_plugins = {
+        #     name: importlib.import_module(name)
+        #     for finder, name, ispkg
+        #     in self.iter_namespace(plugins)
+        # }
+
+        for finder, name, ispkg in self.__iter_namespace(default_plugins):
+            plugin_module: ModuleType = importlib.import_module(name)
+            if ispkg:
+                for _, plugin_name, _ in self.__iter_namespace(plugin_module):
+                    plugin_mod: ModuleType = importlib.import_module(plugin_name)
+                    await self.__register_plugin(plugin_mod)
+
+    async def __register_plugin(self, plugin_module: ModuleType) -> None:
+        clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
+        for _, cls in clsmembers:
+            # Only add classes that are a sub class of PhotometricCataloguePlugin,
+            # but NOT PhotometricCataloguePlugin itself
+            if (
+                issubclass(cls, PhotometricCataloguePlugin)
+                and cls is not PhotometricCataloguePlugin
+                and cls is not MastPlugin
+            ):
+                logger.info(
+                    f"Found default plugin class: {cls.__module__}.{cls.__name__}"
+                )
+                dto = await self.create_plugin(
+                    CreatePluginDto(
+                        name=cls.__name__[: cls.__name__.rfind("Plugin")],
+                        created_by="system",
+                    )
+                )
+
+                new_file_name = str(uuid.uuid4()) + ".py"
+                plugin_file_path = Path.joinpath(PLUGIN_DIR, new_file_name).resolve()
+                async with aiofiles.open(plugin_file_path, "wb") as out_file:
+                    async with aiofiles.open(plugin_module.__file__, "rb") as in_file:
+                        while content := await in_file.read(1024):
+                            await out_file.write(content)
+
+                update_data = UpdatePluginFileDto(id=dto.id, file_name=new_file_name)
+                await self._repository.update(dto.id, update_data.model_dump())
+
+    def __iter_namespace(self, ns_pkg: ModuleType) -> Iterator[pkgutil.ModuleInfo]:
+        # Specifying the second argument (prefix) to iter_modules makes the
+        # returned name an absolute name instead of a relative one. This allows
+        # import_module to work without having to do additional modification to
+        # the name.
+        return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
 
 def get_plugin_service(repository: PluginRepositoryDep) -> PluginService:

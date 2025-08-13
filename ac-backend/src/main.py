@@ -5,7 +5,11 @@ from aiocache import Cache
 from fastapi import FastAPI
 
 from src.core.config.config import settings
+from src.core.database.database import async_sessionmanager
 from src.core.http_client import HttpClient
+from src.core.repository.repository import Repository
+from src.plugin.model import Plugin
+from src.plugin.service import PluginService
 from src.tasks import router as task_router
 from src.plugin import router as plugin_router
 from src.data_retrieval import router as data_router
@@ -17,6 +21,11 @@ logger = logging.getLogger(__name__)
 async def on_start_up() -> None:
     HttpClient()
     logging.config.dictConfig(settings.LOGGING_CONFIG)
+
+    async with async_sessionmanager.session() as session:
+        plugin_repository = Repository(Plugin, session)
+        plugin_service = PluginService(plugin_repository)
+        await plugin_service.create_default_plugins()
 
 
 async def on_shutdown() -> None:
