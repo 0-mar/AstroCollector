@@ -72,7 +72,7 @@ const StellarObjectsMenu = ({
                                             setLightCurveBtnDisabled={setLightCurveBtnDisabled}/>
                     </TabsContent>)}
             </Tabs>
-            <Button disabled={lightCurveBtnDisabled} onClick={() => {
+            <Button className="mt-2" disabled={lightCurveBtnDisabled} onClick={() => {
                 setLightcurveSectionVisible(true);
                 setCurrentObjectIdentifiers(selectedObjectIdentifiers);
             }}>

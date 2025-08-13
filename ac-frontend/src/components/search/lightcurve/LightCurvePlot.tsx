@@ -3,6 +3,7 @@ import * as React from "react";
 import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
 import {colorFromId} from "@/utils/color.ts";
 import {useMemo} from "react";
+import "@/styles/lightcurve.css";
 
 type LightCurvePlotProps = {
     showErrorBars: boolean,
@@ -141,7 +142,7 @@ const LightCurvePlot = ({showErrorBars, pluginNames, lightCurveData, groupBy}: L
             }}
             config={{
                 responsive: true,
-                scrollZoom: true, // enables scroll zoom
+                scrollZoom: true,
                 displaylogo: false,
                 //   modeBarButtonsToRemove: ["lasso2d", "select2d"],
             }}
