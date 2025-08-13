@@ -29,7 +29,6 @@
 
 
 import contextlib
-import uuid
 import logging
 from typing import Any, AsyncIterator, Optional, AsyncGenerator
 from uuid import UUID
@@ -103,9 +102,6 @@ class AsyncDatabaseSessionManager:
                 "DatabaseSessionManager is not initialized"
             )
 
-        session_id = uuid.uuid4()
-        logger.info(f"Creating DB Session: {session_id}")
-
         session = self._sessionmaker()
         try:
             yield session
@@ -114,7 +110,6 @@ class AsyncDatabaseSessionManager:
             raise
         finally:
             await session.close()
-            logger.info(f"Closing DB Session: {session_id}")
 
 
 async_sessionmanager = AsyncDatabaseSessionManager(

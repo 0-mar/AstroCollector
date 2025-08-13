@@ -49,6 +49,9 @@ class AidPlugin(PhotometricCataloguePlugin[AidIdentificatorDto]):
         plugin_id: UUID,
     ) -> list[AidIdentificatorDto]:
         results = []
+        if query_data["VSXObjects"] == []:
+            return results
+
         for record in query_data["VSXObjects"]["VSXObject"]:
             if "AUID" not in record:
                 continue
