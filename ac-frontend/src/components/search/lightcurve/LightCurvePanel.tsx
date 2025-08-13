@@ -14,12 +14,12 @@ const LightCurvePanel = ({showErrorBars, setShowErrorBars, groupBy, setGroupBy}:
     return (
         <div>
             <h2>Options</h2>
-            <div className={"flex"}>
+            <div className={"flex mt-2 mb-2 items-center space-x-2"}>
                 <Checkbox id={"errorBars"} checked={showErrorBars} onCheckedChange={(checked) => setShowErrorBars(checked)}></Checkbox>
                 <Label htmlFor="errorBars">Show error bars</Label>
             </div>
             <h3>Group by</h3>
-            <RadioGroup defaultValue={groupBy} onValueChange={(value) => {setGroupBy(value)}}>
+            <RadioGroup className={"mt-2"} defaultValue={groupBy} onValueChange={(value) => {setGroupBy(value)}}>
                 <div className="flex items-center space-x-2">
                     <RadioGroupItem value="sources" id="sources" />
                     <Label htmlFor="sources">Sources (catalogs)</Label>
