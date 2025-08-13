@@ -25,18 +25,18 @@ class Mmt9Plugin(PhotometricCataloguePlugin[Mmt9IdentificatorDto]):
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
     ) -> AsyncIterator[List[Mmt9IdentificatorDto]]:
         query_params = {
-            "coords": f"{coords.dec.deg} {coords.ra.deg} ",
+            "coords": f"{coords.ra.deg} {coords.dec.deg} ",
             "sr": f"{radius_arcsec / 3600}",
             "sr_value": f"f{radius_arcsec}",
             "sr_units": "arcsec",
             "name": "degrees",
-            "ra": f"{coords.dec.deg}",
-            "dec": f"{coords.ra.deg}",
+            "ra": f"{coords.ra.deg}",
+            "dec": f"{coords.dec.deg}",
         }
         async with self._http_client.get(self._url, params=query_params) as query_resp:
             query_data = await query_resp.json()
 
-        if query_data.lcs == []:
+        if query_data["lcs"] == []:
             yield []
 
         yield [
@@ -52,28 +52,22 @@ class Mmt9Plugin(PhotometricCataloguePlugin[Mmt9IdentificatorDto]):
         self, identificator: Mmt9IdentificatorDto
     ) -> AsyncIterator[List[Mmt9IdentificatorDto]]:
         query_params = {
-            "coords": f"{identificator.dec_deg} {identificator.ra_deg} ",
+            "coords": f"{identificator.ra_deg} {identificator.dec_deg} ",
             "sr": f"{identificator.radius_arcsec / 3600}",
             "sr_value": f"f{identificator.radius_arcsec}",
             "sr_units": "arcsec",
             "name": "degrees",
-            "ra": f"{identificator.dec_deg}",
-            "dec": f"{identificator.ra_deg}",
+            "ra": f"{identificator.ra_deg}",
+            "dec": f"{identificator.dec_deg}",
         }
         async with self._http_client.get(self._url, params=query_params) as query_resp:
             query_data = await query_resp.json()
 
-        while True:
-            batch = await run_in_threadpool(
-                self._process_photometric_data_batch,
-                query_data,
-                identificator.plugin_id,
-            )
-
-            if batch == []:
-                return
-
-            yield batch
+        yield await run_in_threadpool(
+            self._process_photometric_data_batch,
+            query_data,
+            identificator.plugin_id,
+        )
 
     def _process_photometric_data_batch(
         self, data: Any, plugin_id: UUID
@@ -82,7 +76,7 @@ class Mmt9Plugin(PhotometricCataloguePlugin[Mmt9IdentificatorDto]):
 
         # TODO convert time units to HJD / or convert times from other sources to BJD_TDB
 
-        for record in data.lcs:
+        for record in data["lcs"]:
             for i in range(len(record["mags"])):
                 result.append(
                     PhotometricDataDto(
