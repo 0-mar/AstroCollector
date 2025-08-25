@@ -97,7 +97,6 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
             # error when downloading the lightcurve file
             return results
 
-        # TODO convert time units to HJD / or convert times from other sources to BJD_TDB
         for time, flux, flux_err in lightcurve_table.iterrows(
             "time", "flux", "flux_err"
         ):

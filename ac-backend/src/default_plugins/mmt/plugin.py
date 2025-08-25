@@ -66,24 +66,32 @@ class Mmt9Plugin(PhotometricCataloguePlugin[Mmt9IdentificatorDto]):
         yield await run_in_threadpool(
             self._process_photometric_data_batch,
             query_data,
-            identificator.plugin_id,
+            identificator,
         )
 
     def _process_photometric_data_batch(
-        self, data: Any, plugin_id: UUID
+        self, data: Any, identificator: Mmt9IdentificatorDto
     ) -> List[PhotometricDataDto]:
         result: list[PhotometricDataDto] = []
 
-        # TODO convert time units to HJD / or convert times from other sources to BJD_TDB
-
         for record in data["lcs"]:
             for i in range(len(record["mags"])):
+                # convert MJD_UTC to BJD_TDB
+                bjd = self._to_bjd(
+                    float(record["mjds"][i]),
+                    format="mjd",
+                    scale="utc",
+                    ra_deg=identificator.ra_deg,
+                    dec_deg=identificator.dec_deg,
+                    is_hjd=False,
+                )
+
                 result.append(
                     PhotometricDataDto(
-                        julian_date=record["mjds"][i],
+                        julian_date=bjd,
                         magnitude=record["mags"][i],
                         magnitude_error=record["magerrs"][i],
-                        plugin_id=plugin_id,
+                        plugin_id=identificator.plugin_id,
                         light_filter=record["filter"],
                     )
                 )

@@ -3,7 +3,9 @@ from typing import TypeVar, List, Generic, AsyncGenerator
 from uuid import UUID
 
 from aiohttp import ClientSession
-from astropy.coordinates import SkyCoord
+from astropy import units
+from astropy.coordinates import SkyCoord, EarthLocation
+from astropy.time import Time
 
 from src.core.http_client import HttpClient
 from src.core.integration.schemas import (
@@ -20,6 +22,9 @@ class PhotometricCataloguePlugin(Generic[T], ABC):
     def __init__(self) -> None:
         self._http_client = HttpClient().get_session()
         self.__batch_limit = 20000
+        self._geocenter = EarthLocation.from_geocentric(
+            0 * units.m, 0 * units.m, 0 * units.m
+        )
 
     def batch_limit(self):
         return self.__batch_limit
@@ -48,3 +53,28 @@ class PhotometricCataloguePlugin(Generic[T], ABC):
         self, identificator: T
     ) -> AsyncGenerator[List[PhotometricDataDto]]:
         pass
+
+    def _to_bjd(
+        self,
+        time_value: float,
+        format: str,
+        scale: str,
+        ra_deg: float,
+        dec_deg: float,
+        is_hjd: bool,
+    ) -> float:
+        # convert JD_UTC to BJD_TDB
+        time = Time(time_value, format=format, scale=scale)
+        target = SkyCoord(ra_deg, dec_deg, unit="deg")
+        ltt_bary = time.light_travel_time(
+            target, kind="barycentric", location=self._geocenter
+        )
+
+        if is_hjd:
+            ltt_helio = time.light_travel_time(
+                target, kind="heliocentric", location=self._geocenter
+            )
+            ltt_bary = ltt_bary - ltt_helio
+
+        bjd_tdb = time.tdb + ltt_bary
+        return bjd_tdb.jd

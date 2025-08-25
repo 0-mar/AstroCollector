@@ -62,7 +62,7 @@ class ApassPlugin(PhotometricCataloguePlugin[ApassIdentificatorDto]):
         batch = await run_in_threadpool(
             self._process_photometric_data_batch,
             html,
-            identificator.plugin_id,
+            identificator,
         )
 
         if batch == []:
@@ -71,7 +71,7 @@ class ApassPlugin(PhotometricCataloguePlugin[ApassIdentificatorDto]):
         yield batch
 
     def _process_photometric_data_batch(
-        self, html: str, plugin_id: UUID
+        self, html: str, identificator: ApassIdentificatorDto
     ) -> List[PhotometricDataDto]:
         result: list[PhotometricDataDto] = []
 
@@ -87,13 +87,24 @@ class ApassPlugin(PhotometricCataloguePlugin[ApassIdentificatorDto]):
 
             # hjd-24e5, mag, errmag, filter
             values = record.split(",")
+
+            # convert HJD_UTC to BJD_TDB
+            hjd = float(values[0]) + 2400000
+            bjd = self._to_bjd(
+                hjd,
+                format="jd",
+                scale="utc",
+                ra_deg=identificator.ra_deg,
+                dec_deg=identificator.dec_deg,
+                is_hjd=True,
+            )
+
             result.append(
                 PhotometricDataDto(
-                    julian_date=float(values[0])
-                    + 2400000,  # hjd-24e5 = HJD - 2 400 000
+                    julian_date=bjd,
                     magnitude=float(values[1]),
                     magnitude_error=float(values[2]),
-                    plugin_id=plugin_id,
+                    plugin_id=identificator.plugin_id,
                     light_filter=values[3].strip("'"),
                 )
             )
