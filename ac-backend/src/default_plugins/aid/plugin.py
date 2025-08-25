@@ -122,10 +122,20 @@ class AidPlugin(PhotometricCataloguePlugin[AidIdentificatorDto]):
             batch: list[PhotometricDataDto] = []
             chunk = chunk.dropna(subset=["JD", "mag", "uncert", "band"])
             for jd, mag, uncert, band in chunk.itertuples(index=False, name=None):
+                # convert JD_UTC to BJD_TDB
+                bjd = self._to_bjd(
+                    jd,
+                    format="jd",
+                    scale="utc",
+                    ra_deg=identificator.ra_deg,
+                    dec_deg=identificator.dec_deg,
+                    is_hjd=False,
+                )
+
                 batch.append(
                     PhotometricDataDto(
                         plugin_id=identificator.plugin_id,
-                        julian_date=jd,
+                        julian_date=bjd,
                         magnitude=mag,
                         magnitude_error=uncert,
                         light_filter=band,

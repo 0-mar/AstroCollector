@@ -141,7 +141,7 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
                 jd_idx,
                 mag_idx,
                 err_idx,
-                identificator.plugin_id,
+                identificator,
             )
 
             if batch == []:
@@ -155,7 +155,7 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         jd_idx: int,
         mag_idx: int,
         err_idx: int,
-        plugin_id: UUID,
+        identificator: DaschStellarObjectIdentificatorDto,
     ) -> List[PhotometricDataDto]:
         result: list[PhotometricDataDto] = []
         for row in reader:
@@ -167,16 +167,27 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
             if jd_str == "" or mag_str == "" or err_str == "":
                 continue
 
-            jd = float(row[jd_idx])
+            # convert HJD_UTC to BJD_TDB
+            # see DASCH time format - Time column:
+            # https://dasch.cfa.harvard.edu/dr7/lightcurve-columns/
+            bjd = self._to_bjd(
+                float(row[jd_idx]),
+                format="jd",
+                scale="utc",
+                ra_deg=identificator.ra_deg,
+                dec_deg=identificator.dec_deg,
+                is_hjd=True,
+            )
+
             mag = float(row[mag_idx])
             err = float(row[err_idx])
 
             result.append(
                 PhotometricDataDto(
-                    julian_date=jd,
+                    julian_date=bjd,
                     magnitude=mag,
                     magnitude_error=err,
-                    plugin_id=plugin_id,
+                    plugin_id=identificator.plugin_id,
                     light_filter=None,
                 )
             )
