@@ -10,7 +10,6 @@ import LightCurvePlot from "@/components/search/lightcurve/LightCurvePlot.tsx";
 import LightCurveTable from "@/components/search/lightcurve/LightCurveTable.tsx";
 import LightCurvePanel from "@/components/search/lightcurve/LightCurvePanel.tsx";
 import type {PluginDto} from "@/features/search/types.ts";
-import VisibleRange from "@/components/search/lightcurve/VisibleRange.tsx";
 import {OptionsProvider} from "@/components/search/lightcurve/OptionsContext.tsx";
 import {RangeProvider} from "@/components/search/lightcurve/CurrentRangeContext.tsx";
 
@@ -107,7 +106,6 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                         <RangeProvider>
                         <OptionsProvider>
                                 <LightCurvePanel/>
-                                <VisibleRange></VisibleRange>
                                 <LightCurvePlot pluginNames={pluginNames}
                                                 lightCurveData={lightCurveData} ></LightCurvePlot>
                         </OptionsProvider>
