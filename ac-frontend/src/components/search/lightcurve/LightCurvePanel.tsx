@@ -1,34 +1,42 @@
 import {Checkbox} from "@/../components/ui/checkbox"
 import { Label } from "@/../components/ui/label"
-import * as React from "react";
 import {RadioGroup, RadioGroupItem} from "@/../components/ui/radio-group";
+import ZoomForm from "@/components/search/lightcurve/ZoomForm.tsx";
+import {useContext} from "react";
+import {OptionsContext} from "@/components/search/lightcurve/OptionsContext.tsx";
 
-type LightCurvePanelProps = {
-    showErrorBars: boolean,
-    setShowErrorBars: React.Dispatch<React.SetStateAction<boolean>>,
-    groupBy: string,
-    setGroupBy: React.Dispatch<React.SetStateAction<string>>,
-}
 
-const LightCurvePanel = ({showErrorBars, setShowErrorBars, groupBy, setGroupBy}: LightCurvePanelProps) => {
+const LightCurvePanel = () => {
+    const context = useContext(OptionsContext)
+
     return (
-        <div>
+        <div className={"p-4 bg-white rounded-md shadow-md"}>
             <h2>Options</h2>
-            <div className={"flex mt-2 mb-2 items-center space-x-2"}>
-                <Checkbox id={"errorBars"} checked={showErrorBars} onCheckedChange={(checked) => setShowErrorBars(checked)}></Checkbox>
-                <Label htmlFor="errorBars">Show error bars</Label>
+            <div className={"grid grid-cols-2 gap-x-2"}>
+                <div>
+                    <h3>Error bars</h3>
+                    <div className={"flex mt-2 mb-2 items-center space-x-2"}>
+                        <Checkbox id={"errorBars"} checked={context?.showErrorBars} onCheckedChange={(checked) => context?.setShowErrorBars(checked)}></Checkbox>
+                        <Label htmlFor="errorBars">Show error bars</Label>
+                    </div>
+                </div>
+                <div>
+                    <h3>Group by</h3>
+                    <RadioGroup className={"mt-2"} defaultValue={context?.groupBy} onValueChange={(value) => {context?.setGroupBy(value)}}>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="sources" id="sources" />
+                            <Label htmlFor="sources">Sources (catalogs)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="bands" id="bands" />
+                            <Label htmlFor="bands">Photometric bands</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+                <div>
+                    <ZoomForm/>
+                </div>
             </div>
-            <h3>Group by</h3>
-            <RadioGroup className={"mt-2"} defaultValue={groupBy} onValueChange={(value) => {setGroupBy(value)}}>
-                <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="sources" id="sources" />
-                    <Label htmlFor="sources">Sources (catalogs)</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="bands" id="bands" />
-                    <Label htmlFor="bands">Photometric bands</Label>
-                </div>
-            </RadioGroup>
         </div>
     );
 }
