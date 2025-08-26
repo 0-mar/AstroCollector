@@ -1,8 +1,7 @@
-//import Plot from 'react-plotly.js';
 import * as React from "react";
 import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
 import {colorFromId} from "@/utils/color.ts";
-import {useContext, useEffect, useMemo} from "react";
+import {useContext, useMemo} from "react";
 import "@/styles/lightcurve.css";
 import {OptionsContext} from "@/components/search/lightcurve/OptionsContext.tsx";
 import {SetRangeContext} from './CurrentRangeContext';
@@ -131,66 +130,6 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
         });
     }, [optionsContext?.groupBy, optionsContext?.showErrorBars, sourceGroupedLcData, bandGroupedLcData])
 
-    /*const plotRef = React.useRef<Plotly.PlotlyHTMLElement | null>(null);
-
-    // Apply programmatic zoom from OptionsContext ONCE, imperatively.
-    useEffect(() => {
-        console.log(("fdsfdsfsd"))
-        if (!plotRef.current) return;
-        const hasBounds = optionsContext?.minRange !== undefined && optionsContext?.maxRange !== undefined;
-
-        if (hasBounds) {
-            Plotly.relayout(plotRef.current, {
-                "xaxis.range": [100, 200],
-            });
-        } else {
-            Plotly.relayout(plotRef.current, { "xaxis.autorange": true });
-        }
-    }, [optionsContext?.minRange, optionsContext?.maxRange]);*/
-
-    /*const gdRef = React.useRef<Plotly.PlotlyHTMLElement | null>(null);
-
-    const handleInitialized = React.useCallback((_figure: any, graphDiv: Plotly.PlotlyHTMLElement) => {
-        gdRef.current = graphDiv;
-    }, []);
-
-    const handleUpdate = React.useCallback((_figure: any, graphDiv: Plotly.PlotlyHTMLElement) => {
-        gdRef.current = graphDiv; // keep it fresh after prop-driven updates
-    }, []);
-
-    React.useLayoutEffect(() => {
-        // sanity log
-        console.log('apply programmatic zoom');
-
-        const gd = gdRef.current;
-        if (!gd) return;                       // not initialized yet
-        console.log("bbb")
-
-        if (!gd._fullLayout?.xaxis) return;    // axis not ready yet (rare but safe)
-        console.log("aaaa")
-        const hasBounds =
-            optionsContext?.minRange != null && optionsContext?.maxRange != null;
-
-        const relayout = hasBounds
-            ? { 'xaxis.range': [Number(optionsContext!.minRange), Number(optionsContext!.maxRange)] }
-            : { 'xaxis.autorange': true };
-
-        // In dev/StrictMode, guard against unmount between scheduling and run
-        try {
-            Plotly.relayout(gd, relayout);
-
-        } catch (e) {
-
-            // swallow transient errors during strict re-mounts
-        }
-    }, [optionsContext?.minRange, optionsContext?.maxRange]);*/
-
-    /*useEffect(() => {
-            console.log("Relayout called");
-            console.log(optionsContext?.minRange, optionsContext?.maxRange);
-            Plotly.relayout("lightcurve-plot", { 'xaxis.range': [Number(optionsContext!.minRange), Number(optionsContext!.maxRange)] });
-    }, [optionsContext?.minRange, optionsContext?.maxRange]);*/
-
     const xaxis = useMemo(() => {
         return optionsContext?.minRange !== undefined && optionsContext?.maxRange !== undefined ? {
             title: {text: "Modified Julian Date in TDB"},
@@ -213,14 +152,8 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
         }
     };
 
-    console.log("rerender")
-
     return (
         <Plot
-            id={"lightcurve-plot"}
-            //ref={plotRef as any}
-            //onInitialized={handleInitialized}
-            //onUpdate={handleUpdate}
             data={plotData}
             layout={{
                 title: {text: "Light Curve"},
