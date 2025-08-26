@@ -1,22 +1,13 @@
 import * as yup from "yup";
 import type {InferType} from "yup";
 
-/*export const zoomFormSchema = yup
-    .object({
-        min: yup.number().optional(),
-        max: yup.number().optional(),
-    })
-
-export type ZoomValues = InferType<typeof zoomFormSchema>*/
-
 const numField = yup
     .number()
+    .optional()
     .transform((value, originalValue) =>
-        originalValue === "" ? undefined : value
+       originalValue === "" ? undefined : value
     )
-    .typeError("Must be a number")
-    .nullable()
-    .notRequired();
+    .typeError("Must be a number");
 
 export const zoomFormSchema = yup
     .object({
@@ -26,23 +17,37 @@ export const zoomFormSchema = yup
     .test(
         "both-or-none",
         "Enter both values or leave both empty",
-        (values) => {
+        function (values) {
+            console.log(values)
             const { min, max } = values || {};
-            const empty = (v: unknown) => v === undefined || v === null;
+            const empty = (v: unknown) => v === undefined;
             const bothEmpty = empty(min) && empty(max);
             const bothNumbers =
                 typeof min === "number" &&
                 !Number.isNaN(min) &&
                 typeof max === "number" &&
                 !Number.isNaN(max);
-            return bothEmpty || bothNumbers;
+
+            if (!(bothEmpty || bothNumbers)) {
+                return this.createError({
+                    message: 'Enter both values or leave both empty',
+                    path: "global",
+                });
+            }
+
+            return true;
         }
     )
-    // OPTIONAL: also enforce min ≤ max when both provided
-    .test("order", "Min must be ≤ Max", (values) => {
+    .test("order", "Min must be ≤ Max", function (values) {
         const { min, max } = values || {};
-        if (min == null || max == null) return true; // handled by previous test
-        return min <= max;
+        if (min === undefined || max === undefined) return true;
+        if (min > max) {
+            return this.createError({
+                message: 'Lower bound must be smaller or equal to upper bound.',
+                path: "global",
+            });
+        }
+        return true;
     });
 
 export type ZoomValues = InferType<typeof zoomFormSchema>;
