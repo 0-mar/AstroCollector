@@ -17,7 +17,7 @@ import {formSchema, type PluginDto, type SearchValues} from "@/features/search/t
 import type {PaginationResponse} from "@/features/api/types.ts";
 
 
-const CenteredInput = ({label, ...props}) => {
+const LabeledInput = ({label, ...props}) => {
     return (
         <div className={"flex gap-x-2 items-center"}>
             <Input className={"w-5/6"} placeholder={"e. g. 2.55"} {...props} />
@@ -79,7 +79,7 @@ const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
                         <FormItem>
                             <FormLabel>Right ascension</FormLabel>
                             <FormControl>
-                                <CenteredInput label={"deg"} {...field}/>
+                                <LabeledInput label={"deg"} {...field}/>
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
@@ -92,7 +92,7 @@ const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
                         <FormItem>
                             <FormLabel>Declination</FormLabel>
                             <FormControl>
-                                <CenteredInput label={"deg"} {...field}/>
+                                <LabeledInput label={"deg"} {...field}/>
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
@@ -105,7 +105,7 @@ const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
                         <FormItem>
                             <FormLabel>Radius</FormLabel>
                             <FormControl>
-                                <CenteredInput label={"arcsec"} {...field}/>
+                                <LabeledInput label={"arcsec"} {...field}/>
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
