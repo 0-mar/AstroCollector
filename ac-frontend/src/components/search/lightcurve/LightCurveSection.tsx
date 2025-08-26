@@ -10,6 +10,9 @@ import LightCurvePlot from "@/components/search/lightcurve/LightCurvePlot.tsx";
 import LightCurveTable from "@/components/search/lightcurve/LightCurveTable.tsx";
 import LightCurvePanel from "@/components/search/lightcurve/LightCurvePanel.tsx";
 import type {PluginDto} from "@/features/search/types.ts";
+import VisibleRange from "@/components/search/lightcurve/VisibleRange.tsx";
+import {OptionsProvider} from "@/components/search/lightcurve/OptionsContext.tsx";
+import {RangeProvider} from "@/components/search/lightcurve/CurrentRangeContext.tsx";
 
 
 type LightCurveSectionProps = {
@@ -90,8 +93,6 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resultQueries.map((q) => q.status).join(",")]);
 
-    const [showErrorBars, setShowErrorBars] = useState(false)
-    const [groupBy, setGroupBy] = useState("sources")
     // TODO: Show errors/loading - but how exactly? As toasts or some kind of overlay?
 
     return (
@@ -102,11 +103,19 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                     <TabsTrigger value="datatable">Data table</TabsTrigger>
                 </TabsList>
                 <TabsContent value="lightcurve">
-                    <LightCurvePanel showErrorBars={showErrorBars} setShowErrorBars={setShowErrorBars} setGroupBy={setGroupBy} groupBy={groupBy}/>
-                    <LightCurvePlot showErrorBars={showErrorBars} pluginNames={pluginNames} lightCurveData={lightCurveData} groupBy={groupBy}></LightCurvePlot>
+                    <div className="grid grid-cols-1 gap-y-4">
+                        <RangeProvider>
+                        <OptionsProvider>
+                                <LightCurvePanel/>
+                                <VisibleRange></VisibleRange>
+                                <LightCurvePlot pluginNames={pluginNames}
+                                                lightCurveData={lightCurveData} ></LightCurvePlot>
+                        </OptionsProvider>
+                        </RangeProvider>
+                    </div>
                 </TabsContent>
                 <TabsContent value="datatable">
-                    <LightCurveTable lightCurveData={lightCurveData} />
+                    <LightCurveTable lightCurveData={lightCurveData}/>
                 </TabsContent>
             </Tabs>
         </>
