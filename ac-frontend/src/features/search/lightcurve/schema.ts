@@ -18,7 +18,6 @@ export const zoomFormSchema = yup
         "both-or-none",
         "Enter both values or leave both empty",
         function (values) {
-            console.log(values)
             const { min, max } = values || {};
             const empty = (v: unknown) => v === undefined;
             const bothEmpty = empty(min) && empty(max);
