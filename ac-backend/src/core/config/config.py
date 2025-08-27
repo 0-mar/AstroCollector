@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     CACHE_PORT: str = Field(..., alias="REDIS_PORT")
 
     LOGGING_CONSOLE_LEVEL: int = logging.INFO
+    TASK_DATA_DELETE_INTERVAL: int = 2  # in hours
 
     @computed_field  # type: ignore[prop-decorator]
     @property

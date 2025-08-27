@@ -2,9 +2,9 @@ import datetime
 from uuid import UUID
 
 import sqlalchemy
-from sqlalchemy import Double, func, DateTime, String
+from sqlalchemy import Double, func, DateTime, String, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database.database import DbEntity
 from src.tasks.types import TaskStatus
@@ -18,13 +18,28 @@ class Task(DbEntity):
         DateTime, nullable=False, server_default=func.now()
     )
 
+    # By default, all related objects are lazy-loaded
+    # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#lazy-loading
+
+    # passive_deletes=True on the relationships tells SQLAlchemy not to emit DELETEs for children,
+    # because it is handled by the DB
+
+    photometric_data: Mapped[list["PhotometricData"]] = relationship(
+        cascade="all, delete-orphan", passive_deletes=True
+    )
+    identifiers: Mapped[list["StellarObjectIdentifier"]] = relationship(
+        cascade="all, delete-orphan", passive_deletes=True
+    )
+
 
 class PhotometricData(DbEntity):
     """."""
 
     __tablename__ = "ac_photometric_data"
 
-    task_id: Mapped[UUID] = mapped_column(sqlalchemy.Uuid)
+    task_id: Mapped[UUID] = mapped_column(
+        ForeignKey("ac_task.id", ondelete="CASCADE"), nullable=False
+    )
     plugin_id: Mapped[UUID] = mapped_column(sqlalchemy.Uuid)
 
     julian_date: Mapped[float] = mapped_column(Double, nullable=False)
@@ -39,5 +54,7 @@ class StellarObjectIdentifier(DbEntity):
 
     __tablename__ = "ac_stellar_object_identifier"
 
-    task_id: Mapped[UUID] = mapped_column(sqlalchemy.Uuid)
+    task_id: Mapped[UUID] = mapped_column(
+        ForeignKey("ac_task.id", ondelete="CASCADE"), nullable=False
+    )
     identifier = mapped_column(JSONB, nullable=False)

@@ -29,7 +29,7 @@ POSTGRES_PORT=5432 \
 POSTGRES_DB=astrocollectordb \
 POSTGRES_HOST=localhost \
 REDIS_PORT=6379 \
-python -m uvicorn src.main:app --reload
+python -m uvicorn src.main:app --reload --reload-dir src
 ```
 
 ## Generate migrations

@@ -3,12 +3,12 @@ from collections.abc import Callable
 from uuid import UUID
 
 from sqlalchemy import select, func
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database.database import DbEntity
 from src.core.database.dependencies import DBSessionDep
-from src.core.repository.exception import RepositoryException
+from src.core.repository.exception import RepositoryException, IntegrityException
 
 # using session correctly
 # https://docs.sqlalchemy.org/en/20/orm/session_basics.html
@@ -89,6 +89,8 @@ class Repository(Generic[Entity]):
         try:
             self._session.add_all(data)
             await self._session.commit()
+        except IntegrityError as e:
+            raise IntegrityException("Failed to insert bulk data") from e
         except SQLAlchemyError as e:
             await self._session.rollback()
             raise RepositoryException("Failed to insert bulk data") from e

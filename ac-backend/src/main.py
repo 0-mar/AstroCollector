@@ -1,38 +1,74 @@
 import logging
 import logging.config
+from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 
 from aiocache import Cache
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.core.config.config import settings
 from src.core.database.database import async_sessionmanager
 from src.core.http_client import HttpClient
 from src.core.repository.repository import Repository
+from src.data_retrieval import router as data_router
+from src.plugin import router as plugin_router
 from src.plugin.model import Plugin
 from src.plugin.service import PluginService
 from src.tasks import router as task_router
-from src.plugin import router as plugin_router
-from src.data_retrieval import router as data_router
-from fastapi.middleware.cors import CORSMiddleware
+from src.tasks.model import Task
 
 logger = logging.getLogger(__name__)
 
+scheduler = AsyncIOScheduler()
 
-async def on_start_up() -> None:
+
+@scheduler.scheduled_job("interval", hours=settings.TASK_DATA_DELETE_INTERVAL)
+async def clear_task_data():
+    logger.info("Clearing old task data")
+    async with async_sessionmanager.session() as session:
+        task_repository = Repository(Task, session)
+
+        offset = 0
+        total = 1
+
+        while True:
+            if offset >= total:
+                break
+
+            total, results = await task_repository.find(offset=offset, count=1000)
+            offset += len(results)
+
+            for task in results:
+                if isinstance(task, Task):
+                    if task.created < (
+                        datetime.now()
+                        - timedelta(hours=settings.TASK_DATA_DELETE_INTERVAL)
+                    ):
+                        await task_repository.delete(task.id)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     HttpClient()
     logging.config.dictConfig(settings.LOGGING_CONFIG)
 
+    # load plugins on startup
     async with async_sessionmanager.session() as session:
         plugin_repository = Repository(Plugin, session)
         plugin_service = PluginService(plugin_repository)
         await plugin_service.create_default_plugins()
 
+    scheduler.start()
 
-async def on_shutdown() -> None:
+    yield
+
+    scheduler.shutdown()
     await HttpClient().get_session().close()
 
 
-app = FastAPI(on_startup=[on_start_up], on_shutdown=[on_shutdown])
+app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:3000",

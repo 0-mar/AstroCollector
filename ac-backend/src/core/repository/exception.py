@@ -11,3 +11,11 @@ class RepositoryException(ACException):
 
     def __init__(self, message: str):
         super().__init__(message, self.CODE, self.HTTP_STATUS)
+
+
+class IntegrityException(RepositoryException):
+    CODE = "INTEGRITY_ERROR"
+    HTTP_STATUS = HTTPStatus.INTERNAL_SERVER_ERROR
+
+    def __init__(self, message: str):
+        super().__init__(message)
