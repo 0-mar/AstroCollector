@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database.database import async_sessionmanager
 from src.core.integration.schemas import StellarObjectIdentificatorDto
+from src.core.repository.exception import IntegrityException
 from src.core.repository.repository import Repository
 from src.plugin.model import Plugin
 from src.plugin.service import PluginService
@@ -31,7 +32,7 @@ def task_status(f):
             except Exception:
                 await task_repository.update(task_id, {"status": TaskStatus.failed})
                 logger.error(f"Task {task_id} failed", exc_info=True)
-                raise
+                # raise
             else:
                 logger.info(f"Task {task_id} completed")
                 await task_repository.update(task_id, {"status": TaskStatus.completed})
@@ -74,7 +75,14 @@ async def cone_search(
                 for dto in data
             ]
         )
-        await soi_repository.bulk_insert(values)
+        try:
+            await soi_repository.bulk_insert(values)
+        except IntegrityException:
+            logger.warning(
+                "Task was already deleted - did it take too long to complete it?",
+                exc_info=True,
+            )
+            break
 
 
 @task_status
@@ -136,4 +144,11 @@ async def get_photometric_data(
                 PhotometricData(**dto.model_dump(), task_id=task_id) for dto in data
             ]
         )
-        await pd_repository.bulk_insert(values)
+        try:
+            await pd_repository.bulk_insert(values)
+        except IntegrityException:
+            logger.warning(
+                "Task was already deleted - did it take too long to complete it?",
+                exc_info=True,
+            )
+            break
