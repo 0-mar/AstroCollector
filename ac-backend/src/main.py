@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 scheduler = AsyncIOScheduler()
 
 
-@scheduler.scheduled_job("interval", minutes=1)
+@scheduler.scheduled_job("interval", hours=settings.TASK_DATA_DELETE_INTERVAL)
 async def clear_task_data():
     logger.info("Clearing old task data")
     async with async_sessionmanager.session() as session:
