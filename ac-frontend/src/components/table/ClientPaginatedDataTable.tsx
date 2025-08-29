@@ -1,6 +1,6 @@
 import {
     type ColumnDef,
-    flexRender, getCoreRowModel, getPaginationRowModel, type PaginationState,
+    flexRender, getCoreRowModel, getPaginationRowModel,
     useReactTable,
 } from "@tanstack/react-table"
 
