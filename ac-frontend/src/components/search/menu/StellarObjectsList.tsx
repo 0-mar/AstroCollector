@@ -1,81 +1,22 @@
-import type {Identifier, PluginDto, SearchValues, StellarObjectIdentifierDto} from "@/features/search/types.ts";
-import type {Identifiers} from "@/features/search/menu/types.ts";
-import * as React from "react";
+import type {Identifier, PluginDto, SearchValues} from "@/features/search/types.ts";
 import {useQuery} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
 import LoadingError from "@/components/loading/LoadingError.tsx";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/../components/ui/table"
 import {type PaginationResponse, type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/api/types.ts";
-import {useState} from "react";
-import {Checkbox} from "@/../components/ui/checkbox"
-
-
-type IdentifierCheckboxProps = {
-    id: string,
-    identifier: StellarObjectIdentifierDto,
-    setSelectedObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>,
-    setLightCurveBtnDisabled: React.Dispatch<React.SetStateAction<boolean>>,
-    initialChecked: boolean
-};
-
-const IdentifierCheckbox = ({
-                                id,
-                                identifier,
-                                setSelectedObjectIdentifiers,
-                                setLightCurveBtnDisabled,
-                                initialChecked
-                            }: IdentifierCheckboxProps) => {
-    const [checked, setChecked] = useState(initialChecked);
-
-    const handleCheckedChange = (isChecked: boolean) => {
-        setChecked(isChecked)
-        setSelectedObjectIdentifiers((prevState) => {
-            const updatedState: Identifiers = {...prevState}
-            if (isChecked) {
-                updatedState[id] = identifier
-            } else {
-                delete updatedState[id]
-            }
-            setLightCurveBtnDisabled(Object.keys(updatedState).length === 0)
-
-            return updatedState
-        })
-    }
-
-    return (
-        <Checkbox
-            id={id}
-            checked={checked}
-            onCheckedChange={handleCheckedChange}
-        />
-    )
-}
+import {identifierColumns} from "@/components/table/Columns.tsx";
+import {ClientPaginatedDataTable} from "@/components/table/ClientPaginatedDataTable.tsx";
 
 type StellarObjectsListProps = {
     formData: SearchValues,
     plugin: PluginDto,
-    selectedObjectIdentifiers: Identifiers,
-    setSelectedObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>,
-    setLightCurveBtnDisabled: React.Dispatch<React.SetStateAction<boolean>>
 };
 
 // TODO paginated tables!!!
 const StellarObjectsList = ({
                                 formData,
                                 plugin,
-                                selectedObjectIdentifiers,
-                                setSelectedObjectIdentifiers,
-                                setLightCurveBtnDisabled
                             }: StellarObjectsListProps) => {
-
     const body = formData.objectName !== "" ?
         {name: formData.objectName, plugin_id: plugin.id} :
         {
@@ -115,7 +56,7 @@ const StellarObjectsList = ({
         queryFn: () => {
             // get task ID. The ID will be ALWAYS present, since the query starts only when the taskQuery was successful
             const taskId = taskQuery.data?.task_id
-            return BaseApi.post<PaginationResponse<Identifier>>(`/retrieve/object-identifiers/${taskId}`, {task_id: taskId})
+            return BaseApi.post<PaginationResponse<Identifier>>(`/retrieve/object-identifiers`, {task_id__eq: taskId})
         },
         enabled: taskStatusQuery.data?.status === TaskStatus.COMPLETED,
         staleTime: Infinity
@@ -156,28 +97,27 @@ const StellarObjectsList = ({
     }
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Select</TableHead>
-                    <TableHead>Right ascension (deg)</TableHead>
-                    <TableHead>Declination (deg)</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {stellarObjectsResultsQuery.data.data.map((identifier) =>
-                    <TableRow key={identifier.id}>
-                        <TableCell>
-                            <IdentifierCheckbox id={identifier.id} identifier={identifier.identifier} initialChecked={selectedObjectIdentifiers.hasOwnProperty(identifier.id)}
-                                                setSelectedObjectIdentifiers={setSelectedObjectIdentifiers}
-                                                setLightCurveBtnDisabled={setLightCurveBtnDisabled}/>
-                        </TableCell>
-                        <TableCell>{identifier.identifier.ra_deg}</TableCell>
-                        <TableCell>{identifier.identifier.dec_deg}</TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-        </Table>
+        <ClientPaginatedDataTable data={stellarObjectsResultsQuery.data.data} columns={identifierColumns}/>
+        // <Table>
+        //     <TableHeader>
+        //         <TableRow>
+        //             <TableHead>Select</TableHead>
+        //             <TableHead>Right ascension (deg)</TableHead>
+        //             <TableHead>Declination (deg)</TableHead>
+        //         </TableRow>
+        //     </TableHeader>
+        //     <TableBody>
+        //         {stellarObjectsResultsQuery.data.data.map((identifier) =>
+        //             <TableRow key={identifier.id}>
+        //                 <TableCell>
+        //                     <IdentifierCheckbox id={identifier.id} identifier={identifier.identifier}/>
+        //                 </TableCell>
+        //                 <TableCell>{identifier.identifier.ra_deg}</TableCell>
+        //                 <TableCell>{identifier.identifier.dec_deg}</TableCell>
+        //             </TableRow>
+        //         )}
+        //     </TableBody>
+        // </Table>
     );
 
 };

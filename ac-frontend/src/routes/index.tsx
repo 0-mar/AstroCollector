@@ -5,6 +5,7 @@ import type {Identifiers} from "@/features/search/menu/types.ts";
 import SearchForm from "@/components/search/form/SearchForm.tsx";
 import StellarObjectsMenu from "@/components/search/menu/StellarObjectsMenu.tsx";
 import LightCurveSection from "@/components/search/lightcurve/LightCurveSection.tsx";
+import {IdentifiersProvider} from "@/components/search/menu/IdentifiersContext.tsx";
 
 export const Route = createFileRoute('/')({
     component: App,
@@ -26,10 +27,10 @@ function App() {
                 <SearchForm setMenuVisible={setMenuVisible} setFormData={setFormData} setPluginData={setPluginData}/>
             </div>
             <div className="my-6">
-                {menuVisible && <StellarObjectsMenu formData={formData} pluginData={pluginData}
+                {menuVisible && <IdentifiersProvider><StellarObjectsMenu formData={formData} pluginData={pluginData}
                                                     setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
                                                     setLightcurveSectionVisible={setLightcurveSectionVisible}
-                />}
+                /></IdentifiersProvider>}
             </div>
             <div>
                 {lightcurveSectionVisible &&

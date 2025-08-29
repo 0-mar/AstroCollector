@@ -12,6 +12,7 @@ import LightCurvePanel from "@/components/search/lightcurve/LightCurvePanel.tsx"
 import type {PluginDto} from "@/features/search/types.ts";
 import {OptionsProvider} from "@/components/search/lightcurve/OptionsContext.tsx";
 import {RangeProvider} from "@/components/search/lightcurve/CurrentRangeContext.tsx";
+import PhotometricDataTable from "@/components/table/UniversalDataTable.tsx";
 
 
 type LightCurveSectionProps = {
@@ -57,7 +58,7 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
         queries: Object.values(currentObjectIdentifiers).map((identifier, idx) => {
             return {
                 queryKey: [`lcData_${identifier.plugin_id}_${identifier.ra_deg}_${identifier.dec_deg}`],
-                queryFn: () => BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data/${lightcurveTaskQueries[idx].data?.task_id}`, {task_id: lightcurveTaskQueries[idx].data?.task_id}),
+                queryFn: () => BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data`, {task_id__eq: lightcurveTaskQueries[idx].data?.task_id}),
                 enabled: taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED,
                 staleTime: Infinity
             }
@@ -113,7 +114,8 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                     </div>
                 </TabsContent>
                 <TabsContent value="datatable">
-                    <LightCurveTable lightCurveData={lightCurveData}/>
+                    {/*<LightCurveTable lightCurveData={lightCurveData}/>*/}
+                    <PhotometricDataTable taskIds={lightcurveTaskQueries.map(result => result.data?.task_id) ?? []} taskStatusQueries={undefined} currentObjectIdentifiers={{}}/>
                 </TabsContent>
             </Tabs>
         </>
