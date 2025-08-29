@@ -2,6 +2,7 @@ from typing import Any, Annotated
 
 from fastapi import Depends, APIRouter
 
+from src.core.exception.exceptions import APIException
 from src.core.integration.schemas import PhotometricDataDto
 from src.core.schemas import PaginationResponseDto
 from src.data_retrieval.schemas import StellarObjectIdentifierDto
@@ -18,24 +19,26 @@ router = APIRouter(
 )
 
 
-@router.post("/object-identifiers/{task_id}")
+@router.post("/object-identifiers")
 async def retrieve_objects_identifiers(
-    service: DataServiceDep, task_id: str, filters: dict[str, Any] | None = None
+    service: DataServiceDep, filters: dict[str, Any] | None = None
 ) -> PaginationResponseDto[StellarObjectIdentifierDto]:
     """List identifiers."""
-    if filters is None:
-        filters = {}
-    filters["task_id"] = task_id
-    identifiers = await service.list_soi(**filters)
-    return identifiers
+    if filters is None or (
+        "task_id__eq" not in filters and "task_id__in" not in filters
+    ):
+        raise APIException("task_id__eq or task_id__in required in filters")
+
+    return await service.list_soi(**filters)
 
 
-@router.post("/photometric-data/{task_id}")
+@router.post("/photometric-data")
 async def retrieve_data(
-    service: DataServiceDep, task_id: str, filters: dict[str, Any] | None = None
+    service: DataServiceDep, filters: dict[str, Any] | None = None
 ) -> PaginationResponseDto[PhotometricDataDto]:
-    if filters is None:
-        filters = {}
+    if filters is None or (
+        "task_id__eq" not in filters and "task_id__in" not in filters
+    ):
+        raise APIException("task_id__eq or task_id__in required in filters")
 
-    filters["task_id"] = task_id
     return await service.list_photometric_data(**filters)

@@ -2,7 +2,7 @@ from typing import TypeVar, Generic, Any, Optional
 from collections.abc import Callable
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_, or_
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +15,18 @@ from src.core.repository.exception import RepositoryException, IntegrityExceptio
 Entity = TypeVar("Entity", bound=DbEntity)
 LIMIT = 1000
 
+OPERATORS = {
+    "eq": lambda col, v: col == v,
+    "ne": lambda col, v: col != v,
+    "gt": lambda col, v: col > v,
+    "lt": lambda col, v: col < v,
+    "ge": lambda col, v: col >= v,
+    "le": lambda col, v: col <= v,
+    "like": lambda col, v: col.like(v),
+    "ilike": lambda col, v: col.ilike(v),
+    "in": lambda col, v: col.in_(v),
+}
+
 
 class Repository(Generic[Entity]):
     def __init__(self, model: type[Entity], session: AsyncSession):
@@ -24,20 +36,73 @@ class Repository(Generic[Entity]):
     def session(self):
         return self._session
 
+    def _subexpressions_list(self, subexpressions):
+        """
+        Allows grouping of subexpressions inside or/and.
+        :param subexpressions:
+        :return:
+        """
+        if isinstance(subexpressions, dict):
+            return self._build_filter(**subexpressions)
+        if isinstance(subexpressions, list):
+            subexpressions_list = []
+            for subexpression in subexpressions:
+                subexpressions_list.append(self._build_filter(**subexpression))
+            return subexpressions_list
+        else:
+            raise RepositoryException(
+                f"Invalid subexpression type: {type(subexpressions)}. and/or expects a dict or a list of dicts"
+            )
+
+    def _build_filter(self, **filters: dict[str, Any]):
+        """
+        Fields have format of <column_name>__<operator>.
+        Supported operators: see supported_filters.
+        :param filters:
+        :return:
+        """
+        expressions = []
+
+        for key, value in filters.items():
+            if key == "and":
+                subexpressions = self._subexpressions_list(value)
+                expressions.append(and_(*subexpressions))
+
+            if key == "or":
+                subexpressions = self._subexpressions_list(value)
+                expressions.append(or_(*subexpressions))
+
+            else:
+                try:
+                    field, op = key.rsplit("__", 1)
+                except ValueError:
+                    raise RepositoryException(
+                        f"Invalid filter format: {key}. Expected format: <column_name>__<operator>"
+                    )
+
+                if op not in OPERATORS:
+                    raise RepositoryException(f"Unsupported filter operator: {op}")
+
+                col = getattr(self._model, field)
+                expressions.append(OPERATORS[op](col, value))
+
+        return and_(*expressions)
+
     async def find(
         self, offset: int = 0, count: int = LIMIT, **filters: dict[str, Any]
     ) -> tuple[int, list[Entity]]:
         count = count if count <= LIMIT else LIMIT
 
+        # build filters
+        filter = self._build_filter(**filters)
+
         # count of all rows
-        total_items_stmt = (
-            select(func.count()).select_from(self._model).filter_by(**filters)
-        )
+        total_items_stmt = select(func.count()).select_from(self._model).filter(filter)
         total_items_result = await self._session.execute(total_items_stmt)
         total_items = total_items_result.scalar()
 
         # get all rows
-        stmt = select(self._model).filter_by(**filters).offset(offset).limit(count)
+        stmt = select(self._model).filter(filter).offset(offset).limit(count)
         result = await self._session.execute(stmt)
 
         return total_items, list(result.scalars().all())

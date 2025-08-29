@@ -27,10 +27,10 @@ class DataService:
         self._photometric_data_repository = photometric_data_repository
 
     async def list_soi(
-        self, offset: int = 0, count: int = LIMIT, **kwargs: dict[str, Any]
+        self, offset: int = 0, count: int = LIMIT, **filters: dict[str, Any]
     ) -> PaginationResponseDto[StellarObjectIdentifierDto]:
         total_count, soi_list = await self._soi_repository.find(
-            offset=offset, count=count, **kwargs
+            offset=offset, count=count, **filters
         )
         data = list(map(StellarObjectIdentifierDto.model_validate, soi_list))
         return PaginationResponseDto[StellarObjectIdentifierDto](
@@ -38,10 +38,10 @@ class DataService:
         )
 
     async def list_photometric_data(
-        self, offset: int = 0, count: int = LIMIT, **kwargs: dict[str, Any]
+        self, offset: int = 0, count: int = LIMIT, **filters: dict[str, Any]
     ) -> PaginationResponseDto[PhotometricDataDto]:
         total_count, pd_list = await self._photometric_data_repository.find(
-            offset=offset, count=count, **kwargs
+            offset=offset, count=count, **filters
         )
         data = list(map(PhotometricDataDto.model_validate, pd_list))
         return PaginationResponseDto[PhotometricDataDto](
