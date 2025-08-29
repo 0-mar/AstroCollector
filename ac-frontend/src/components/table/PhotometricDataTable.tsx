@@ -12,20 +12,18 @@ import {
     TableHeader,
     TableRow,
 } from "@/../components/ui/table"
-import {useEffect, useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
 import {DataTablePagination} from "@/components/table/DataTablePagination.tsx";
-import {useQueries, useQuery} from "@tanstack/react-query";
+import {useQuery} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
-import {type PaginationResponse, TaskStatus} from "@/features/api/types.ts";
-import type {Identifier} from "@/features/search/types.ts";
-import type {Identifiers} from "@/features/search/menu/types.ts";
+import {type PaginationResponse} from "@/features/api/types.ts";
 import {keepPreviousData} from "@tanstack/query-core";
 
 const photometricColumns: ColumnDef<PhotometricDataDto>[] = [
     {
         accessorKey: "julian_date",
-        header: "Modified Julian Date",
+        header: "Julian Date",
     },
     {
         accessorKey: "magnitude",
@@ -58,45 +56,18 @@ export function usePagination() {
 
 type PhotometricDataTableProps = {
     taskIds: string[],
-    taskStatusQueries,
-    currentObjectIdentifiers: Identifiers
 }
 
-function PhotometricDataTable({taskIds, taskStatusQueries, currentObjectIdentifiers}: PhotometricDataTableProps) {
-
-    // const resultQueries = useQueries({
-    //     queries: Object.values(currentObjectIdentifiers).map((identifier, idx) => {
-    //         return {
-    //             queryKey: [`lcData_${identifier.plugin_id}_${identifier.ra_deg}_${identifier.dec_deg}`],
-    //             queryFn: () => BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data/${lightcurveTaskQueries[idx].data?.task_id}`, {task_id: lightcurveTaskQueries[idx].data?.task_id}),
-    //             enabled: taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED,
-    //             staleTime: Infinity
-    //         }
-    //     }),
-    // })
-
-
-
+function PhotometricDataTable({taskIds}: PhotometricDataTableProps) {
     const {count, setPagination, offset, pagination} = usePagination();
-    const [curTaskIdIdx, setCurTaskIdIdx] = useState(0)
 
     const photometricResultsQuery = useQuery({
-        queryKey: [`photometric_data_page`, pagination],
+        queryKey: [`photometric_data_page`, pagination, taskIds],
         queryFn: () => {
-            // get task ID. The ID will be ALWAYS present, since the query starts only when the taskQuery was successful
             return BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data`, {task_id__in: taskIds, offset: offset, count: count})
         },
         placeholderData: keepPreviousData
-        // enabled: taskStatusQuery.data?.status === TaskStatus.COMPLETED,
-        // staleTime: Infinity
     });
-
-    useEffect(() => {
-        if (photometricResultsQuery.data?.count == 0) {
-            setCurTaskIdIdx(curTaskIdIdx + 1)
-        }
-    }, [photometricResultsQuery.data?.data]);
-    photometricResultsQuery.data?.data;
 
     const defaultData = useMemo(() => [], [])
 
@@ -105,14 +76,10 @@ function PhotometricDataTable({taskIds, taskStatusQueries, currentObjectIdentifi
         columns: photometricColumns,
         getCoreRowModel: getCoreRowModel(),
         manualPagination: true,
-        //rowCount: total,
         rowCount: photometricResultsQuery.data?.total_items,
 
-        // v8 style: keep pagination in the `state` object
         state: { pagination },
         onPaginationChange: setPagination,
-        // optional but common: provide pageCount when doing manual pagination
-        // pageCount: Math.ceil(total / pagination.pageSize),
     })
 
     return (
