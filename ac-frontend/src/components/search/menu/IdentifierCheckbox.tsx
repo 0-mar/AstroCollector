@@ -14,7 +14,7 @@ export const IdentifierCheckbox = ({
                                        identifier,
                                    }: IdentifierCheckboxProps) => {
     const identifiersContext = useContext(IdentifiersContext)
-    const [checked, setChecked] = useState(false);
+    const [checked, setChecked] = useState(identifiersContext?.selectedObjectIdentifiers[id] === identifier);
 
     const handleCheckedChange = (isChecked: boolean) => {
         setChecked(isChecked)

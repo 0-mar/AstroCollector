@@ -1,6 +1,5 @@
 import type {ColumnDef} from "@tanstack/react-table"
 import type {Identifier} from "@/features/search/types.ts";
-import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
 import IdentifierCheckbox from "@/components/search/menu/IdentifierCheckbox.tsx";
 
 
