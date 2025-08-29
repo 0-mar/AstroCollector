@@ -7,11 +7,13 @@ import {useEffect, useMemo, useState} from "react";
 import type {PaginationResponse} from "@/features/api/types.ts";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../../../../components/ui/tabs.tsx";
 import LightCurvePlot from "@/components/search/lightcurve/LightCurvePlot.tsx";
-import LightCurveTable from "@/components/search/lightcurve/LightCurveTable.tsx";
 import LightCurvePanel from "@/components/search/lightcurve/LightCurvePanel.tsx";
 import type {PluginDto} from "@/features/search/types.ts";
 import {OptionsProvider} from "@/components/search/lightcurve/OptionsContext.tsx";
 import {RangeProvider} from "@/components/search/lightcurve/CurrentRangeContext.tsx";
+import PhotometricDataTable from "@/components/table/PhotometricDataTable.tsx";
+import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
+import LoadingError from "@/components/loading/LoadingError.tsx";
 
 
 type LightCurveSectionProps = {
@@ -57,7 +59,7 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
         queries: Object.values(currentObjectIdentifiers).map((identifier, idx) => {
             return {
                 queryKey: [`lcData_${identifier.plugin_id}_${identifier.ra_deg}_${identifier.dec_deg}`],
-                queryFn: () => BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data/${lightcurveTaskQueries[idx].data?.task_id}`, {task_id: lightcurveTaskQueries[idx].data?.task_id}),
+                queryFn: () => BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data`, {task_id__eq: lightcurveTaskQueries[idx].data?.task_id}),
                 enabled: taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED,
                 staleTime: Infinity
             }
@@ -72,7 +74,6 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
         return names;
     }, [pluginData])
 
-    // TODO: Pagination
     const [lightCurveData, setLightCurveData] = useState<PhotometricDataDto[]>([])
 
     // FIXME: BUG: sometimes when changing between table and plot tabs and changing selected objects, after clicking Show lightcurve the data does not change
@@ -92,7 +93,6 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resultQueries.map((q) => q.status).join(",")]);
 
-    // TODO: Show errors/loading - but how exactly? As toasts or some kind of overlay?
 
     return (
         <>
@@ -113,9 +113,48 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                     </div>
                 </TabsContent>
                 <TabsContent value="datatable">
-                    <LightCurveTable lightCurveData={lightCurveData}/>
+                    <PhotometricDataTable taskIds={Object.values(currentObjectIdentifiers).map((_identifier, idx) => idx).filter((idx) => taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED).map(idx => taskStatusQueries[idx].data?.task_id) ?? []}/>
                 </TabsContent>
             </Tabs>
+            <div>
+                {Object.values(currentObjectIdentifiers).map((identifier, idx) => {
+                    if (lightcurveTaskQueries[idx].isError) {
+                        return (
+                            <LoadingError title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={lightcurveTaskQueries[idx].error.message}/>
+                        )
+                    }
+                    if (taskStatusQueries[idx].isError) {
+                        return (
+                            <LoadingError title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={taskStatusQueries[idx].error.message}/>
+                        )
+                    }
+                    if (taskStatusQueries[idx].isPending || taskStatusQueries[idx].data?.status === TaskStatus.IN_PROGRESS) {
+                        return (
+                            <LoadingSkeleton text={"Loading photometric data for " + identifier.ra_deg + " " + identifier.dec_deg + " ..."}/>
+                        )
+                    }
+                    if (taskStatusQueries[idx].data?.status === TaskStatus.FAILED) {
+                        return (
+                            <LoadingError title={"Failed to load photometric data for" + identifier.ra_deg + " " + identifier.dec_deg} description={"Job failed"}/>
+                        )
+                    }
+                    if (taskStatusQueries[idx].isError) {
+                        return (
+                            <LoadingError title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={taskStatusQueries[idx].error.message}/>
+                        )
+                    }
+                    if (resultQueries[idx].isPending) {
+                        return (
+                            <LoadingSkeleton text={"Loading photometric data for " + identifier.ra_deg + " " + identifier.dec_deg + " ..."}/>
+                        )
+                    }
+                    if (resultQueries[idx].isError) {
+                        return (
+                            <LoadingError title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={resultQueries[idx].error.message}/>
+                        )
+                    }
+                })}
+            </div>
         </>
     )
 }

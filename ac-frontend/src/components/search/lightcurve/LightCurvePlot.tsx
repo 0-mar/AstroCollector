@@ -105,7 +105,7 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
 
         return Object.entries(bandGroupedLcData).map(([band, lcData]) => {
             const hoverTemplate =
-                optionsContext?.showErrorBars ? ('JD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                optionsContext?.showErrorBars ? ('MJD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
                 ) : (
                     'JD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
                 )
@@ -169,7 +169,7 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
                 responsive: true,
                 scrollZoom: true,
                 displaylogo: false,
-                modeBarButtonsToRemove: ["lasso2d", "select2d"],
+                modeBarButtonsToRemove: ["lasso2d", "select2d", "resetScale2d"],
             }}
             onRelayout={handleRelayout}
             //style={{ width: "100%", height: "50%" }}

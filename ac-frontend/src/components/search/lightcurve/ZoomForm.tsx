@@ -73,11 +73,6 @@ const ZoomForm = () => {
                 />
                 {<p className="text-destructive text-sm">{form.formState.errors.global?.message}</p>}
                 <Button type={"submit"}>Zoom</Button>
-                <Button type={"button"} onClick={() => {
-                    context?.setMinRange(undefined);
-                    context?.setMaxRange(undefined)
-                }}>Reset</Button>
-
             </form>
         </Form>
     )

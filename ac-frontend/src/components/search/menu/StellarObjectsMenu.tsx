@@ -5,9 +5,10 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/../components/ui/tabs"
 import StellarObjectsList from "@/components/search/menu/StellarObjectsList.tsx";
 import {Button} from "@/../components/ui/button"
 import LoadingError from "@/components/loading/LoadingError.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useContext} from "react";
 import {useQueryClient} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
+import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
 
 type StellarObjectsMenuProps = {
     formData: SearchValues
@@ -23,8 +24,9 @@ const StellarObjectsMenu = ({
                                 setCurrentObjectIdentifiers
                             }: StellarObjectsMenuProps) => {
 
-    const [selectedObjectIdentifiers, setSelectedObjectIdentifiers] = useState<Identifiers>({})
-    const [lightCurveBtnDisabled, setLightCurveBtnDisabled] = useState(true)
+    const identifiersContext = useContext(IdentifiersContext);
+    //const [selectedObjectIdentifiers, setSelectedObjectIdentifiers] = useState<Identifiers>({})
+    //const [lightCurveBtnDisabled, setLightCurveBtnDisabled] = useState(true)
 
     const queryClient = useQueryClient();
     useEffect(() => {
@@ -66,15 +68,12 @@ const StellarObjectsMenu = ({
                 </TabsList>
                 {pluginData.map(plugin =>
                     <TabsContent key={`content_${plugin.id}`} value={plugin.id}>
-                        <StellarObjectsList formData={formData} plugin={plugin}
-                                            selectedObjectIdentifiers={selectedObjectIdentifiers}
-                                            setSelectedObjectIdentifiers={setSelectedObjectIdentifiers}
-                                            setLightCurveBtnDisabled={setLightCurveBtnDisabled}/>
+                        <StellarObjectsList formData={formData} plugin={plugin}/>
                     </TabsContent>)}
             </Tabs>
-            <Button className="mt-2" disabled={lightCurveBtnDisabled} onClick={() => {
+            <Button className="mt-2" disabled={identifiersContext?.lightCurveBtnDisabled} onClick={() => {
                 setLightcurveSectionVisible(true);
-                setCurrentObjectIdentifiers(selectedObjectIdentifiers);
+                setCurrentObjectIdentifiers(identifiersContext?.selectedObjectIdentifiers ?? {});
             }}>
                 Show light curve
             </Button>
