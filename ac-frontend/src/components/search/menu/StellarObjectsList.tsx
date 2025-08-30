@@ -2,7 +2,7 @@ import type {Identifier, PluginDto, SearchValues} from "@/features/search/types.
 import {useQuery} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
-import LoadingError from "@/components/loading/LoadingError.tsx";
+import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import {type PaginationResponse, type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/api/types.ts";
 import {identifierColumns} from "@/components/table/Columns.tsx";
 import {ClientPaginatedDataTable} from "@/components/table/ClientPaginatedDataTable.tsx";
@@ -12,7 +12,6 @@ type StellarObjectsListProps = {
     plugin: PluginDto,
 };
 
-// TODO paginated tables!!!
 const StellarObjectsList = ({
                                 formData,
                                 plugin,
@@ -68,7 +67,7 @@ const StellarObjectsList = ({
     }
 
     if (taskQuery.isError) {
-        return <LoadingError title={"Search query failed"} description={taskQuery.error.message}/>
+        return <ErrorAlert title={"Search query failed"} description={taskQuery.error.message}/>
     }
 
     if (taskStatusQuery.isPending) {
@@ -76,7 +75,7 @@ const StellarObjectsList = ({
     }
 
     if (taskStatusQuery.isError) {
-        return <LoadingError title={"Search query failed"} description={taskStatusQuery.error.message}/>
+        return <ErrorAlert title={"Search query failed"} description={taskStatusQuery.error.message}/>
     }
 
     if (taskStatusQuery.isSuccess && taskStatusQuery.data?.status === TaskStatus.IN_PROGRESS) {
@@ -84,7 +83,7 @@ const StellarObjectsList = ({
     }
 
     if (taskStatusQuery.isSuccess && taskStatusQuery.data?.status === TaskStatus.FAILED) {
-        return <LoadingError title={"Search query failed"} description={""}/>
+        return <ErrorAlert title={"Search query failed"} description={""}/>
     }
 
     if (stellarObjectsResultsQuery.isPending) {
@@ -92,32 +91,12 @@ const StellarObjectsList = ({
     }
 
     if (stellarObjectsResultsQuery.isError) {
-        return <LoadingError title={"Failed to load stellar objects"}
-                             description={stellarObjectsResultsQuery.error.message}/>
+        return <ErrorAlert title={"Failed to load stellar objects"}
+                           description={stellarObjectsResultsQuery.error.message}/>
     }
 
     return (
         <ClientPaginatedDataTable data={stellarObjectsResultsQuery.data.data} columns={identifierColumns}/>
-        // <Table>
-        //     <TableHeader>
-        //         <TableRow>
-        //             <TableHead>Select</TableHead>
-        //             <TableHead>Right ascension (deg)</TableHead>
-        //             <TableHead>Declination (deg)</TableHead>
-        //         </TableRow>
-        //     </TableHeader>
-        //     <TableBody>
-        //         {stellarObjectsResultsQuery.data.data.map((identifier) =>
-        //             <TableRow key={identifier.id}>
-        //                 <TableCell>
-        //                     <IdentifierCheckbox id={identifier.id} identifier={identifier.identifier}/>
-        //                 </TableCell>
-        //                 <TableCell>{identifier.identifier.ra_deg}</TableCell>
-        //                 <TableCell>{identifier.identifier.dec_deg}</TableCell>
-        //             </TableRow>
-        //         )}
-        //     </TableBody>
-        // </Table>
     );
 
 };

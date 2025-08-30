@@ -1,7 +1,7 @@
-import { Alert, AlertDescription, AlertTitle } from "@/../components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert.tsx"
 import {CircleX} from "lucide-react";
 
-const LoadingError = ({title, description}: {title: string, description: string}) => {
+const ErrorAlert = ({title, description}: {title: string, description: string}) => {
     return (
         <Alert className={"text-red-600 text-left"}>
             <CircleX />
@@ -13,4 +13,4 @@ const LoadingError = ({title, description}: {title: string, description: string}
     )
 }
 
-export default LoadingError;
+export default ErrorAlert;

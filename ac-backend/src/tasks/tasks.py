@@ -44,9 +44,9 @@ async def resolve_name_to_coordinates(name: str) -> SkyCoord:
     """
     Resolves the given name to astronomical coordinates.
 
-    :param name: The name of the celestial object to resolve.
+    :param name: The name of the stellar object to resolve.
     :type name: str
-    :return: An object representing the resolved coordinates of the celestial object.
+    :return: An object representing the resolved coordinates of the stellar object.
     :rtype: SkyCoord
     """
     # TODO add other coordinate resolving options (e.g. from astroquery etc.)

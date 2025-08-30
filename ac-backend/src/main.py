@@ -18,6 +18,7 @@ from src.plugin.model import Plugin
 from src.plugin.service import PluginService
 from src.tasks import router as task_router
 from src.tasks.model import Task
+from src.so_name_resolving import router as name_resolving_router
 
 logger = logging.getLogger(__name__)
 
@@ -90,3 +91,4 @@ plugin_cache = Cache(
 app.include_router(plugin_router.router)
 app.include_router(task_router.router)
 app.include_router(data_router.router)
+app.include_router(name_resolving_router.router)
