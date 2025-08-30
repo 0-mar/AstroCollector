@@ -15,6 +15,8 @@ import {Input} from "@/../components/ui/input"
 import SearchFormSubmitButton from "@/components/search/form/SearchFormSubmitButton.tsx";
 import {formSchema, type PluginDto, type SearchValues} from "@/features/search/types.ts";
 import type {PaginationResponse} from "@/features/api/types.ts";
+import {useState} from "react";
+import CoordsPanel from "@/components/search/form/CoordsPanel.tsx";
 
 
 const LabeledInput = ({label, ...props}) => {
@@ -51,7 +53,10 @@ const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
         setPluginData(pluginQuery.data?.data)
         setMenuVisible(true)
         setFormData(formData)
+        setCoordsPanelVisible(true)
     }
+
+    const [coordsPanelVisible, setCoordsPanelVisible] = useState(false)
 
     return (
         <Form {...form}>
@@ -70,7 +75,7 @@ const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
                         </FormItem>
                     )}
                 />
-
+                {coordsPanelVisible && <CoordsPanel objectName={form.getValues("objectName") ?? ""} />}
                 <h2>Search by coordinates</h2>
                 <FormField
                     control={form.control}
