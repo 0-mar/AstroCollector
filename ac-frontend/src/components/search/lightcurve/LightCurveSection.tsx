@@ -13,7 +13,7 @@ import {OptionsProvider} from "@/components/search/lightcurve/OptionsContext.tsx
 import {RangeProvider} from "@/components/search/lightcurve/CurrentRangeContext.tsx";
 import PhotometricDataTable from "@/components/table/PhotometricDataTable.tsx";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
-import LoadingError from "@/components/loading/LoadingError.tsx";
+import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 
 
 type LightCurveSectionProps = {
@@ -113,19 +113,19 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                     </div>
                 </TabsContent>
                 <TabsContent value="datatable">
-                    <PhotometricDataTable taskIds={Object.values(currentObjectIdentifiers).map((_identifier, idx) => idx).filter((idx) => taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED).map(idx => taskStatusQueries[idx].data?.task_id) ?? []}/>
+                    <PhotometricDataTable taskIds={Object.values(currentObjectIdentifiers).map((_identifier, idx) => idx).filter((idx) => taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED).map(idx => taskStatusQueries[idx].data?.task_id ?? "")}/>
                 </TabsContent>
             </Tabs>
             <div>
                 {Object.values(currentObjectIdentifiers).map((identifier, idx) => {
                     if (lightcurveTaskQueries[idx].isError) {
                         return (
-                            <LoadingError title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={lightcurveTaskQueries[idx].error.message}/>
+                            <ErrorAlert title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={lightcurveTaskQueries[idx].error.message}/>
                         )
                     }
                     if (taskStatusQueries[idx].isError) {
                         return (
-                            <LoadingError title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={taskStatusQueries[idx].error.message}/>
+                            <ErrorAlert title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={taskStatusQueries[idx].error.message}/>
                         )
                     }
                     if (taskStatusQueries[idx].isPending || taskStatusQueries[idx].data?.status === TaskStatus.IN_PROGRESS) {
@@ -135,12 +135,12 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                     }
                     if (taskStatusQueries[idx].data?.status === TaskStatus.FAILED) {
                         return (
-                            <LoadingError title={"Failed to load photometric data for" + identifier.ra_deg + " " + identifier.dec_deg} description={"Job failed"}/>
+                            <ErrorAlert title={"Failed to load photometric data for" + identifier.ra_deg + " " + identifier.dec_deg} description={"Job failed"}/>
                         )
                     }
                     if (taskStatusQueries[idx].isError) {
                         return (
-                            <LoadingError title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={taskStatusQueries[idx].error.message}/>
+                            <ErrorAlert title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={taskStatusQueries[idx].error.message}/>
                         )
                     }
                     if (resultQueries[idx].isPending) {
@@ -150,7 +150,7 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                     }
                     if (resultQueries[idx].isError) {
                         return (
-                            <LoadingError title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={resultQueries[idx].error.message}/>
+                            <ErrorAlert title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={resultQueries[idx].error.message}/>
                         )
                     }
                 })}

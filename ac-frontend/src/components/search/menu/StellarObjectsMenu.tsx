@@ -4,7 +4,7 @@ import type {Identifiers} from "@/features/search/menu/types.ts";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/../components/ui/tabs"
 import StellarObjectsList from "@/components/search/menu/StellarObjectsList.tsx";
 import {Button} from "@/../components/ui/button"
-import LoadingError from "@/components/loading/LoadingError.tsx";
+import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import {useEffect, useContext} from "react";
 import {useQueryClient} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
@@ -25,8 +25,6 @@ const StellarObjectsMenu = ({
                             }: StellarObjectsMenuProps) => {
 
     const identifiersContext = useContext(IdentifiersContext);
-    //const [selectedObjectIdentifiers, setSelectedObjectIdentifiers] = useState<Identifiers>({})
-    //const [lightCurveBtnDisabled, setLightCurveBtnDisabled] = useState(true)
 
     const queryClient = useQueryClient();
     useEffect(() => {
@@ -53,8 +51,8 @@ const StellarObjectsMenu = ({
     }, [pluginData, formData, queryClient]);
 
     if (pluginData.length === 0) {
-        return <LoadingError title={"Database contains no catalogs"}
-                             description={"Please contact the admins to add catalogs to the database."}/>
+        return <ErrorAlert title={"Database contains no catalogs"}
+                           description={"Please contact the admins to add catalogs to the database."}/>
     }
 
     return (
