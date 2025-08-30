@@ -66,6 +66,13 @@ function PhotometricDataTable({taskIds}: PhotometricDataTableProps) {
         queryFn: () => {
             return BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data`, {task_id__in: taskIds, offset: offset, count: count})
         },
+        refetchInterval: (query) => {
+            const data = query.state.data;
+            if (!data) {
+                return 1000;
+            }
+            return data.count > 0 ? false : 1000;
+        },
         placeholderData: keepPreviousData
     });
 
@@ -81,7 +88,7 @@ function PhotometricDataTable({taskIds}: PhotometricDataTableProps) {
         state: { pagination },
         onPaginationChange: setPagination,
     })
-
+    console.log(taskIds)
     return (
         <div>
             <div className="overflow-hidden rounded-md border">
