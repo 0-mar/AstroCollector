@@ -40,7 +40,7 @@ export function ClientPaginatedDataTable<TData, TValue>({
     })
 
     return (
-        <div>
+        <div className={"flex-col space-y-4 pb-4"}>
             <div className="overflow-hidden rounded-md border">
                 <Table>
                     <TableHeader>

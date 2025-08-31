@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query'
 
 import Header from '../components/Header'
+import Footer from "@/components/Footer.tsx";
 
 export const Route = createRootRoute({
     component: () => {
@@ -14,11 +15,10 @@ export const Route = createRootRoute({
     return (
         <QueryClientProvider client={queryClient}>
             <Header/>
-            <div className="m-8">
-                <Outlet/>
-            </div>
+            <Outlet/>
             <TanStackRouterDevtools/>
             <ReactQueryDevtools initialIsOpen={false} />
+            <Footer/>
         </QueryClientProvider>
     )
     },

@@ -23,19 +23,23 @@ function App() {
     return (
         //<div className="grid grid-cols-1 grid-rows-3 gap-4">
         <div>
-            <div className="w-1/2 0mx-auto">
-                <SearchForm setMenuVisible={setMenuVisible} setFormData={setFormData} setPluginData={setPluginData}/>
+            <div className="bg-blue-100 rounded-md">
+                <div className="p-8 w-1/2 0mx-auto">
+                    <SearchForm setMenuVisible={setMenuVisible} setFormData={setFormData} setPluginData={setPluginData}/>
+                </div>
+
             </div>
-            <div className="my-6">
-                {menuVisible && <IdentifiersProvider><StellarObjectsMenu formData={formData} pluginData={pluginData}
+            {menuVisible && <div className="p-8 my-4">
+                <IdentifiersProvider><StellarObjectsMenu formData={formData} pluginData={pluginData}
                                                     setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
                                                     setLightcurveSectionVisible={setLightcurveSectionVisible}
-                /></IdentifiersProvider>}
-            </div>
-            <div>
-                {lightcurveSectionVisible &&
-                    <LightCurveSection currentObjectIdentifiers={currentObjectIdentifiers} pluginData={pluginData}/>}
-            </div>
+                /></IdentifiersProvider>
+            </div>}
+            {lightcurveSectionVisible && <div className="bg-blue-100 rounded-md">
+                <div className={"p-8"}>
+                    <LightCurveSection currentObjectIdentifiers={currentObjectIdentifiers} pluginData={pluginData}/>
+                </div>
+            </div>}
         </div>
     )
 }
