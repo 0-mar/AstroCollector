@@ -24,6 +24,10 @@ const ZoomForm = () => {
     const rangeContext = useContext(RangeContext)
     const form = useForm<ZoomValues>({
         resolver: yupResolver(zoomFormSchema),
+        defaultValues: {
+            min: 0,
+            max: 0
+        }
     });
 
     useEffect(() => {
