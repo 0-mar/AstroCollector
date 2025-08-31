@@ -78,9 +78,9 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
         if (optionsContext?.groupBy === "sources") {
             return Object.entries(sourceGroupedLcData).map(([plugin_id, lcData]) => {
                 const hoverTemplate =
-                    optionsContext?.showErrorBars ? ('JD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                    optionsContext?.showErrorBars ? ('MJD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
                     ) : (
-                        'JD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                        'MJD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
                     )
                 return {
                     x: lcData.jds,
@@ -107,7 +107,7 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
             const hoverTemplate =
                 optionsContext?.showErrorBars ? ('MJD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
                 ) : (
-                    'JD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                    'MJD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
                 )
             return {
                 x: lcData.jds,
