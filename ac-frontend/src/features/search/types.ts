@@ -58,6 +58,8 @@ export type StellarObjectIdentifierDto = {
     plugin_id: string
     ra_deg: number
     dec_deg: number
+    name: string
+    dist_arcsec: number
     [key: string]: unknown
 }
 
