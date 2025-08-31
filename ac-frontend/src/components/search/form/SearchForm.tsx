@@ -60,8 +60,8 @@ const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <h2>Search by object name</h2>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <h2 className="text-lg font-medium text-gray-900">Search by object name</h2>
                 <FormField
                     control={form.control}
                     name="objectName"
@@ -76,7 +76,7 @@ const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
                     )}
                 />
                 {coordsPanelVisible && <CoordsPanel objectName={form.getValues("objectName") ?? ""} />}
-                <h2>Search by coordinates</h2>
+                <h2 className="text-lg font-medium text-gray-900">Search by coordinates</h2>
                 <FormField
                     control={form.control}
                     name="rightAscension"

@@ -57,6 +57,7 @@ const StellarObjectsMenu = ({
 
     return (
         <>
+            <h2 className="text-lg font-medium text-gray-900">Search results by sources</h2>
             <Tabs defaultValue={pluginData[0].id}>
                 <TabsList>
                     {pluginData.map(plugin =>

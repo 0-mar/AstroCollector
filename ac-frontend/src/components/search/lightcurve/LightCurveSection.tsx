@@ -96,6 +96,7 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
 
     return (
         <>
+            <h2 className="text-lg font-medium text-gray-900">Photometric data</h2>
             <Tabs defaultValue="lightcurve">
                 <TabsList>
                     <TabsTrigger value="lightcurve">Light Curve</TabsTrigger>
@@ -113,7 +114,9 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
                     </div>
                 </TabsContent>
                 <TabsContent value="datatable">
-                    <PhotometricDataTable taskIds={Object.values(currentObjectIdentifiers).map((_identifier, idx) => idx).filter((idx) => taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED).map(idx => taskStatusQueries[idx].data?.task_id ?? "")}/>
+                    <div className="bg-white rounded-md shadow-md">
+                        <PhotometricDataTable taskIds={Object.values(currentObjectIdentifiers).map((_identifier, idx) => idx).filter((idx) => taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED).map(idx => taskStatusQueries[idx].data?.task_id ?? "")}/>
+                    </div>
                 </TabsContent>
             </Tabs>
             <div>

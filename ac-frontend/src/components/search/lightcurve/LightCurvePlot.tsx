@@ -170,6 +170,7 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
                 scrollZoom: true,
                 displaylogo: false,
                 modeBarButtonsToRemove: ["lasso2d", "select2d", "resetScale2d"],
+                displayModeBar: true
             }}
             onRelayout={handleRelayout}
             //style={{ width: "100%", height: "50%" }}
