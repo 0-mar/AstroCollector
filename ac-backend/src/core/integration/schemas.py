@@ -10,6 +10,8 @@ class StellarObjectIdentificatorDto(BaseDto):
     plugin_id: UUID
     ra_deg: float
     dec_deg: float
+    name: str | None
+    dist_arcsec: float | None
 
     @field_serializer("plugin_id")
     def serialize_id(self, plugin_id: UUID, _info):

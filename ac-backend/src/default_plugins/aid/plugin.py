@@ -40,13 +40,11 @@ class AidPlugin(PhotometricCataloguePlugin[AidIdentificatorDto]):
             query_data = await query_resp.json()
 
         yield await run_in_threadpool(
-            self._process_objects_batch, query_data, plugin_id
+            self._process_objects_batch, query_data, plugin_id, coords
         )
 
     def _process_objects_batch(
-        self,
-        query_data: dict[str, Any],
-        plugin_id: UUID,
+        self, query_data: dict[str, Any], plugin_id: UUID, search_coords: SkyCoord
     ) -> list[AidIdentificatorDto]:
         results = []
         if query_data["VSXObjects"] == []:
@@ -55,12 +53,17 @@ class AidPlugin(PhotometricCataloguePlugin[AidIdentificatorDto]):
         for record in query_data["VSXObjects"]["VSXObject"]:
             if "AUID" not in record:
                 continue
+            record_coords = SkyCoord(
+                record["RA2000"], record["Declination2000"], unit="deg"
+            )
             results.append(
                 AidIdentificatorDto(
                     plugin_id=plugin_id,
                     auid=record["AUID"],
                     ra_deg=record["RA2000"],
                     dec_deg=record["Declination2000"],
+                    name=record["Name"] if "Name" in record else "",
+                    dist_arcsec=search_coords.separation(record_coords).arcsec,
                 )
             )
 

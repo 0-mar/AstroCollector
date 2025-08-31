@@ -38,6 +38,7 @@ class ApassPlugin(PhotometricCataloguePlugin[ApassIdentificatorDto]):
         if root.text == "No rows were returned by query.":
             yield []
 
+        # TODO: how do I resolve names & distances?
         else:
             yield [
                 ApassIdentificatorDto(
@@ -45,6 +46,8 @@ class ApassPlugin(PhotometricCataloguePlugin[ApassIdentificatorDto]):
                     ra_deg=coords.ra.deg,
                     dec_deg=coords.dec.deg,
                     raddeg=radius_arcsec / 3600,
+                    name="",
+                    dist_arcsec=0,
                 )
             ]
 

@@ -61,6 +61,7 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
                 gsc_bin_index_idx,
                 ref_number_idx,
                 plugin_id,
+                coords,
             )
 
             if batch == []:
@@ -77,6 +78,7 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
         gsc_bin_index_idx: int,
         ref_number_idx: int,
         plugin_id: UUID,
+        search_coords: SkyCoord,
     ) -> list[DaschStellarObjectIdentificatorDto]:
         result: list[DaschStellarObjectIdentificatorDto] = []
 
@@ -96,6 +98,10 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
             ):
                 continue
 
+            record_coords = SkyCoord(
+                identificator_ra_deg, identificator_dec_deg, unit="deg"
+            )
+
             result.append(
                 DaschStellarObjectIdentificatorDto(
                     gsc_bin_index=int(identificator_gsc_bin_index),
@@ -103,6 +109,8 @@ class DaschPlugin(PhotometricCataloguePlugin[DaschStellarObjectIdentificatorDto]
                     ra_deg=float(identificator_ra_deg),
                     dec_deg=float(identificator_dec_deg),
                     plugin_id=plugin_id,
+                    name="",
+                    dist_arcsec=search_coords.separation(record_coords).arcsec,
                 )
             )
 

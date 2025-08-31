@@ -45,6 +45,8 @@ class Mmt9Plugin(PhotometricCataloguePlugin[Mmt9IdentificatorDto]):
                 ra_deg=coords.ra.deg,
                 dec_deg=coords.dec.deg,
                 radius_arcsec=radius_arcsec,
+                name="",
+                dist_arcsec=0,
             )
         ]
 

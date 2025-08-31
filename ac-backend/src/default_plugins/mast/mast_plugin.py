@@ -18,7 +18,6 @@ from src.core.integration.schemas import (
 
 class MastStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
     id: str
-    dstArcSec: float
 
 
 class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
@@ -60,8 +59,9 @@ class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
                     plugin_id=plugin_id,
                     ra_deg=s_ra,
                     dec_deg=s_dec,
+                    name=target_name,
+                    dist_arcsec=float(distance),
                     id=target_name,
-                    dstArcSec=float(distance),
                 )
                 for target_name, s_ra, s_dec, distance in unique_targets.iterrows(
                     "target_name", "s_ra", "s_dec", "distance"

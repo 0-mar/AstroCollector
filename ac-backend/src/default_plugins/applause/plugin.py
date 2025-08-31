@@ -22,7 +22,6 @@ APPLAUSE_TAP_URL = "https://www.plate-archive.org/tap"
 
 class ApplauseIdentificatorDto(StellarObjectIdentificatorDto):
     ucac4_id: str
-    angdist: float
 
 
 # TODO: what about shared session?
@@ -64,10 +63,10 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
     ) -> AsyncGenerator[list[ApplauseIdentificatorDto]]:
         cone_search_query = f"""
         SELECT DISTINCT ON(ucac4_id) ucac4_id, raj2000, dej2000,
-        DEGREES(SPOINT(RADIANS(raj2000), RADIANS(dej2000)) <-> SPOINT(RADIANS({coords.ra.deg}), RADIANS({coords.dec.deg}))) as angdist
+        3600.0 * DEGREES(SPOINT(RADIANS(raj2000), RADIANS(dej2000)) <-> SPOINT(RADIANS({coords.ra.deg}), RADIANS({coords.dec.deg}))) as angdist_arcsec
         FROM applause_dr3.lightcurve
-        WHERE pos @ scircle(spoint(RADIANS({coords.ra.deg}), RADIANS({coords.dec.deg})), RADIANS({radius_arcsec / 3600})) AND ucac4_id IS NOT NULL
-        ORDER BY ucac4_id, angdist ASC"""
+        WHERE pos @ scircle(spoint(RADIANS({coords.ra.deg}), RADIANS({coords.dec.deg})), RADIANS({radius_arcsec / 3600.0})) AND ucac4_id IS NOT NULL
+        ORDER BY ucac4_id, angdist_arcsec ASC"""
 
         result_table = await run_in_threadpool(
             self.__tap_query, cone_search_query, "PostgreSQL"
@@ -79,8 +78,9 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
         self, plugin_id: UUID, result_table: Table
     ) -> list[ApplauseIdentificatorDto]:
         results = []
-        for ucac4_id, ra, dec, angdist in result_table.iterrows(
-            "ucac4_id", "raj2000", "dej2000", "angdist"
+        # TODO: how do I get the name?
+        for ucac4_id, ra, dec, angdist_arcsec in result_table.iterrows(
+            "ucac4_id", "raj2000", "dej2000", "angdist_arcsec"
         ):
             results.append(
                 ApplauseIdentificatorDto(
@@ -88,7 +88,8 @@ class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
                     ra_deg=ra,
                     dec_deg=dec,
                     ucac4_id=ucac4_id,
-                    angdist=angdist,
+                    name="",
+                    dist_arcsec=angdist_arcsec,
                 )
             )
 
