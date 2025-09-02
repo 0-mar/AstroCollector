@@ -6,34 +6,35 @@ import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import {type PaginationResponse, type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/api/types.ts";
 import {identifierColumns} from "@/components/table/Columns.tsx";
 import {ClientPaginatedDataTable} from "@/components/table/ClientPaginatedDataTable.tsx";
+import {useContext} from "react";
+import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 
 type StellarObjectsListProps = {
-    formData: SearchValues,
     plugin: PluginDto,
 };
 
 const StellarObjectsList = ({
-                                formData,
                                 plugin,
                             }: StellarObjectsListProps) => {
-    const body = formData.objectName !== "" ?
-        {name: formData.objectName, plugin_id: plugin.id} :
+    const searchFormContext = useContext(SearchFormContext)
+    const body = searchFormContext?.searchValues.objectName !== "" ?
+        {name: searchFormContext?.searchValues.objectName, plugin_id: plugin.id} :
         {
-            right_ascension_deg: formData.rightAscension,
-            declination_deg: formData.declination,
-            radius: formData.radius,
+            right_ascension_deg: searchFormContext?.searchValues.rightAscension,
+            declination_deg: searchFormContext?.searchValues.declination,
+            radius: searchFormContext?.searchValues.radius,
             plugin_id: plugin.id
         }
-    const endpoint = formData.objectName !== "" ? "find-object" : "cone-search"
+    const endpoint = searchFormContext?.searchValues.objectName !== "" ? "find-object" : "cone-search"
 
     const taskQuery = useQuery({
-        queryKey: [`plugin_${plugin.id}`, formData],
+        queryKey: [`plugin_${plugin.id}`, searchFormContext?.searchValues],
         queryFn: () => BaseApi.post<SubmitTaskDto>("/tasks/submit-task/" + plugin.id + "/" + endpoint, body),
         staleTime: Infinity
     })
 
     const taskStatusQuery = useQuery({
-        queryKey: [`task_plugin_${plugin.id}`, formData],
+        queryKey: [`task_plugin_${plugin.id}`, searchFormContext?.searchValues],
         queryFn: () => {
             // get task ID. The ID will be ALWAYS present, since the query starts only when the taskQuery was successful
             const taskId = taskQuery.data?.task_id
@@ -51,7 +52,7 @@ const StellarObjectsList = ({
     });
 
     const stellarObjectsResultsQuery = useQuery({
-        queryKey: [`task_plugin_${plugin.id}_results`, formData],
+        queryKey: [`task_plugin_${plugin.id}_results`, searchFormContext?.searchValues],
         queryFn: () => {
             // get task ID. The ID will be ALWAYS present, since the query starts only when the taskQuery was successful
             const taskId = taskQuery.data?.task_id

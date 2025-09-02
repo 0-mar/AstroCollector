@@ -9,46 +9,46 @@ import {useEffect, useContext} from "react";
 import {useQueryClient} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
+import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 
 type StellarObjectsMenuProps = {
-    formData: SearchValues
     pluginData: PluginDto[]
     setLightcurveSectionVisible: React.Dispatch<React.SetStateAction<boolean>>
     setCurrentObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>
 };
 
 const StellarObjectsMenu = ({
-                                formData,
                                 pluginData,
                                 setLightcurveSectionVisible,
                                 setCurrentObjectIdentifiers
                             }: StellarObjectsMenuProps) => {
 
     const identifiersContext = useContext(IdentifiersContext);
+    const searchFormContext = useContext(SearchFormContext)
 
     const queryClient = useQueryClient();
     useEffect(() => {
         pluginData.forEach(plugin => {
             console.log("Prefetching plugin", plugin.id);
-            const body = formData.objectName !== "" ?
-                {name: formData.objectName, plugin_id: plugin.id} :
+            const body = searchFormContext?.searchValues.objectName !== "" ?
+                {name: searchFormContext?.searchValues.objectName, plugin_id: plugin.id} :
                 {
-                    right_ascension_deg: formData.rightAscension,
-                    declination_deg: formData.declination,
-                    radius: formData.radius,
+                    right_ascension_deg: searchFormContext?.searchValues.rightAscension,
+                    declination_deg: searchFormContext?.searchValues.declination,
+                    radius: searchFormContext?.searchValues.radius,
                     plugin_id: plugin.id
                 };
 
-            const endpoint = formData.objectName !== "" ? "find-object" : "cone-search";
+            const endpoint = searchFormContext?.searchValues.objectName !== "" ? "find-object" : "cone-search";
 
             // Prefetch Submit Task (same as taskQuery)
             queryClient.prefetchQuery({
-                queryKey: [`plugin_${plugin.id}`, formData],
+                queryKey: [`plugin_${plugin.id}`, searchFormContext?.searchValues],
                 queryFn: () => BaseApi.post("/tasks/submit-task/" + plugin.id + "/" + endpoint, body),
                 staleTime: Infinity
             });
         });
-    }, [pluginData, formData, queryClient]);
+    }, [pluginData, searchFormContext?.searchValues, queryClient]);
 
     if (pluginData.length === 0) {
         return <ErrorAlert title={"Database contains no catalogs"}
@@ -67,7 +67,7 @@ const StellarObjectsMenu = ({
                 </TabsList>
                 {pluginData.map(plugin =>
                     <TabsContent key={`content_${plugin.id}`} value={plugin.id}>
-                        <StellarObjectsList formData={formData} plugin={plugin}/>
+                        <StellarObjectsList plugin={plugin}/>
                     </TabsContent>)}
             </Tabs>
             <Button className="mt-2" disabled={identifiersContext?.lightCurveBtnDisabled} onClick={() => {

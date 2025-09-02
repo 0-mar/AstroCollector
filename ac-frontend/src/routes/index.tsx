@@ -1,11 +1,13 @@
 import {createFileRoute} from '@tanstack/react-router'
 import {useState} from "react";
-import type {PluginDto, SearchValues} from "@/features/search/types.ts";
+import type {PluginDto} from "@/features/search/types.ts";
 import type {Identifiers} from "@/features/search/menu/types.ts";
 import SearchForm from "@/components/search/form/SearchForm.tsx";
 import StellarObjectsMenu from "@/components/search/menu/StellarObjectsMenu.tsx";
-import LightCurveSection from "@/components/search/lightcurve/LightCurveSection.tsx";
+import PhotometricDataSection from "@/components/search/photometricData/PhotometricDataSection.tsx";
 import {IdentifiersProvider} from "@/components/search/menu/IdentifiersContext.tsx";
+import {SearchFormProvider} from "@/components/search/form/SearchFormContext.tsx";
+import {ObjectCoordsProvider} from "@/components/search/form/ObjectCoordsProvider.tsx";
 
 export const Route = createFileRoute('/')({
     component: App,
@@ -13,7 +15,6 @@ export const Route = createFileRoute('/')({
 
 function App() {
     const [menuVisible, setMenuVisible] = useState(false)
-    const [formData, setFormData] = useState<SearchValues>({})
     const [pluginData, setPluginData] = useState<PluginDto[]>([])
 
 
@@ -23,23 +24,27 @@ function App() {
     return (
         //<div className="grid grid-cols-1 grid-rows-3 gap-4">
         <div>
-            <div className="bg-blue-100 rounded-md">
-                <div className="p-8 w-1/2 0mx-auto">
-                    <SearchForm setMenuVisible={setMenuVisible} setFormData={setFormData} setPluginData={setPluginData}/>
-                </div>
+            <SearchFormProvider>
+                <ObjectCoordsProvider>
+                <div className="bg-blue-100 rounded-md">
+                    <div className="p-8 w-1/2 0mx-auto">
+                        <SearchForm setMenuVisible={setMenuVisible} setPluginData={setPluginData}/>
+                    </div>
 
-            </div>
-            {menuVisible && <div className="p-8 my-4">
-                <IdentifiersProvider><StellarObjectsMenu formData={formData} pluginData={pluginData}
-                                                    setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
-                                                    setLightcurveSectionVisible={setLightcurveSectionVisible}
-                /></IdentifiersProvider>
-            </div>}
-            {lightcurveSectionVisible && <div className="bg-blue-100 rounded-md">
-                <div className={"p-8"}>
-                    <LightCurveSection currentObjectIdentifiers={currentObjectIdentifiers} pluginData={pluginData}/>
                 </div>
-            </div>}
+                {menuVisible && <div className="p-8 my-4">
+                    <IdentifiersProvider><StellarObjectsMenu pluginData={pluginData}
+                                                        setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
+                                                        setLightcurveSectionVisible={setLightcurveSectionVisible}
+                    /></IdentifiersProvider>
+                </div>}
+                {lightcurveSectionVisible && <div className="bg-blue-100 rounded-md">
+                    <div className={"p-8"}>
+                        <PhotometricDataSection currentObjectIdentifiers={currentObjectIdentifiers} pluginData={pluginData}/>
+                    </div>
+                </div>}
+                </ObjectCoordsProvider>
+            </SearchFormProvider>
         </div>
     )
 }

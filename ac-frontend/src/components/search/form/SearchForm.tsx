@@ -15,8 +15,10 @@ import {Input} from "@/../components/ui/input"
 import SearchFormSubmitButton from "@/components/search/form/SearchFormSubmitButton.tsx";
 import {formSchema, type PluginDto, type SearchValues} from "@/features/search/types.ts";
 import type {PaginationResponse} from "@/features/api/types.ts";
-import {useState} from "react";
+import {useContext, useState} from "react";
 import CoordsPanel from "@/components/search/form/CoordsPanel.tsx";
+import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
+import {ObjectCoordsContext} from "@/components/search/form/ObjectCoordsProvider.tsx";
 
 
 const LabeledInput = ({label, ...props}) => {
@@ -29,7 +31,10 @@ const LabeledInput = ({label, ...props}) => {
 }
 
 
-const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
+const SearchForm = ({setMenuVisible, setPluginData}) => {
+    const searchFormContext = useContext(SearchFormContext)
+    const objectCoordsContext = useContext(ObjectCoordsContext)
+
     const form = useForm<SearchValues>({
         resolver: yupResolver(formSchema),
         defaultValues: {
@@ -52,8 +57,14 @@ const SearchForm = ({setFormData, setMenuVisible, setPluginData}) => {
     const onSubmit = (formData: SearchValues) => {
         setPluginData(pluginQuery.data?.data)
         setMenuVisible(true)
-        setFormData(formData)
-        setCoordsPanelVisible(true)
+        searchFormContext?.setSearchValues(formData)
+
+        if (formData.objectName !== "") {
+            setCoordsPanelVisible(true)
+        } else {
+            setCoordsPanelVisible(false)
+            objectCoordsContext?.setObjectCoords({declination: undefined, rightAscension: undefined})
+        }
     }
 
     const [coordsPanelVisible, setCoordsPanelVisible] = useState(false)
