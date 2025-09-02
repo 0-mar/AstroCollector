@@ -1,4 +1,4 @@
-import type {PluginDto, SearchValues} from "@/features/search/types.ts";
+import type {PluginDto} from "@/features/search/types.ts";
 import * as React from "react";
 import type {Identifiers} from "@/features/search/menu/types.ts";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/../components/ui/tabs"

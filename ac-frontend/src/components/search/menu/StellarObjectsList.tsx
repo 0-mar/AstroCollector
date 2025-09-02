@@ -1,4 +1,4 @@
-import type {Identifier, PluginDto, SearchValues} from "@/features/search/types.ts";
+import type {Identifier, PluginDto} from "@/features/search/types.ts";
 import {useQuery} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
