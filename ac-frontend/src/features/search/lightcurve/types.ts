@@ -5,3 +5,11 @@ export type PhotometricDataDto = {
     magnitude_error: number
     light_filter: string | null
 }
+
+export type PhaseCurveDataDto = {
+    period: number | undefined
+    epoch: number | undefined
+    ra_deg: number | undefined
+    dec_deg: number | undefined
+    vsx_object_name: string | undefined
+}
