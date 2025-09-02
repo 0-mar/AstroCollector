@@ -1,12 +1,12 @@
-import {Checkbox} from "@/../components/ui/checkbox"
-import { Label } from "@/../components/ui/label"
-import {RadioGroup, RadioGroupItem} from "@/../components/ui/radio-group";
-import ZoomForm from "@/components/search/lightcurve/ZoomForm.tsx";
+import {Checkbox} from "../../../../../components/ui/checkbox.tsx"
+import { Label } from "../../../../../components/ui/label.tsx"
+import {RadioGroup, RadioGroupItem} from "../../../../../components/ui/radio-group.tsx";
+import ZoomForm from "@/components/search/photometricData/plotOptions/ZoomForm.tsx";
 import {useContext} from "react";
-import {OptionsContext} from "@/components/search/lightcurve/OptionsContext.tsx";
+import {OptionsContext} from "@/components/search/photometricData/plotOptions/OptionsContext.tsx";
 
 
-const LightCurvePanel = () => {
+const PlotOptionsPanel = () => {
     const context = useContext(OptionsContext)
 
     return (
@@ -41,4 +41,4 @@ const LightCurvePanel = () => {
     );
 }
 
-export default LightCurvePanel;
+export default PlotOptionsPanel;
