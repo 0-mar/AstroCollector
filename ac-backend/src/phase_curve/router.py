@@ -21,7 +21,9 @@ def get_phase_curve_data(query_data, search_coords: SkyCoord):
     :return:
     """
     if query_data["VSXObjects"] == []:
-        return PhaseCurveDataDto(ra_deg=None, dec_deg=None, epoch=None, period=None)
+        return PhaseCurveDataDto(
+            ra_deg=None, dec_deg=None, epoch=None, period=None, vsx_object_name=None
+        )
 
     def sort_by_dist(record):
         return search_coords.separation(
@@ -90,7 +92,7 @@ async def phase_curve_data(
                     vsx_object_name=record["Name"] if "Name" in record else "",
                 )
 
-    else:
+    if ra_deg is not None and dec_deg is not None:
         async with http_client.get(
             f"https://vsx.aavso.org/index.php?view=api.list&ra={ra_deg}&dec={dec_deg}&radius={30 / 3600}&format=json"
         ) as query_resp:
