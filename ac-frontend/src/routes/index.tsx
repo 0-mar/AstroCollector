@@ -26,23 +26,29 @@ function App() {
         <div>
             <SearchFormProvider>
                 <ObjectCoordsProvider>
-                <div className="bg-blue-100 rounded-md">
-                    <div className="p-8 w-1/2 0mx-auto">
-                        <SearchForm setMenuVisible={setMenuVisible} setPluginData={setPluginData}/>
-                    </div>
+                    <IdentifiersProvider>
+                        <div className="bg-blue-100 rounded-md">
+                            <div className="p-8 w-1/2 0mx-auto">
+                                <SearchForm setMenuVisible={setMenuVisible}
+                                            setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
+                                            setLightcurveSectionVisible={setLightcurveSectionVisible}
+                                            setPluginData={setPluginData}/>
+                            </div>
 
-                </div>
-                {menuVisible && <div className="p-8 my-4">
-                    <IdentifiersProvider><StellarObjectsMenu pluginData={pluginData}
-                                                        setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
-                                                        setLightcurveSectionVisible={setLightcurveSectionVisible}
-                    /></IdentifiersProvider>
-                </div>}
-                {lightcurveSectionVisible && <div className="bg-blue-100 rounded-md">
-                    <div className={"p-8"}>
-                        <PhotometricDataSection currentObjectIdentifiers={currentObjectIdentifiers} pluginData={pluginData}/>
-                    </div>
-                </div>}
+                        </div>
+                        {menuVisible && <div className="p-8 my-4">
+                            <StellarObjectsMenu pluginData={pluginData}
+                                                setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
+                                                setLightcurveSectionVisible={setLightcurveSectionVisible}
+                            />
+                        </div>}
+                        {lightcurveSectionVisible && <div className="bg-blue-100 rounded-md">
+                            <div className={"p-8"}>
+                                <PhotometricDataSection currentObjectIdentifiers={currentObjectIdentifiers}
+                                                        pluginData={pluginData}/>
+                            </div>
+                        </div>}
+                    </IdentifiersProvider>
                 </ObjectCoordsProvider>
             </SearchFormProvider>
         </div>

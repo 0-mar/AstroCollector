@@ -74,7 +74,7 @@ const StellarObjectsMenu = ({
                 setLightcurveSectionVisible(true);
                 setCurrentObjectIdentifiers(identifiersContext?.selectedObjectIdentifiers ?? {});
             }}>
-                Show light curve
+                Show photometric data
             </Button>
 
         </>

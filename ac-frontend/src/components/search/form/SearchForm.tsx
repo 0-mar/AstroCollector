@@ -15,10 +15,12 @@ import {Input} from "@/../components/ui/input"
 import SearchFormSubmitButton from "@/components/search/form/SearchFormSubmitButton.tsx";
 import {formSchema, type PluginDto, type SearchValues} from "@/features/search/types.ts";
 import type {PaginationResponse} from "@/features/api/types.ts";
-import {useContext, useState} from "react";
+import React, {useContext, useState} from "react";
 import CoordsPanel from "@/components/search/form/CoordsPanel.tsx";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 import {ObjectCoordsContext} from "@/components/search/form/ObjectCoordsProvider.tsx";
+import type {Identifiers} from "@/features/search/menu/types.ts";
+import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
 
 
 const LabeledInput = ({label, ...props}) => {
@@ -30,10 +32,17 @@ const LabeledInput = ({label, ...props}) => {
     )
 }
 
+type SearchFormProps = {
+    setMenuVisible: React.Dispatch<React.SetStateAction<boolean>>,
+    setCurrentObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>,
+    setLightcurveSectionVisible: React.Dispatch<React.SetStateAction<boolean>>,
+    setPluginData: React.Dispatch<React.SetStateAction<PluginDto[]>>,
+}
 
-const SearchForm = ({setMenuVisible, setPluginData}) => {
+const SearchForm = ({setMenuVisible, setCurrentObjectIdentifiers, setLightcurveSectionVisible, setPluginData}: SearchFormProps) => {
     const searchFormContext = useContext(SearchFormContext)
     const objectCoordsContext = useContext(ObjectCoordsContext)
+    const identifiersContext = useContext(IdentifiersContext)
 
     const form = useForm<SearchValues>({
         resolver: yupResolver(formSchema),
@@ -55,9 +64,11 @@ const SearchForm = ({setMenuVisible, setPluginData}) => {
     })
 
     const onSubmit = (formData: SearchValues) => {
-        setPluginData(pluginQuery.data?.data)
-        setMenuVisible(true)
+        setLightcurveSectionVisible(false)
         searchFormContext?.setSearchValues(formData)
+        setPluginData(pluginQuery.data?.data ?? [])
+        identifiersContext?.setSelectedObjectIdentifiers({})
+        setCurrentObjectIdentifiers({})
 
         if (formData.objectName !== "") {
             setCoordsPanelVisible(true)
@@ -65,6 +76,8 @@ const SearchForm = ({setMenuVisible, setPluginData}) => {
             setCoordsPanelVisible(false)
             objectCoordsContext?.setObjectCoords({declination: undefined, rightAscension: undefined})
         }
+
+        setMenuVisible(true)
     }
 
     const [coordsPanelVisible, setCoordsPanelVisible] = useState(false)
@@ -86,7 +99,7 @@ const SearchForm = ({setMenuVisible, setPluginData}) => {
                         </FormItem>
                     )}
                 />
-                {coordsPanelVisible && <CoordsPanel objectName={form.getValues("objectName") ?? ""} />}
+                {coordsPanelVisible && <CoordsPanel/>}
                 <h2 className="text-lg font-medium text-gray-900">Search by coordinates</h2>
                 <FormField
                     control={form.control}
