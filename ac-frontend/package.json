@@ -55,6 +55,7 @@
     "@types/react-dom": "^19.0.3",
     "@types/react-plotly.js": "^2.6.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^26.0.0",
     "prettier": "^3.5.3",
     "typescript": "^5.7.2",

@@ -3,17 +3,18 @@ import BaseApi from "@/features/api/baseApi.ts";
 import type {Identifiers} from "@/features/search/menu/types.ts";
 import {type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/api/types.ts";
 import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
-import {useEffect, useMemo, useState} from "react";
+import {useMemo} from "react";
 import type {PaginationResponse} from "@/features/api/types.ts";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../../../../components/ui/tabs.tsx";
-import LightCurvePlot from "@/components/search/lightcurve/LightCurvePlot.tsx";
-import LightCurvePanel from "@/components/search/lightcurve/LightCurvePanel.tsx";
+import LightCurvePlot from "@/components/search/photometricData/plot/LightCurvePlot.tsx";
+import PlotOptionsPanel from "@/components/search/photometricData/plotOptions/PlotOptionsPanel.tsx";
 import type {PluginDto} from "@/features/search/types.ts";
-import {OptionsProvider} from "@/components/search/lightcurve/OptionsContext.tsx";
-import {RangeProvider} from "@/components/search/lightcurve/CurrentRangeContext.tsx";
+import {OptionsProvider} from "@/components/search/photometricData/plotOptions/OptionsContext.tsx";
+import {RangeProvider} from "@/components/search/photometricData/plotOptions/CurrentRangeContext.tsx";
 import PhotometricDataTable from "@/components/table/PhotometricDataTable.tsx";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
 import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
+import PhaseCurvePlot from "@/components/search/photometricData/plot/PhaseCurvePlot.tsx";
 
 
 type LightCurveSectionProps = {
@@ -22,7 +23,7 @@ type LightCurveSectionProps = {
 }
 
 
-const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSectionProps) => {
+const PhotometricDataSection = ({currentObjectIdentifiers, pluginData}: LightCurveSectionProps) => {
     const lightcurveTaskQueries = useQueries({
         queries: Object.values(currentObjectIdentifiers).map((identifier) => {
             return {
@@ -55,6 +56,7 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
         }),
     })
 
+    // fetch results only when the task was successful
     const resultQueries = useQueries({
         queries: Object.values(currentObjectIdentifiers).map((identifier, idx) => {
             return {
@@ -74,24 +76,17 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
         return names;
     }, [pluginData])
 
-    const [lightCurveData, setLightCurveData] = useState<PhotometricDataDto[]>([])
-
     // FIXME: BUG: sometimes when changing between table and plot tabs and changing selected objects, after clicking Show lightcurve the data does not change
-    useEffect(() => {
-        const newData: PhotometricDataDto[] = [];
+
+    const lightCurveData = useMemo(() => {
+        const lightCurveData: PhotometricDataDto[] = [];
         resultQueries.forEach((resultQuery) => {
             if (resultQuery.isSuccess && resultQuery.data) {
-                newData.push(...resultQuery.data.data)
+                lightCurveData.push(...resultQuery.data.data)
             }
         });
-        setLightCurveData((prevData) => {
-            if (prevData.length == newData.length) {
-                return prevData
-            }
-            return newData
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resultQueries.map((q) => q.status).join(",")]);
+        return lightCurveData;
+    }, [resultQueries.map((q) => q.status).join(",")])
 
 
     return (
@@ -100,60 +95,86 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
             <Tabs defaultValue="lightcurve">
                 <TabsList>
                     <TabsTrigger value="lightcurve">Light Curve</TabsTrigger>
+                    <TabsTrigger value="phasecurve">Phase Curve</TabsTrigger>
                     <TabsTrigger value="datatable">Data table</TabsTrigger>
                 </TabsList>
                 <TabsContent value="lightcurve">
                     <div className="grid grid-cols-1 gap-y-4">
                         <RangeProvider>
-                        <OptionsProvider>
-                                <LightCurvePanel/>
+                            <OptionsProvider>
+                                <PlotOptionsPanel/>
                                 <LightCurvePlot pluginNames={pluginNames}
-                                                lightCurveData={lightCurveData} ></LightCurvePlot>
-                        </OptionsProvider>
+                                                lightCurveData={lightCurveData}></LightCurvePlot>
+                            </OptionsProvider>
+                        </RangeProvider>
+                    </div>
+                </TabsContent>
+                <TabsContent value="phasecurve">
+                    <div className="grid grid-cols-1 gap-y-4">
+                        <RangeProvider>
+                            <OptionsProvider>
+                                <PlotOptionsPanel/>
+                                <PhaseCurvePlot pluginNames={pluginNames}
+                                                lightCurveData={lightCurveData}></PhaseCurvePlot>
+                            </OptionsProvider>
                         </RangeProvider>
                     </div>
                 </TabsContent>
                 <TabsContent value="datatable">
                     <div className="bg-white rounded-md shadow-md">
-                        <PhotometricDataTable taskIds={Object.values(currentObjectIdentifiers).map((_identifier, idx) => idx).filter((idx) => taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED).map(idx => taskStatusQueries[idx].data?.task_id ?? "")}/>
+                        <PhotometricDataTable
+                            taskIds={Object.values(currentObjectIdentifiers).map((_identifier, idx) => idx).filter((idx) => taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED).map(idx => taskStatusQueries[idx].data?.task_id ?? "")}/>
                     </div>
                 </TabsContent>
             </Tabs>
             <div>
                 {Object.values(currentObjectIdentifiers).map((identifier, idx) => {
+                    const dataTarget = `${identifier.ra_deg} ${identifier.dec_deg} (${pluginNames[identifier.plugin_id]})`
                     if (lightcurveTaskQueries[idx].isError) {
                         return (
-                            <ErrorAlert title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={lightcurveTaskQueries[idx].error.message}/>
+                            <ErrorAlert
+                                title={"Photometric data query failed: " + dataTarget}
+                                description={lightcurveTaskQueries[idx].error.message}/>
                         )
                     }
                     if (taskStatusQueries[idx].isError) {
                         return (
-                            <ErrorAlert title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={taskStatusQueries[idx].error.message}/>
+                            <ErrorAlert
+                                title={"Photometric data query failed: " + dataTarget}
+                                description={taskStatusQueries[idx].error.message}/>
                         )
                     }
                     if (taskStatusQueries[idx].isPending || taskStatusQueries[idx].data?.status === TaskStatus.IN_PROGRESS) {
                         return (
-                            <LoadingSkeleton text={"Loading photometric data for " + identifier.ra_deg + " " + identifier.dec_deg + " ..."}/>
+                            <LoadingSkeleton
+                                text={"Loading photometric data for " + dataTarget}/>
                         )
                     }
                     if (taskStatusQueries[idx].data?.status === TaskStatus.FAILED) {
                         return (
-                            <ErrorAlert title={"Failed to load photometric data for" + identifier.ra_deg + " " + identifier.dec_deg} description={"Job failed"}/>
+                            <ErrorAlert
+                                title={"Failed to load photometric data for" + dataTarget}
+                                description={"Job failed"}/>
                         )
                     }
                     if (taskStatusQueries[idx].isError) {
                         return (
-                            <ErrorAlert title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={taskStatusQueries[idx].error.message}/>
+                            <ErrorAlert
+                                title={"Photometric data query failed: " + dataTarget}
+                                description={taskStatusQueries[idx].error.message}/>
                         )
                     }
                     if (resultQueries[idx].isPending) {
                         return (
-                            <LoadingSkeleton text={"Loading photometric data for " + identifier.ra_deg + " " + identifier.dec_deg + " ..."}/>
+                            <LoadingSkeleton
+                                text={"Loading photometric data for " + dataTarget + " ..."}/>
                         )
                     }
                     if (resultQueries[idx].isError) {
                         return (
-                            <ErrorAlert title={"Photometric data query failed: " + identifier.ra_deg + " " + identifier.dec_deg} description={resultQueries[idx].error.message}/>
+                            <ErrorAlert
+                                title={"Photometric data query failed: " + dataTarget}
+                                description={resultQueries[idx].error.message}/>
                         )
                     }
                 })}
@@ -162,4 +183,4 @@ const LightCurveSection = ({currentObjectIdentifiers, pluginData}: LightCurveSec
     )
 }
 
-export default LightCurveSection
+export default PhotometricDataSection
