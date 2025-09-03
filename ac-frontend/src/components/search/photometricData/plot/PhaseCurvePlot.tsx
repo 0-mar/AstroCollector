@@ -77,7 +77,7 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
         if (!phaseDataQuery.isSuccess) {
             return [sourceGroupedLcData, bandGroupedLcData]
         }
-        if (phaseDataQuery.data?.epoch === undefined || phaseDataQuery.data?.period === undefined) {
+        if (phaseDataQuery.data?.epoch === null || phaseDataQuery.data?.period === null) {
             return [sourceGroupedLcData, bandGroupedLcData]
         }
 
@@ -147,8 +147,8 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
         return <ErrorAlert description={"Failed to load phase and epoch"} title={phaseDataQuery.error.message}/>
     }
 
-    if (phaseDataQuery.data.epoch === undefined || phaseDataQuery.data.period === undefined) {
-        return <ErrorAlert description={"Phase and epoch is not available"} title={"Unable to display phase curve"}/>
+    if (phaseDataQuery.data.epoch === null || phaseDataQuery.data.period === null) {
+        return <ErrorAlert description={"Phase and epoch is not available in VSX"} title={"Unable to display phase curve"}/>
     }
 
     return (

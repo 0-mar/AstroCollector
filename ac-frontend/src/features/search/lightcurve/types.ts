@@ -7,9 +7,9 @@ export type PhotometricDataDto = {
 }
 
 export type PhaseCurveDataDto = {
-    period: number | undefined
-    epoch: number | undefined
-    ra_deg: number | undefined
-    dec_deg: number | undefined
-    vsx_object_name: string | undefined
+    period: number | null
+    epoch: number | null
+    ra_deg: number | null
+    dec_deg: number | null
+    vsx_object_name: string | null
 }
