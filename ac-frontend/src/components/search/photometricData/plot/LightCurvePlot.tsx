@@ -7,6 +7,11 @@ import {OptionsContext} from "@/components/search/photometricData/plotOptions/Op
 import {SetRangeContext} from '../plotOptions/CurrentRangeContext.tsx';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-dist-min';
+import fr from 'plotly.js-locales/fr'; // space as thousands separator
+
+// register + activate locale
+Plotly.register(fr);
+Plotly.setPlotConfig({ locale: 'fr' });
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -59,9 +64,9 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
 
     const plotData = useMemo(() => {
         const hoverTemplate =
-            optionsContext?.showErrorBars ? ('JD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+            optionsContext?.showErrorBars ? ('JD: %{x:,.1f}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
             ) : (
-                'JD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                'JD: %{x:,.1f}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
             )
 
         const groupedData = optionsContext?.groupBy === "sources" ? sourceGroupedLcData : bandGroupedLcData;
@@ -89,10 +94,12 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
         return optionsContext?.minRange !== undefined && optionsContext?.maxRange !== undefined ? {
             title: {text: "Julian Date - 2400000 in TDB"},
             type: "linear",
+            tickformat: ',.1f',
             range: [optionsContext?.minRange, optionsContext?.maxRange]
         } : {
             title: {text: "Julian Date - 2400000 in TDB"},
             type: "linear",
+            tickformat: ',.1f',
             autorange: true
         }
     }, [optionsContext?.minRange, optionsContext?.maxRange, optionsContext?.plotVersion]);
