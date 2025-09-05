@@ -23,7 +23,7 @@ const ExportDialog = ({readyData, pluginNames}: ExportDialogProps) => {
 
     const exportMutation = useMutation({
         mutationFn: () => BaseApi.post<string>(`/export/csv`, {"task_id__in": readyData.map(([_ident, taskId]) => taskId)}),
-        onError: (error) => {
+        onError: (_error) => {
             toast.error("Failed to export data")
         },
         onSuccess: (data) => {
