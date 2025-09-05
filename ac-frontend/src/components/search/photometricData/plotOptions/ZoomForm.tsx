@@ -48,7 +48,7 @@ const ZoomForm = () => {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <h3>Zoom to MJD</h3>
+                <h3>Set X axis viewport</h3>
                 <FormField
                     control={form.control}
                     name="min"
@@ -56,7 +56,7 @@ const ZoomForm = () => {
                         <FormItem>
                             <FormLabel>Lower bound</FormLabel>
                             <FormControl>
-                                <LabeledInput label={"MJD"} {...field} />
+                                <LabeledInput label={""} {...field} />
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
@@ -69,7 +69,7 @@ const ZoomForm = () => {
                         <FormItem>
                             <FormLabel>Upper bound</FormLabel>
                             <FormControl>
-                                <LabeledInput label={"MJD"} {...field} />
+                                <LabeledInput label={""} {...field} />
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
