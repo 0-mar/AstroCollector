@@ -8,13 +8,14 @@ import type {PaginationResponse} from "@/features/api/types.ts";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../../../../components/ui/tabs.tsx";
 import LightCurvePlot from "@/components/search/photometricData/plot/LightCurvePlot.tsx";
 import PlotOptionsPanel from "@/components/search/photometricData/plotOptions/PlotOptionsPanel.tsx";
-import type {PluginDto} from "@/features/search/types.ts";
+import type {PluginDto, StellarObjectIdentifierDto} from "@/features/search/types.ts";
 import {OptionsProvider} from "@/components/search/photometricData/plotOptions/OptionsContext.tsx";
 import {RangeProvider} from "@/components/search/photometricData/plotOptions/CurrentRangeContext.tsx";
 import PhotometricDataTable from "@/components/table/PhotometricDataTable.tsx";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
 import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import PhaseCurvePlot from "@/components/search/photometricData/plot/PhaseCurvePlot.tsx";
+import ExportDialog from "@/components/export/ExportDialog.tsx";
 
 
 type LightCurveSectionProps = {
@@ -90,8 +91,20 @@ const PhotometricDataSection = ({currentObjectIdentifiers, pluginData}: LightCur
 
 
     return (
-        <>
+        <div className={"flex flex-col space-y-2"}>
             <h2 className="text-lg font-medium text-gray-900">Photometric data</h2>
+            <div className="">
+                <ExportDialog readyData={Object.values(currentObjectIdentifiers).reduce((acc, identifier, idx) => {
+                    const lq = lightcurveTaskQueries[idx];
+                    const tq = taskStatusQueries[idx];
+
+                    if (!lq?.isSuccess) return acc;
+                    if (tq?.data?.status !== TaskStatus.COMPLETED) return acc;
+
+                    acc.push([identifier, lq.data?.task_id]);
+                    return acc;
+                }, [] as Array<[StellarObjectIdentifierDto, string]>)} pluginNames={pluginNames}/>
+            </div>
             <Tabs defaultValue="lightcurve">
                 <TabsList>
                     <TabsTrigger value="lightcurve">Light Curve</TabsTrigger>
@@ -179,7 +192,7 @@ const PhotometricDataSection = ({currentObjectIdentifiers, pluginData}: LightCur
                     }
                 })}
             </div>
-        </>
+        </div>
     )
 }
 

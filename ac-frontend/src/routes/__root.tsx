@@ -8,6 +8,7 @@ import {
 
 import Header from '../components/Header'
 import Footer from "@/components/Footer.tsx";
+import { Toaster } from "@/../components/ui/sonner"
 
 export const Route = createRootRoute({
     component: () => {
@@ -18,6 +19,7 @@ export const Route = createRootRoute({
             <Outlet/>
             <TanStackRouterDevtools/>
             <ReactQueryDevtools initialIsOpen={false} />
+            <Toaster />
             <Footer/>
         </QueryClientProvider>
     )
