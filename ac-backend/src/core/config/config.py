@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     LOGGING_CONSOLE_LEVEL: int = logging.INFO
     TASK_DATA_DELETE_INTERVAL: int = 2  # in hours
-    MAX_PAGINATION_BATCH_COUNT = 5000
+    MAX_PAGINATION_BATCH_COUNT: int = 5000
 
     @computed_field  # type: ignore[prop-decorator]
     @property
