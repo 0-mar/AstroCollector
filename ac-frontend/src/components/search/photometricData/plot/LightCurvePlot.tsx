@@ -7,11 +7,32 @@ import {OptionsContext} from "@/components/search/photometricData/plotOptions/Op
 import {SetRangeContext} from '../plotOptions/CurrentRangeContext.tsx';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-dist-min';
-import fr from 'plotly.js-locales/fr'; // space as thousands separator
 
-// register + activate locale
-Plotly.register(fr);
-Plotly.setPlotConfig({ locale: 'fr' });
+const enSpace = {
+    moduleType: 'locale',
+    name: 'en-space',
+    dictionary: {},
+    format: {
+        decimal: '.',
+        thousands: ' ',
+        grouping: [3],
+        currency: ['$', ''],
+
+        dateTime: '%A, %B %e, %Y %X',
+        date: '%m/%d/%Y',
+        time: '%I:%M:%S %p',
+        periods: ['AM', 'PM'],
+        days: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        shortDays: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+        months: [
+            'January','February','March','April','May','June',
+            'July','August','September','October','November','December'
+        ],
+        shortMonths: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    }
+};
+Plotly.register(enSpace);
+Plotly.setPlotConfig({ locale: 'en-space' });
 
 const Plot = createPlotlyComponent(Plotly);
 
