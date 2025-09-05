@@ -9,11 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database.database import DbEntity
 from src.core.database.dependencies import DBSessionDep
 from src.core.repository.exception import RepositoryException, IntegrityException
+from src.core.config.config import settings
 
 # using session correctly
 # https://docs.sqlalchemy.org/en/20/orm/session_basics.html
 Entity = TypeVar("Entity", bound=DbEntity)
-LIMIT = 1000
 
 OPERATORS = {
     "eq": lambda col, v: col == v,
@@ -89,9 +89,16 @@ class Repository(Generic[Entity]):
         return and_(*expressions)
 
     async def find(
-        self, offset: int = 0, count: int = LIMIT, **filters: dict[str, Any]
+        self,
+        offset: int = 0,
+        count: int = settings.MAX_PAGINATION_BATCH_COUNT,
+        **filters: dict[str, Any],
     ) -> tuple[int, list[Entity]]:
-        count = count if count <= LIMIT else LIMIT
+        count = (
+            count
+            if count <= settings.MAX_PAGINATION_BATCH_COUNT
+            else settings.MAX_PAGINATION_BATCH_COUNT
+        )
 
         # build filters
         filter = self._build_filter(**filters)
