@@ -3,10 +3,10 @@ import {CircleX} from "lucide-react";
 
 const ErrorAlert = ({title, description}: {title: string, description: string}) => {
     return (
-        <Alert className={"text-red-600 text-left"}>
+        <Alert className={"text-red-600 text-left border-2 border-red-700"}>
             <CircleX />
             <AlertTitle>{title}</AlertTitle>
-            <AlertDescription>
+            <AlertDescription className={"text-red-600"}>
                 {description}
             </AlertDescription>
         </Alert>
