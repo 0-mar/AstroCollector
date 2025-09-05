@@ -37,7 +37,13 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
     const searchFormContext = useContext(SearchFormContext)
     const objectCoordsContext = useContext(ObjectCoordsContext)
 
-    const computePhase = (jd: number, epoch: number, period: number) => (jd - epoch) / period
+    const fractionalPart = (n: number) => {
+        const nstring = (n + "")
+        const nindex  = nstring.indexOf(".")
+        const result  = "0." + (nindex > -1 ? nstring.substring(nindex + 1) : "0");
+        return parseFloat(result);
+    }
+    const computePhase = (jd: number, epoch: number, period: number) => fractionalPart((jd - epoch) / period)
     const addEntry = (data: Record<string, PhaseCurveData>, key: string, dto: PhotometricDataDto) => {
         if (key in data) {
             data[key].phases.push(computePhase(dto.julian_date, phaseDataQuery.data?.epoch ?? 0, phaseDataQuery.data?.period ?? 0));
@@ -157,7 +163,7 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
                 <p>Period: <span className={"font-bold"}>{phaseDataQuery.data.period}</span></p>
                 <p>Epoch: <span className={"font-bold"}>{phaseDataQuery.data.epoch}</span></p>
                 <p>Period and epoch of object with name: <span className={"font-bold"}>{phaseDataQuery.data.vsx_object_name}</span></p>
-                <p>Phase is computed as: (JD - Epoch) / Period</p>
+                <p>Phase is the fractional part of: (JD - Epoch) / Period</p>
             </InfoAlert>
             <Plot
                 data={plotData}

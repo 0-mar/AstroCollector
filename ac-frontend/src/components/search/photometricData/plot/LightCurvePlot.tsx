@@ -8,6 +8,32 @@ import {SetRangeContext} from '../plotOptions/CurrentRangeContext.tsx';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-dist-min';
 
+const enSpace = {
+    moduleType: 'locale',
+    name: 'en-space',
+    dictionary: {},
+    format: {
+        decimal: '.',
+        thousands: ' ',
+        grouping: [3],
+        currency: ['$', ''],
+
+        dateTime: '%A, %B %e, %Y %X',
+        date: '%m/%d/%Y',
+        time: '%I:%M:%S %p',
+        periods: ['AM', 'PM'],
+        days: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        shortDays: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+        months: [
+            'January','February','March','April','May','June',
+            'July','August','September','October','November','December'
+        ],
+        shortMonths: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    }
+};
+Plotly.register(enSpace);
+Plotly.setPlotConfig({ locale: 'en-space' });
+
 const Plot = createPlotlyComponent(Plotly);
 
 type LightCurvePlotProps = {
@@ -59,9 +85,9 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
 
     const plotData = useMemo(() => {
         const hoverTemplate =
-            optionsContext?.showErrorBars ? ('JD: %{x}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+            optionsContext?.showErrorBars ? ('JD: %{x:,.1f}<br>mag = %{y:.2f} &plusmn; %{error_y.array:.3f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
             ) : (
-                'JD: %{x}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
+                'JD: %{x:,.1f}<br>mag = %{y:.2f}<br>Band: %{customdata}<br>Source: %{data.name}<extra></extra>'
             )
 
         const groupedData = optionsContext?.groupBy === "sources" ? sourceGroupedLcData : bandGroupedLcData;
@@ -89,10 +115,12 @@ const LightCurvePlot = ({pluginNames, lightCurveData}: LightCurvePlotProps) => {
         return optionsContext?.minRange !== undefined && optionsContext?.maxRange !== undefined ? {
             title: {text: "Julian Date - 2400000 in TDB"},
             type: "linear",
+            tickformat: ',.1f',
             range: [optionsContext?.minRange, optionsContext?.maxRange]
         } : {
             title: {text: "Julian Date - 2400000 in TDB"},
             type: "linear",
+            tickformat: ',.1f',
             autorange: true
         }
     }, [optionsContext?.minRange, optionsContext?.maxRange, optionsContext?.plotVersion]);

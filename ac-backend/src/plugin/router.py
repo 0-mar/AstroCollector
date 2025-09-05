@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, UploadFile
 
-from src.core.repository.repository import LIMIT
+from src.core.config.config import settings
 from src.core.schemas import PaginationResponseDto
 from src.plugin.schemas import PluginDto, CreatePluginDto, UpdatePluginDto
 from src.plugin.service import PluginService
@@ -24,7 +24,7 @@ router = APIRouter(
 async def list_plugins(
     service: PluginServiceDep,
     offset: int = 0,
-    count: int = LIMIT,
+    count: int = settings.MAX_PAGINATION_BATCH_COUNT,
     filters: dict[str, Any] | None = None,
 ) -> PaginationResponseDto[PluginDto]:
     """List plugins."""

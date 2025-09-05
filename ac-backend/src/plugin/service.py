@@ -18,9 +18,10 @@ import aiofiles
 from fastapi.concurrency import run_in_threadpool
 
 from src import default_plugins
+from src.core.config.config import settings
 from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
-from src.core.repository.repository import Repository, get_repository, LIMIT
+from src.core.repository.repository import Repository, get_repository
 from src.core.schemas import PaginationResponseDto
 from src.default_plugins.mast.mast_plugin import MastPlugin
 from src.plugin.exceptions import NoPluginClassException
@@ -114,7 +115,10 @@ class PluginService:
         await self._repository.delete(plugin_id)
 
     async def list_plugins(
-        self, offset: int = 0, count: int = LIMIT, **kwargs: dict[str, Any]
+        self,
+        offset: int = 0,
+        count: int = settings.MAX_PAGINATION_BATCH_COUNT,
+        **kwargs: dict[str, Any],
     ) -> PaginationResponseDto[PluginDto]:
         total_count, plugin_list = await self._repository.find(
             offset=offset, count=count, **kwargs

@@ -2,8 +2,9 @@ from typing import Annotated, Any
 
 from fastapi import Depends
 
+from src.core.config.config import settings
 from src.core.integration.schemas import PhotometricDataDto
-from src.core.repository.repository import Repository, get_repository, LIMIT
+from src.core.repository.repository import Repository, get_repository
 from src.core.schemas import PaginationResponseDto
 from src.data_retrieval.schemas import StellarObjectIdentifierDto
 from src.tasks.model import StellarObjectIdentifier, PhotometricData
@@ -27,7 +28,10 @@ class DataService:
         self._photometric_data_repository = photometric_data_repository
 
     async def list_soi(
-        self, offset: int = 0, count: int = LIMIT, **filters: dict[str, Any]
+        self,
+        offset: int = 0,
+        count: int = settings.MAX_PAGINATION_BATCH_COUNT,
+        **filters: dict[str, Any],
     ) -> PaginationResponseDto[StellarObjectIdentifierDto]:
         total_count, soi_list = await self._soi_repository.find(
             offset=offset, count=count, **filters
@@ -38,7 +42,10 @@ class DataService:
         )
 
     async def list_photometric_data(
-        self, offset: int = 0, count: int = LIMIT, **filters: dict[str, Any]
+        self,
+        offset: int = 0,
+        count: int = settings.MAX_PAGINATION_BATCH_COUNT,
+        **filters: dict[str, Any],
     ) -> PaginationResponseDto[PhotometricDataDto]:
         total_count, pd_list = await self._photometric_data_repository.find(
             offset=offset, count=count, **filters
