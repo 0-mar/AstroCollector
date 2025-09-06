@@ -8,6 +8,7 @@ import PhotometricDataSection from "@/components/search/photometricData/Photomet
 import {IdentifiersProvider} from "@/components/search/menu/IdentifiersContext.tsx";
 import {SearchFormProvider} from "@/components/search/form/SearchFormContext.tsx";
 import {ObjectCoordsProvider} from "@/components/search/form/ObjectCoordsProvider.tsx";
+import AladinCutout from "@/components/search/form/AladinCutout.tsx";
 
 export const Route = createFileRoute('/')({
     component: App,
@@ -27,14 +28,16 @@ function App() {
             <SearchFormProvider>
                 <ObjectCoordsProvider>
                     <IdentifiersProvider>
-                        <div className="bg-blue-100 rounded-md">
+                        <div className="flex flex-row bg-blue-100">
                             <div className="p-8 w-1/2 0mx-auto">
                                 <SearchForm setMenuVisible={setMenuVisible}
                                             setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
                                             setLightcurveSectionVisible={setLightcurveSectionVisible}
                                             setPluginData={setPluginData}/>
                             </div>
-
+                            {menuVisible && <div className="p-8 w-1/2 0mx-auto">
+                                <AladinCutout />
+                            </div>}
                         </div>
                         {menuVisible && <div className="p-8 my-4">
                             <StellarObjectsMenu pluginData={pluginData}
