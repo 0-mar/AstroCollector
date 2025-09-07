@@ -50,3 +50,12 @@ export const zoomFormSchema = yup
     });
 
 export type ZoomValues = InferType<typeof zoomFormSchema>;
+
+
+export const phaseFormSchema = yup
+    .object({
+        period: yup.number().required(),
+        epoch: yup.number().required(),
+    })
+
+export type PhaseValues = InferType<typeof phaseFormSchema>;

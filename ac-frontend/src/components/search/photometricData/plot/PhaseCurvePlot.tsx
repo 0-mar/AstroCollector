@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useContext, useMemo} from "react";
+import {useContext, useEffect, useMemo, useState} from "react";
 import type {PhaseCurveDataDto, PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
 import {colorFromId} from "@/utils/color.ts";
 import "@/styles/lightcurve.css";
@@ -14,6 +14,7 @@ import {ObjectCoordsContext} from "@/components/search/form/ObjectCoordsProvider
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
 import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import InfoAlert from "@/components/alerts/InfoAlert.tsx";
+import PhaseForm from "@/components/search/photometricData/plotOptions/PhaseForm.tsx";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -37,6 +38,9 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
     const searchFormContext = useContext(SearchFormContext)
     const objectCoordsContext = useContext(ObjectCoordsContext)
 
+    const [period, setPeriod] = useState(1);
+    const [epoch, setEpoch] = useState(0);
+
     const fractionalPart = (n: number) => {
         const nstring = (n + "")
         const nindex  = nstring.indexOf(".")
@@ -46,13 +50,13 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
     const computePhase = (jd: number, epoch: number, period: number) => fractionalPart((jd - epoch) / period)
     const addEntry = (data: Record<string, PhaseCurveData>, key: string, dto: PhotometricDataDto) => {
         if (key in data) {
-            data[key].phases.push(computePhase(dto.julian_date, phaseDataQuery.data?.epoch ?? 0, phaseDataQuery.data?.period ?? 0));
+            data[key].phases.push(computePhase(dto.julian_date, epoch, period));
             data[key].mags.push(dto.magnitude);
             data[key].magErrors.push(dto.magnitude_error);
             data[key].bands.push(dto.light_filter ?? unknownBand)
         } else {
             data[key] = {
-                phases: [computePhase(dto.julian_date, phaseDataQuery.data?.epoch ?? 0, phaseDataQuery.data?.period ?? 0)],
+                phases: [computePhase(dto.julian_date, epoch, period)],
                 mags: [dto.magnitude],
                 magErrors: [dto.magnitude_error],
                 bands: [dto.light_filter ?? unknownBand]
@@ -91,7 +95,7 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
         lightCurveData.forEach((dto) => addEntry(bandGroupedLcData, dto.light_filter ?? unknownBand, dto));
 
         return [sourceGroupedLcData, bandGroupedLcData];
-    }, [lightCurveData, phaseDataQuery.status])
+    }, [lightCurveData, epoch, period])
 
 
     const plotData = useMemo(() => {
@@ -135,6 +139,18 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
         }
     }, [optionsContext?.minRange, optionsContext?.maxRange, optionsContext?.plotVersion]);
 
+    useEffect(() => {
+        if (phaseDataQuery.isSuccess) {
+            if (phaseDataQuery.data.epoch !== null) {
+                setEpoch(phaseDataQuery.data.epoch);
+            }
+            if (phaseDataQuery.data.period !== null) {
+                setPeriod(phaseDataQuery.data.period);
+            }
+        }
+    }, [phaseDataQuery.data])
+
+
     const handleRelayout = (eventData: any) => {
         const newMin = eventData["xaxis.range[0]"];
         const newMax = eventData["xaxis.range[1]"];
@@ -145,26 +161,23 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
         }
     };
 
-    if (phaseDataQuery.isPending) {
-        return <LoadingSkeleton text={"Loading phase and epoch..."}/>
-    }
-
-    if (phaseDataQuery.isError) {
-        return <ErrorAlert description={"Failed to load phase and epoch"} title={phaseDataQuery.error.message}/>
-    }
-
-    if (phaseDataQuery.data.epoch === null || phaseDataQuery.data.period === null) {
-        return <ErrorAlert description={"Phase and epoch is not available in VSX"} title={"Unable to display phase curve"}/>
-    }
-
     return (
         <div className="flex flex-col p-1 shadow-md rounded-md bg-white">
-            <InfoAlert title={"Period and Epoch from VSX catalog"}>
-                <p>Period: <span className={"font-bold"}>{phaseDataQuery.data.period}</span></p>
-                <p>Epoch: <span className={"font-bold"}>{phaseDataQuery.data.epoch}</span></p>
-                <p>Period and epoch of object with name: <span className={"font-bold"}>{phaseDataQuery.data.vsx_object_name}</span></p>
-                <p>Phase is the fractional part of: (JD - Epoch) / Period</p>
-            </InfoAlert>
+
+            <div className={"p-4 grid grid-cols-2 gap-x-2"}>
+                <PhaseForm epoch={epoch} period={period} setPeriod={setPeriod} setEpoch={setEpoch}/>
+                {phaseDataQuery.isPending && <LoadingSkeleton text={"Loading phase and epoch from VSX..."}/>}
+                {phaseDataQuery.isError && <ErrorAlert description={"Failed to load phase and epoch"} title={phaseDataQuery.error.message}/>}
+                {phaseDataQuery.isSuccess &&
+                    <InfoAlert title={"Period and Epoch from VSX catalog"}>
+                        <p>Period: <span className={"font-bold"}>{phaseDataQuery.data.period ?? "No entry found"}</span></p>
+                        <p>Epoch: <span className={"font-bold"}>{phaseDataQuery.data.epoch ?? "No entry found"}</span></p>
+                        {phaseDataQuery.data.vsx_object_name !== null &&
+                            <p>Period and epoch of object with name: <span className={"font-bold"}>{phaseDataQuery.data.vsx_object_name}</span></p>
+                        }
+                        <p>Phase is the fractional part of: (JD - Epoch) / Period</p>
+                    </InfoAlert>}
+            </div>
             <Plot
                 data={plotData}
                 layout={{
