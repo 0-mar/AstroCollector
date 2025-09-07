@@ -32,8 +32,7 @@ def get_phase_curve_data(query_data, search_coords: SkyCoord):
 
     for record in sorted(query_data["VSXObjects"]["VSXObject"], key=sort_by_dist):
         if (
-            "Epoch" not in record
-            or "Period" not in record
+            "Period" not in record
             or "RA2000" not in record
             or "Declination2000" not in record
         ):
@@ -41,9 +40,9 @@ def get_phase_curve_data(query_data, search_coords: SkyCoord):
         return PhaseCurveDataDto(
             ra_deg=float(record["RA2000"]),
             dec_deg=float(record["Declination2000"]),
-            epoch=float(record["Epoch"]),
+            epoch=float(record["Epoch"] if "Epoch" in record else None),
             period=float(record["Period"]),
-            vsx_object_name=record["Name"] if "Name" in record else "",
+            vsx_object_name=record["Name"] if "Name" in record else None,
         )
 
     return PhaseCurveDataDto(
@@ -79,17 +78,16 @@ async def phase_curve_data(
         if query_data["VSXObject"] != []:
             record = query_data["VSXObject"]
             if (
-                "Epoch" in record
-                and "Period" in record
+                "Period" in record
                 and "RA2000" in record
                 and "Declination2000" in record
             ):
                 return PhaseCurveDataDto(
                     ra_deg=float(record["RA2000"]),
                     dec_deg=float(record["Declination2000"]),
-                    epoch=float(record["Epoch"]),
+                    epoch=float(record["Epoch"] if "Epoch" in record else None),
                     period=float(record["Period"]),
-                    vsx_object_name=record["Name"] if "Name" in record else "",
+                    vsx_object_name=record["Name"] if "Name" in record else None,
                 )
 
     if ra_deg is not None and dec_deg is not None:
