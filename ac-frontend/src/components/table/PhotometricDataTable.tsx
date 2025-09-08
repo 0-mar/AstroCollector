@@ -37,6 +37,38 @@ const photometricColumns: ColumnDef<PhotometricDataDto>[] = [
         accessorKey: "light_filter",
         header: "Light Filter",
     },
+    {
+        accessorKey: "plugin_id",
+        header: "Source name",
+    },
+]
+
+const getPhotometricColumns = (
+    pluginNames: Record<string, string>
+): ColumnDef<PhotometricDataDto>[] => [
+    {
+        accessorKey: "julian_date",
+        header: "Julian Date",
+    },
+    {
+        accessorKey: "magnitude",
+        header: "Magnitude",
+    },
+    {
+        accessorKey: "magnitude_error",
+        header: "Magnitude Error",
+    },
+    {
+        accessorKey: "light_filter",
+        header: "Light Filter",
+    },
+    {
+        header: "Source name",
+        cell: ({ row }) => {
+            const pluginId = row.original.plugin_id
+            return pluginNames[pluginId] ?? pluginId // fallback to ID if name missing
+        },
+    },
 ]
 
 export function usePagination() {
@@ -56,15 +88,16 @@ export function usePagination() {
 
 type PhotometricDataTableProps = {
     taskIds: string[],
+    pluginNames: Record<string, string>
 }
 
-function PhotometricDataTable({taskIds}: PhotometricDataTableProps) {
+function PhotometricDataTable({taskIds, pluginNames}: PhotometricDataTableProps) {
     const {count, setPagination, offset, pagination} = usePagination();
 
     const photometricResultsQuery = useQuery({
         queryKey: [`photometric_data_page`, pagination, taskIds],
         queryFn: () => {
-            return BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data`, {task_id__in: taskIds, offset: offset, count: count})
+            return BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data`, {task_id__in: taskIds}, {params: {offset: offset, count: count}})
         },
         refetchInterval: (query) => {
             const data = query.state.data;
@@ -80,7 +113,7 @@ function PhotometricDataTable({taskIds}: PhotometricDataTableProps) {
 
     const table = useReactTable<PhotometricDataDto>({
         data: photometricResultsQuery.data?.data ?? defaultData,
-        columns: photometricColumns,
+        columns: getPhotometricColumns(pluginNames),
         getCoreRowModel: getCoreRowModel(),
         manualPagination: true,
         rowCount: photometricResultsQuery.data?.total_items,
