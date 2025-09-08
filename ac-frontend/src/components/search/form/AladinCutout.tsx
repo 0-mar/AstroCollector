@@ -5,6 +5,7 @@ const AladinCutout = () => {
     const searchFormContext = useContext(SearchFormContext)
 
     useEffect(() => {
+        // TODO what if script loading fails and A is not defined?
         let aladin = A.aladin('#aladin-lite-div', { survey: 'P/DSS2/color', fov:60, target:  searchFormContext?.searchValues.objectName ?? `${searchFormContext?.searchValues.rightAscension} ${searchFormContext?.searchValues.declination}`})
         //aladin.setFov(1)
     }, [])
