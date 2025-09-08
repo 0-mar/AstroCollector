@@ -4,7 +4,7 @@ from uuid import UUID
 from astropy.coordinates import SkyCoord
 from fastapi.concurrency import run_in_threadpool
 
-from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
+from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
@@ -15,11 +15,12 @@ class Mmt9IdentificatorDto(StellarObjectIdentificatorDto):
     radius_arcsec: float
 
 
-class Mmt9Plugin(PhotometricCataloguePlugin[Mmt9IdentificatorDto]):
+class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
     # http://survey.favor2.info/favor2/
     def __init__(self) -> None:
         super().__init__()
         self._url = "http://survey.favor2.info/favor2/photometry/json"
+        self._directly_identifies_objects = False
 
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID

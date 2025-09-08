@@ -19,7 +19,7 @@ from fastapi.concurrency import run_in_threadpool
 
 from src import default_plugins
 from src.core.config.config import settings
-from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
+from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository
 from src.core.schemas import PaginationResponseDto
@@ -45,13 +45,11 @@ logger = logging.getLogger(__name__)
 class PluginService:
     def __init__(self, repository: PluginRepositoryDep):
         self._repository = repository
-        self.plugins: dict[
-            str, PhotometricCataloguePlugin[StellarObjectIdentificatorDto]
-        ] = dict()
+        self.plugins: dict[str, CatalogPlugin[StellarObjectIdentificatorDto]] = dict()
 
     def _load_plugin(
         self, module_name: str, file_path: Path
-    ) -> Optional[PhotometricCataloguePlugin[StellarObjectIdentificatorDto]]:
+    ) -> Optional[CatalogPlugin[StellarObjectIdentificatorDto]]:
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None:
             logger.error(f"Could not load spec from {file_path}")
@@ -68,8 +66,8 @@ class PluginService:
             # Only add classes that are a sub class of PhotometricCataloguePlugin,
             # but NOT PhotometricCataloguePlugin itself
             if (
-                issubclass(cls, PhotometricCataloguePlugin)
-                and cls is not PhotometricCataloguePlugin
+                issubclass(cls, CatalogPlugin)
+                and cls is not CatalogPlugin
                 and cls is not MastPlugin
             ):
                 logger.info(f"Found plugin class: {cls.__module__}.{cls.__name__}")
@@ -130,7 +128,7 @@ class PluginService:
 
     async def get_plugin_instance(
         self, plugin_id: UUID
-    ) -> PhotometricCataloguePlugin[StellarObjectIdentificatorDto]:
+    ) -> CatalogPlugin[StellarObjectIdentificatorDto]:
         db_plugin = await self._repository.get(plugin_id)
         plugin_file_path = Path.joinpath(PLUGIN_DIR, db_plugin.file_name).resolve()
 
@@ -174,17 +172,21 @@ class PluginService:
             # Only add classes that are a sub class of PhotometricCataloguePlugin,
             # but NOT PhotometricCataloguePlugin itself
             if (
-                issubclass(cls, PhotometricCataloguePlugin)
-                and cls is not PhotometricCataloguePlugin
+                issubclass(cls, CatalogPlugin)
+                and cls is not CatalogPlugin
                 and cls is not MastPlugin
             ):
                 logger.info(
                     f"Found default plugin class: {cls.__module__}.{cls.__name__}"
                 )
+
+                plugin_instance = cls()
+
                 dto = await self.create_plugin(
                     CreatePluginDto(
                         name=cls.__name__[: cls.__name__.rfind("Plugin")],
                         created_by="system",
+                        directly_identifies_objects=plugin_instance.directly_identifies_objects,
                     )
                 )
 
