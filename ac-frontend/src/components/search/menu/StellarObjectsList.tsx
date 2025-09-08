@@ -97,7 +97,10 @@ const StellarObjectsList = ({
     }
 
     return (
-        <ClientPaginatedDataTable data={stellarObjectsResultsQuery.data.data} columns={identifierColumns} defaultSorting={[{id: "distance", desc: false}]}/>
+        <>
+            <span className={"font-bold"}>{stellarObjectsResultsQuery.data.total_items}</span> stellar object{stellarObjectsResultsQuery.data.total_items !== 1 ? "s" : ""} found
+            <ClientPaginatedDataTable data={stellarObjectsResultsQuery.data.data} columns={identifierColumns} defaultSorting={[{id: "distance", desc: false}]}/>
+        </>
     );
 
 };

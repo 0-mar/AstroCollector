@@ -8,7 +8,7 @@ from astropy.coordinates import SkyCoord
 from fastapi.concurrency import run_in_threadpool
 import pandas as pd
 
-from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
+from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
@@ -19,9 +19,10 @@ class AidIdentificatorDto(StellarObjectIdentificatorDto):
     auid: str
 
 
-class AidPlugin(PhotometricCataloguePlugin[AidIdentificatorDto]):
+class AidPlugin(CatalogPlugin[AidIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__()
+        self._directly_identifies_objects = True
 
     def __list_url(self, ra: float, dec: float, radius: float) -> str:
         return f"https://vsx.aavso.org/index.php?view=api.list&ra={ra}&dec={dec}&radius={radius}&format=json"

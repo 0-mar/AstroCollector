@@ -137,3 +137,7 @@
         @apply bg-background text-foreground;
     }
 }
+
+#loading-screen {
+    display: none;
+}

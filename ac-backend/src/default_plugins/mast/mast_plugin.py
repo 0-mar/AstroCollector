@@ -9,7 +9,7 @@ from astropy.table import Table
 from fastapi.concurrency import run_in_threadpool
 from lightkurve import SearchResult, search_lightcurve, LightkurveError
 
-from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
+from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
@@ -20,9 +20,10 @@ class MastStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
     id: str
 
 
-class MastPlugin(PhotometricCataloguePlugin[MastStellarObjectIdentificatorDto]):
+class MastPlugin(CatalogPlugin[MastStellarObjectIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__()
+        self._directly_identifies_objects = True
 
     @abstractmethod
     def _get_target(self) -> str:

@@ -12,9 +12,15 @@
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
     <title>AstroCollector</title>
-
+    <link rel="stylesheet" href="/src/styles/loadingScreen.css" />
   </head>
   <body>
+    <div id="loading-screen">
+      <div id="startup-loader">
+        <div class="spinner"></div>
+        <p>Loading AstroCollector...</p>
+      </div>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Load Aladin embedded window -->

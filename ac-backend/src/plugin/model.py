@@ -18,3 +18,6 @@ class Plugin(DbEntity):
         DateTime, nullable=False, server_default=func.now()
     )
     file_name: Mapped[str] = mapped_column(String(100), nullable=True)
+    directly_identifies_objects: Mapped[bool] = mapped_column(
+        nullable=False, default=False
+    )

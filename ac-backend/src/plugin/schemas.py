@@ -7,16 +7,18 @@ class PluginDto(BaseIdDto):
     name: str
     created_by: str
     created: datetime.datetime
-    file_name: str | None
+    directly_identifies_objects: bool
 
 
 class CreatePluginDto(BaseDto):
     name: str
     created_by: str
+    directly_identifies_objects: bool
 
 
 class UpdatePluginDto(BaseIdDto):
     name: str | None = None
+    directly_identifies_objects: bool
 
 
 class UpdatePluginFileDto(BaseIdDto):

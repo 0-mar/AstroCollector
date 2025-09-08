@@ -8,7 +8,7 @@ from fastapi.concurrency import run_in_threadpool
 from pyvo.dal import AsyncTAPJob
 
 from src.core.config.config import settings
-from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
+from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
@@ -25,12 +25,13 @@ class ApplauseIdentificatorDto(StellarObjectIdentificatorDto):
 
 
 # TODO: what about shared session?
-class ApplausePlugin(PhotometricCataloguePlugin[ApplauseIdentificatorDto]):
+class ApplausePlugin(CatalogPlugin[ApplauseIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__()
         self.__service = vo.dal.TAPService(
             APPLAUSE_TAP_URL, session=self.__tap_session()
         )
+        self._directly_identifies_objects = True
 
     def __tap_session(self) -> requests.Session():
         session = requests.Session()

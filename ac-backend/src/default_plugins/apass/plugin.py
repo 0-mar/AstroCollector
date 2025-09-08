@@ -4,7 +4,7 @@ from uuid import UUID
 from astropy.coordinates import SkyCoord
 from fastapi.concurrency import run_in_threadpool
 
-from src.core.integration.photometric_catalogue_plugin import PhotometricCataloguePlugin
+from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
@@ -16,11 +16,12 @@ class ApassIdentificatorDto(StellarObjectIdentificatorDto):
     raddeg: float
 
 
-class ApassPlugin(PhotometricCataloguePlugin[ApassIdentificatorDto]):
+class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
     # https://tombstone.physics.mcmaster.ca/APASS/conesearch_offset.php
     def __init__(self) -> None:
         super().__init__()
         self._url = "https://tombstone.physics.mcmaster.ca/APASS/conesearch_offset.php"
+        self._directly_identifies_objects = False
 
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID

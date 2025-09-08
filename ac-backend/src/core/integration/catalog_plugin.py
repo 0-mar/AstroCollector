@@ -16,7 +16,7 @@ from src.core.integration.schemas import (
 T = TypeVar("T", bound=StellarObjectIdentificatorDto)
 
 
-class PhotometricCataloguePlugin(Generic[T], ABC):
+class CatalogPlugin(Generic[T], ABC):
     _http_client: ClientSession
 
     def __init__(self) -> None:
@@ -25,9 +25,14 @@ class PhotometricCataloguePlugin(Generic[T], ABC):
         self._geocenter = EarthLocation.from_geocentric(
             0 * units.m, 0 * units.m, 0 * units.m
         )
+        self._directly_identifies_objects = True
 
     def batch_limit(self):
         return self.__batch_limit
+
+    @property
+    def directly_identifies_objects(self) -> bool:
+        return self._directly_identifies_objects
 
     @abstractmethod
     async def list_objects(
