@@ -10,6 +10,12 @@ import {useQueryClient} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
+import {MapPinCheckInside} from "lucide-react";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/../components/ui/tooltip"
 
 type StellarObjectsMenuProps = {
     pluginData: PluginDto[]
@@ -62,8 +68,19 @@ const StellarObjectsMenu = ({
                 <TabsList>
                     {pluginData.map(plugin =>
                         <TabsTrigger key={`list_${plugin.id}`} value={plugin.id}>
-                            {plugin.name}
-                        </TabsTrigger>)}
+                            <Tooltip key={`list_${plugin.id}`}>
+                                <TooltipTrigger asChild>
+                                    <span className="inline-flex items-center gap-1">{plugin.name}{plugin.directly_identifies_objects && <MapPinCheckInside/>}</span>
+
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {plugin.directly_identifies_objects ?
+                                        <p>Catalog groups data by stellar objects</p> :
+                                        <p>Catalog returns individual measurements</p>}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TabsTrigger>
+                    )}
                 </TabsList>
                 {pluginData.map(plugin =>
                     <TabsContent key={`content_${plugin.id}`} value={plugin.id}>

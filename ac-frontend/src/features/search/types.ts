@@ -52,6 +52,7 @@ export type PluginDto = BaseDto & {
     name: string
     created_by: string
     created: string
+    directly_identifies_objects: boolean
 }
 
 export type StellarObjectIdentifierDto = {
