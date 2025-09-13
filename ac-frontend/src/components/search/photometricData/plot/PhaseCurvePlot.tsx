@@ -39,7 +39,7 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
     const objectCoordsContext = useContext(ObjectCoordsContext)
 
     const [period, setPeriod] = useState(1);
-    const [epoch, setEpoch] = useState(0);
+    const [epoch, setEpoch] = useState(2460000);
 
     const fractionalPart = (n: number) => {
         const nstring = (n + "")
