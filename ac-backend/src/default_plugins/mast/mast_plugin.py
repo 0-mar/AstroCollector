@@ -106,7 +106,7 @@ class MastPlugin(CatalogPlugin[MastStellarObjectIdentificatorDto]):
             mag = -2.5 * math.log10(flux.value) + 20.44
             mag_err = -2.5 * math.log10(flux_err.value) + 20.44
 
-            if math.isnan(mag_err) or math.isnan(mag_err):
+            if math.isnan(mag_err):
                 continue
 
             results.append(
