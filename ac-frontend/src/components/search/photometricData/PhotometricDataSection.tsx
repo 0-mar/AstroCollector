@@ -1,9 +1,8 @@
 import {useQueries} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
-import type {Identifiers} from "@/features/search/menu/types.ts";
 import {type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/api/types.ts";
 import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
-import {useCallback, useMemo, useState} from "react";
+import {useCallback, useContext, useEffect, useMemo, useState} from "react";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../../../../components/ui/tabs.tsx";
 import LightCurvePlot from "@/components/search/photometricData/plot/LightCurvePlot.tsx";
 import PlotOptionsPanel from "@/components/search/photometricData/plotOptions/PlotOptionsPanel.tsx";
@@ -16,15 +15,18 @@ import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import PhaseCurvePlot from "@/components/search/photometricData/plot/PhaseCurvePlot.tsx";
 import ExportDialog from "@/components/export/ExportDialog.tsx";
 import PhotometryDataLoader from "@/components/search/photometricData/PhotometryDataLoader.tsx";
+import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
 
 
 type PhotometricDataSectionProps = {
-    currentObjectIdentifiers: Identifiers
     pluginData: PluginDto[]
 }
 
 
-const PhotometricDataSection = ({currentObjectIdentifiers, pluginData}: PhotometricDataSectionProps) => {
+const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
+    const identifiersContext = useContext(IdentifiersContext);
+    const currentObjectIdentifiers = identifiersContext?.selectedObjectIdentifiers ?? {};
+
     const lightcurveTaskQueries = useQueries({
         queries: Object.values(currentObjectIdentifiers).map((identifier) => {
             return {
@@ -73,28 +75,47 @@ const PhotometricDataSection = ({currentObjectIdentifiers, pluginData}: Photomet
                     ? lightcurveTaskQueries[idx].data?.task_id
                     : null
             )
-            .filter((x): x is string => !!x);
+            .filter((x): x is string => x !== null);
         return Array.from(new Set(ids)).sort();
     }, [taskStatusQueries.map(q => q.data?.status).join(','),
-        lightcurveTaskQueries.map(q => q.data?.task_id).join(','),]);
+        lightcurveTaskQueries.map(q => q.data?.task_id).join(',')]);
 
     const [byTaskData, setByTaskData] = useState<Record<string, PhotometricDataDto[]>>({});
 
     const updateData = useCallback((taskId: string) => (rows: PhotometricDataDto[]) => {
-        setByTaskData(prev => ({ ...prev, [taskId]: rows }));
+        setByTaskData(prev => {
+            return { ...prev, [taskId]: rows }
+        });
     }, []);
 
+    // delete unchecked identifiers
+    useEffect(() => {
+        Object.keys(byTaskData).forEach(taskId => {
+            if (!completedTaskIds.includes(taskId)) {
+                setByTaskData(prevState => {
+                    const newState = {...prevState};
+                    delete newState[taskId];
+                    return newState;
+                })
+            }
+        })
+    }, [completedTaskIds]);
+
     const lightCurveData = useMemo(
-        () => Object.values(byTaskData).flat(),
+        () => {
+            return Object.values(byTaskData).flat();
+        },
         [byTaskData]
     );
 
 
     return (
         <div className={"flex flex-col space-y-2"}>
-            {completedTaskIds.map(taskId => (
-                <PhotometryDataLoader key={taskId} taskId={taskId} onData={updateData(taskId)} />
-            ))}
+            {completedTaskIds.map((taskId) => {
+                return (
+                    <PhotometryDataLoader key={taskId} taskId={taskId} onData={updateData(taskId)} />
+                )
+            })}
             <h2 className="text-lg font-medium text-gray-900">Photometric data</h2>
             <div>
                 <ExportDialog readyData={Object.values(currentObjectIdentifiers).reduce((acc, identifier, idx) => {
@@ -187,21 +208,6 @@ const PhotometricDataSection = ({currentObjectIdentifiers, pluginData}: Photomet
                                 description={taskStatusQueries[idx].error.message}/>
                         )
                     }
-                    // if (resultQueries[idx].isPending) {
-                    //     return (
-                    //         <LoadingSkeleton
-                    //             key={dataTarget}
-                    //             text={"Loading photometric data for " + dataTarget + " ..."}/>
-                    //     )
-                    // }
-                    // if (resultQueries[idx].isError) {
-                    //     return (
-                    //         <ErrorAlert
-                    //             key={dataTarget}
-                    //             title={"Photometric data query failed: " + dataTarget}
-                    //             description={resultQueries[idx].error.message}/>
-                    //     )
-                    // }
                 })}
             </div>
         </div>

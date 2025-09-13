@@ -25,7 +25,6 @@ type PhaseFormProps = {
 }
 
 const PhaseForm = ({epoch, period, setEpoch, setPeriod}: PhaseFormProps) => {
-    console.log(epoch, period)
     const form = useForm<PhaseValues>({
         resolver: yupResolver(phaseFormSchema),
         defaultValues: {
