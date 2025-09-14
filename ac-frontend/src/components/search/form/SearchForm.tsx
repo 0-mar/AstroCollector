@@ -34,12 +34,11 @@ const LabeledInput = ({label, ...props}) => {
 
 type SearchFormProps = {
     setMenuVisible: React.Dispatch<React.SetStateAction<boolean>>,
-    setCurrentObjectIdentifiers: React.Dispatch<React.SetStateAction<Identifiers>>,
     setLightcurveSectionVisible: React.Dispatch<React.SetStateAction<boolean>>,
     setPluginData: React.Dispatch<React.SetStateAction<PluginDto[]>>,
 }
 
-const SearchForm = ({setMenuVisible, setCurrentObjectIdentifiers, setLightcurveSectionVisible, setPluginData}: SearchFormProps) => {
+const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}: SearchFormProps) => {
     const searchFormContext = useContext(SearchFormContext)
     const objectCoordsContext = useContext(ObjectCoordsContext)
     const identifiersContext = useContext(IdentifiersContext)
@@ -68,7 +67,6 @@ const SearchForm = ({setMenuVisible, setCurrentObjectIdentifiers, setLightcurveS
         searchFormContext?.setSearchValues(formData)
         setPluginData(pluginQuery.data?.data ?? [])
         identifiersContext?.setSelectedObjectIdentifiers({})
-        setCurrentObjectIdentifiers({})
 
         if (formData.objectName !== "") {
             setCoordsPanelVisible(true)

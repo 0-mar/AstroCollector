@@ -121,7 +121,7 @@ function PhotometricDataTable({taskIds, pluginNames}: PhotometricDataTableProps)
         state: { pagination },
         onPaginationChange: setPagination,
     })
-    console.log(taskIds)
+
     return (
         <div className={"flex-col space-y-4 pb-4"}>
             <div className="overflow-hidden rounded-md border">

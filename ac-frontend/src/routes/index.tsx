@@ -1,7 +1,6 @@
 import {createFileRoute} from '@tanstack/react-router'
 import {useState} from "react";
 import type {PluginDto} from "@/features/search/types.ts";
-import type {Identifiers} from "@/features/search/menu/types.ts";
 import SearchForm from "@/components/search/form/SearchForm.tsx";
 import StellarObjectsMenu from "@/components/search/menu/StellarObjectsMenu.tsx";
 import PhotometricDataSection from "@/components/search/photometricData/PhotometricDataSection.tsx";
@@ -19,7 +18,6 @@ function App() {
     const [pluginData, setPluginData] = useState<PluginDto[]>([])
 
 
-    const [currentObjectIdentifiers, setCurrentObjectIdentifiers] = useState<Identifiers>({})
     const [lightcurveSectionVisible, setLightcurveSectionVisible] = useState(false)
 
     return (
@@ -31,7 +29,6 @@ function App() {
                         <div className="flex flex-row bg-blue-100">
                             <div className="p-8 w-1/2 0mx-auto">
                                 <SearchForm setMenuVisible={setMenuVisible}
-                                            setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
                                             setLightcurveSectionVisible={setLightcurveSectionVisible}
                                             setPluginData={setPluginData}/>
                             </div>
@@ -41,14 +38,12 @@ function App() {
                         </div>
                         {menuVisible && <div className="p-8 my-4">
                             <StellarObjectsMenu pluginData={pluginData}
-                                                setCurrentObjectIdentifiers={setCurrentObjectIdentifiers}
                                                 setLightcurveSectionVisible={setLightcurveSectionVisible}
                             />
                         </div>}
                         {lightcurveSectionVisible && <div className="bg-blue-100 rounded-md">
                             <div className={"p-8"}>
-                                <PhotometricDataSection currentObjectIdentifiers={currentObjectIdentifiers}
-                                                        pluginData={pluginData}/>
+                                <PhotometricDataSection pluginData={pluginData}/>
                             </div>
                         </div>}
                     </IdentifiersProvider>

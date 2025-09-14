@@ -40,7 +40,7 @@ def get_phase_curve_data(query_data, search_coords: SkyCoord):
         return PhaseCurveDataDto(
             ra_deg=float(record["RA2000"]),
             dec_deg=float(record["Declination2000"]),
-            epoch=float(record["Epoch"] if "Epoch" in record else None),
+            epoch=float(record["Epoch"]) if "Epoch" in record else None,
             period=float(record["Period"]),
             vsx_object_name=record["Name"] if "Name" in record else None,
         )
@@ -85,7 +85,7 @@ async def phase_curve_data(
                 return PhaseCurveDataDto(
                     ra_deg=float(record["RA2000"]),
                     dec_deg=float(record["Declination2000"]),
-                    epoch=float(record["Epoch"] if "Epoch" in record else None),
+                    epoch=float(record["Epoch"]) if "Epoch" in record else None,
                     period=float(record["Period"]),
                     vsx_object_name=record["Name"] if "Name" in record else None,
                 )

@@ -1,5 +1,5 @@
 import {Checkbox} from "@/../components/ui/checkbox"
-import {useContext, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
 import type {Identifiers} from "@/features/search/menu/types.ts";
 import type {StellarObjectIdentifierDto} from "@/features/search/types.ts";
@@ -15,6 +15,10 @@ export const IdentifierCheckbox = ({
                                    }: IdentifierCheckboxProps) => {
     const identifiersContext = useContext(IdentifiersContext)
     const [checked, setChecked] = useState(identifiersContext?.selectedObjectIdentifiers[id] === identifier);
+
+    useEffect(() => {
+        setChecked(identifiersContext?.selectedObjectIdentifiers[id] === identifier)
+    }, [identifiersContext?.selectedObjectIdentifiers[id]]);
 
     const handleCheckedChange = (isChecked: boolean) => {
         setChecked(isChecked)

@@ -1,40 +1,64 @@
-import {useContext, useEffect, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 
 const AladinCutout = () => {
     const searchFormContext = useContext(SearchFormContext)
-    const [showError, setShowError] = useState(false)
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const aladinRef = useRef<any>(null);
+    const [showError, setShowError] = useState(false);
 
     useEffect(() => {
-        // TODO: NED as well?
-        let declared;
-        try {
-            A;
-            declared = true;
-        } catch(e) {
-            declared = false;
-        }
-
-        if (declared) {
-            setShowError(false);
-        } else {
+        const aladinGlobal = (globalThis as any).A;
+        if (!containerRef.current || !aladinGlobal) {
             setShowError(true);
+            return;
+        }
+        setShowError(false)
+
+        const target = searchFormContext?.searchValues.objectName ??
+            `${searchFormContext?.searchValues.rightAscension} ${searchFormContext?.searchValues.declination}`
+
+        const aladin = aladinGlobal.aladin(containerRef.current,
+            { survey: 'P/DSS2/color', fov: 2 / 60, target: target});
+        aladinRef.current = aladin;
+
+        aladin.addCatalog(aladinGlobal.catalogFromSimbad(target, 2 / 60, {onClick: 'showPopup'}));
+        aladin.addCatalog(aladinGlobal.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
+        aladin.setFov(2/60)
+
+        // cleanup
+        return () => {
+            try {
+                aladinRef.current = null;
+                if (containerRef.current) containerRef.current.innerHTML = "";
+            } catch {}
+        };
+    }, []);
+
+    useEffect(() => {
+        const aladinGlobal = (globalThis as any).A;
+        const aladin = aladinRef.current;
+        if (!aladinGlobal || !aladin) {
+            return;
         }
 
-        const target = searchFormContext?.searchValues.objectName ?? `${searchFormContext?.searchValues.rightAscension} ${searchFormContext?.searchValues.declination}`
-        let aladin = A.aladin('#aladin-lite-div', { survey: 'P/DSS2/color', fov: 2 / 60, target: target})
-        aladin.addCatalog(A.catalogFromSimbad(target, 2 / 60, {onClick: 'showTable'}));
-        aladin.addCatalog(A.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
-        aladin.setFov(2/60)
-    }, [])
+        const target = searchFormContext?.searchValues.objectName ??
+            `${searchFormContext?.searchValues.rightAscension} ${searchFormContext?.searchValues.declination}`
+
+        aladin.gotoObject(target);
+        aladin.setFov(2/60);
+
+        aladin.addCatalog(aladinGlobal.catalogFromSimbad(target, 2 / 60, {onClick: 'showPopup'}));
+        aladin.addCatalog(aladinGlobal.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
+    }, [searchFormContext?.searchValues])
 
     if (showError) {
         return <ErrorAlert title={"Failed to load Aladin Lite"} description={"Aladin Lite is not available."} />
     }
 
     return (
-        <div id='aladin-lite-div' style={{ width: '506px', height: '506px' }} />
+        <div ref={containerRef} style={{ width: '506px', height: '506px' }} />
     )
 }
 

@@ -6,8 +6,10 @@ import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import {type PaginationResponse, type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/api/types.ts";
 import {identifierColumns} from "@/components/table/Columns.tsx";
 import {ClientPaginatedDataTable} from "@/components/table/ClientPaginatedDataTable.tsx";
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
+import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
+import type {Identifiers} from "@/features/search/menu/types.ts";
 
 type StellarObjectsListProps = {
     plugin: PluginDto,
@@ -17,6 +19,8 @@ const StellarObjectsList = ({
                                 plugin,
                             }: StellarObjectsListProps) => {
     const searchFormContext = useContext(SearchFormContext)
+    const identifiersContext = useContext(IdentifiersContext)
+
     const body = searchFormContext?.searchValues.objectName !== "" ?
         {name: searchFormContext?.searchValues.objectName, plugin_id: plugin.id} :
         {
@@ -61,6 +65,22 @@ const StellarObjectsList = ({
         enabled: taskStatusQuery.data?.status === TaskStatus.COMPLETED,
         staleTime: Infinity
     });
+
+    useEffect(() => {
+        if (!stellarObjectsResultsQuery.isSuccess) return;
+
+        identifiersContext?.setSelectedObjectIdentifiers(prev => {
+            const updatedState: Identifiers = {...prev};
+
+            for (const dto of stellarObjectsResultsQuery.data?.data) {
+                if (dto.identifier.dist_arcsec <= 0.1) {
+                    updatedState[dto.id] = dto.identifier;
+                }
+            }
+
+            return updatedState;
+        });
+    }, [stellarObjectsResultsQuery.isSuccess]);
 
 
     if (taskQuery.isPending) {
