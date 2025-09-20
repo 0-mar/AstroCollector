@@ -14,7 +14,7 @@ class Task(DbEntity):
     __tablename__ = "ac_task"
 
     status: Mapped[TaskStatus] = mapped_column(default=TaskStatus.in_progress)
-    created: Mapped[datetime.datetime] = mapped_column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
     )
 
