@@ -1,0 +1,61 @@
+from typing import Annotated
+
+from fastapi import Depends
+
+from src.core.config.config import settings
+from src.core.repository.repository import Repository, get_repository
+from src.core.security.models import User, UserRole
+from src.core.security.schemas import UserCreateDto, UserDto, UserInDbDto
+
+UserRepositoryDep = Annotated[
+    Repository[User],
+    Depends(get_repository(User)),
+]
+
+UserRoleRepositoryDep = Annotated[
+    Repository[UserRole],
+    Depends(get_repository(UserRole)),
+]
+
+
+class UserService:
+    def __init__(
+        self,
+        user_repository: UserRepositoryDep,
+        user_role_repository: UserRoleRepositoryDep,
+    ) -> None:
+        self._user_repository = user_repository
+        self._user_role_repository = user_role_repository
+
+    async def get_user_by_email(self, email: str) -> UserInDbDto | None:
+        user = await self._user_repository.find_first(**{"email__eq": email})
+        if user is None:
+            return None
+        return UserInDbDto.model_validate(user)
+
+    async def get_user(self, user_id: str) -> UserDto | None:
+        user = await self._user_repository.find_first(**{"id__eq": user_id})
+        if user is None:
+            return None
+        return UserDto.model_validate(user)
+
+    async def create_user(self, create_dto: UserCreateDto):
+        role_entity = await self._user_role_repository.find_first_or_raise(
+            **{"name__eq": create_dto.role.value}
+        )
+
+        user_to_save = User(
+            username=create_dto.username,
+            email=create_dto.email,
+            hashed_password=settings.pwd_context.hash(create_dto.password),
+            role=role_entity,
+        )
+        user = await self._user_repository.save(user_to_save)
+
+        return UserDto.model_validate(user)
+
+    # async def delete_user(self, email: str):
+    #     user = await self.get_user(email)
+    #     if user is None:
+    #         raise RepositoryException("User not found")
+    #     await self.user_repository.delete(user.id)
