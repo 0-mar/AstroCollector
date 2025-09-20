@@ -88,6 +88,28 @@ class Repository(Generic[Entity]):
 
         return and_(*expressions)
 
+    async def find_first(
+        self,
+        offset: int = 0,
+        count: int = settings.MAX_PAGINATION_BATCH_COUNT,
+        **filters: dict[str, Any],
+    ) -> Optional[Entity]:
+        total_count, entities = await self.find(offset, count, **filters)
+        if total_count == 0:
+            return None
+        return entities[0]
+
+    async def find_first_or_raise(
+        self,
+        offset: int = 0,
+        count: int = settings.MAX_PAGINATION_BATCH_COUNT,
+        **filters: dict[str, Any],
+    ) -> Optional[Entity]:
+        result = await self.find_first(offset, count, **filters)
+        if result is None:
+            raise RepositoryException("Entity not found")
+        return result
+
     async def find(
         self,
         offset: int = 0,
