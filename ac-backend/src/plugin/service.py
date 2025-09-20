@@ -52,12 +52,10 @@ class PluginService:
     ) -> Optional[CatalogPlugin[StellarObjectIdentificatorDto]]:
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None:
-            logger.error(f"Could not load spec from {file_path}")
             raise ImportError(f"Could not load spec from {file_path}")
         plugin_module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = plugin_module
         if spec.loader is None:
-            logger.error(f"Could not load loader from {file_path}")
             raise ImportError(f"Could not load loader from {file_path}")
         spec.loader.exec_module(plugin_module)
 

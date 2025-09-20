@@ -3,9 +3,14 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, UploadFile
+from starlette import status
+from starlette.responses import Response
 
 from src.core.config.config import settings
 from src.core.schemas import PaginationResponseDto
+from src.core.security.auth import required_roles
+from src.core.security.models import User
+from src.core.security.schemas import UserRoleEnum
 from src.plugin.schemas import PluginDto, CreatePluginDto, UpdatePluginDto
 from src.plugin.service import PluginService
 
@@ -46,6 +51,7 @@ async def get_plugin(
 
 @router.post("", response_model=PluginDto)
 async def create_plugin(
+    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
     create_dto: CreatePluginDto,
     service: PluginServiceDep,
 ) -> PluginDto:
@@ -58,6 +64,7 @@ async def create_plugin(
 
 @router.put("/{plugin_id}", response_model=PluginDto)
 async def update_plugin(
+    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
     update_dto: UpdatePluginDto,
     plugin_id: UUID,
     service: PluginServiceDep,
@@ -72,6 +79,7 @@ async def update_plugin(
 
 @router.put("/upload/{plugin_id}")
 async def upload_plugin(
+    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
     plugin_id: UUID,
     plugin_file: UploadFile,
     service: PluginServiceDep,
@@ -82,5 +90,11 @@ async def upload_plugin(
 
 
 @router.delete("/{plugin_id}")
-async def delete_plugin(plugin_id: UUID, service: PluginServiceDep) -> None:
+async def delete_plugin(
+    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    plugin_id: UUID,
+    service: PluginServiceDep,
+):
+    """Delete plugin"""
     await service.delete_plugin(plugin_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
