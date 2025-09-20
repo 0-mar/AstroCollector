@@ -6,12 +6,12 @@ class ACException(Exception):
 
     def __init__(self, message: str, code: str, http_status: int) -> None:
         super().__init__(message)
-        self._message: str = message
-        self._code: str = code
-        self._http_status: int = http_status
+        self.message: str = message
+        self.code: str = code
+        self.http_status: int = http_status
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} [status='{self._http_status}', code='{self._code}', message='{self._message}']"
+        return f"{self.__class__.__name__} [status='{self.http_status}', code='{self.code}', message='{self.message}']"
 
 
 class APIException(ACException):
