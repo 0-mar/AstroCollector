@@ -1,5 +1,5 @@
 import {createFileRoute} from '@tanstack/react-router'
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import type {PluginDto} from "@/features/search/types.ts";
 import SearchForm from "@/components/search/form/SearchForm.tsx";
 import StellarObjectsMenu from "@/components/search/menu/StellarObjectsMenu.tsx";
@@ -16,9 +16,18 @@ export const Route = createFileRoute('/')({
 function App() {
     const [menuVisible, setMenuVisible] = useState(false)
     const [pluginData, setPluginData] = useState<PluginDto[]>([])
-
+    const [aladinLoaded, setAladinLoaded] = useState(false)
 
     const [lightcurveSectionVisible, setLightcurveSectionVisible] = useState(false)
+
+    useEffect(() => {
+        const scriptTag = document.createElement('script')
+        scriptTag.src = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"
+        scriptTag.addEventListener("load", () => {
+           setAladinLoaded(true)
+        })
+        document.body.appendChild(scriptTag)
+    }, []);
 
     return (
         //<div className="grid grid-cols-1 grid-rows-3 gap-4">
@@ -33,7 +42,7 @@ function App() {
                                             setPluginData={setPluginData}/>
                             </div>
                             {menuVisible && <div className="p-8 w-1/2 0mx-auto">
-                                <AladinCutout />
+                                <AladinCutout loaded={aladinLoaded} />
                             </div>}
                         </div>
                         {menuVisible && <div className="p-8 my-4">

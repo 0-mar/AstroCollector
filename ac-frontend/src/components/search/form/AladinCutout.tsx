@@ -1,14 +1,21 @@
 import {useContext, useEffect, useRef, useState} from "react";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
+import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
 
-const AladinCutout = () => {
+type AladinCutoutProps = {
+    loaded: boolean
+}
+
+const AladinCutout = ({loaded}: AladinCutoutProps) => {
     const searchFormContext = useContext(SearchFormContext)
     const containerRef = useRef<HTMLDivElement | null>(null);
     const aladinRef = useRef<any>(null);
     const [showError, setShowError] = useState(false);
 
     useEffect(() => {
+        // if (!loaded) return;
+
         const aladinGlobal = (globalThis as any).A;
         if (!containerRef.current || !aladinGlobal) {
             setShowError(true);
@@ -55,6 +62,10 @@ const AladinCutout = () => {
 
     if (showError) {
         return <ErrorAlert title={"Failed to load Aladin Lite"} description={"Aladin Lite is not available."} />
+    }
+
+    if (!loaded) {
+        return <LoadingSkeleton text={"Loading Aladin..."} />
     }
 
     return (
