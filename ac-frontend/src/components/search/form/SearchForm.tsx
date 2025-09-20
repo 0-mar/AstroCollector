@@ -19,7 +19,6 @@ import React, {useContext, useState} from "react";
 import CoordsPanel from "@/components/search/form/CoordsPanel.tsx";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 import {ObjectCoordsContext} from "@/components/search/form/ObjectCoordsProvider.tsx";
-import type {Identifiers} from "@/features/search/menu/types.ts";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
 
 

@@ -9,18 +9,21 @@ import {
 import Header from '../components/Header'
 import Footer from "@/components/Footer.tsx";
 import { Toaster } from "@/../components/ui/sonner"
+import {AuthProvider} from "@/components/auth/AuthContext.tsx";
 
 export const Route = createRootRoute({
     component: () => {
     const queryClient = new QueryClient();
     return (
         <QueryClientProvider client={queryClient}>
-            <Header/>
-            <Outlet/>
-            <TanStackRouterDevtools/>
-            <ReactQueryDevtools initialIsOpen={false} />
-            <Toaster />
-            <Footer/>
+            <AuthProvider>
+                <Header/>
+                <Outlet/>
+                <TanStackRouterDevtools/>
+                <ReactQueryDevtools initialIsOpen={false} />
+                <Toaster />
+                <Footer/>
+            </AuthProvider>
         </QueryClientProvider>
     )
     },
