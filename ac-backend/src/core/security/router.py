@@ -117,7 +117,9 @@ async def refresh_access_token(
 
 
 @router.post("/logout")
-async def logout(response: Response):
+async def logout(
+    _: Annotated[User, Depends(get_current_active_user)], response: Response
+):
     """Logout user."""
     response.delete_cookie("refresh_token_ac", domain=settings.COOKIE_DOMAIN)
     return {"message": "Successfully logged out!"}
