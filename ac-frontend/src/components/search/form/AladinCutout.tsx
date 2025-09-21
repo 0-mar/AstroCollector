@@ -14,7 +14,9 @@ const AladinCutout = ({loaded}: AladinCutoutProps) => {
     const [showError, setShowError] = useState(false);
 
     useEffect(() => {
-        // if (!loaded) return;
+        if (!loaded) {
+            return;
+        }
 
         const aladinGlobal = (globalThis as any).A;
         if (!containerRef.current || !aladinGlobal) {
@@ -41,7 +43,7 @@ const AladinCutout = ({loaded}: AladinCutoutProps) => {
                 if (containerRef.current) containerRef.current.innerHTML = "";
             } catch {}
         };
-    }, []);
+    }, [loaded]);
 
     useEffect(() => {
         const aladinGlobal = (globalThis as any).A;
