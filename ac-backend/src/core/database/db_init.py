@@ -21,7 +21,7 @@ async def init_db():
         role = UserRole(name=UserRoleEnum.admin, description="Admin role")
         await role_repository.save(role)
         role = UserRole(name=UserRoleEnum.user, description="User role")
-        await role_repository.save(role)
+        user_role = await role_repository.save(role)
 
     async with async_sessionmanager.session() as session:
         user_repository = Repository(User, session)
@@ -31,5 +31,14 @@ async def init_db():
             hashed_password=settings.pwd_context.hash("admin"),
             disabled=False,
             role=super_admin_role,
+        )
+        await user_repository.save(user)
+
+        user = User(
+            username="User",
+            email="user@user.cz",
+            hashed_password=settings.pwd_context.hash("user"),
+            disabled=False,
+            role=user_role,
         )
         await user_repository.save(user)
