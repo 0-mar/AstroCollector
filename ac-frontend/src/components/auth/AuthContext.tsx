@@ -1,31 +1,15 @@
-import React, {createContext, useEffect, useState} from "react"
+import React, {createContext, useEffect, useMemo, useState} from "react"
 import BaseApi from "@/features/api/baseApi.ts";
 import {useQuery} from "@tanstack/react-query";
+import type {User} from "@/features/auth/types.ts";
 
-enum UserRoleEnum {
-    SUPER_ADMIN = "ROLE_SUPER_ADMIN",
-    ADMIN = "ROLE_ADMIN",
-    USER = "ROLE_USER",
-}
 
-type UserRole = {
-    name: UserRoleEnum
-    description: string | null
-}
-
-export type User = {
-    username: string,
-    email: string,
-    disabled: boolean,
-    created_at: string,
-    role: UserRole
-}
-
-type AuthCtx = {
-    user: User;
-    setUser: React.Dispatch<React.SetStateAction<User>>;
+export type AuthCtx = {
+    user: User | null;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
     accessToken: string | null;
-    setAccessToken: React.Dispatch<React.SetStateAction<string>>
+    setAccessToken: React.Dispatch<React.SetStateAction<string | null>>
+    isAuthenticated: boolean;
 };
 
 export const AuthContext = createContext<AuthCtx | null>(null)
@@ -51,12 +35,13 @@ export const AuthProvider = ({ children }) => {
         }
     }, [userQuery.isSuccess]);
 
-    const values = {
+    const values = useMemo<AuthCtx>(() => ({
         user,
         setUser,
         accessToken,
-        setAccessToken
-    }
+        setAccessToken,
+        isAuthenticated: accessToken !== null && user !== null,
+    }), [user, accessToken])
 
     return (
         <AuthContext.Provider value={values}>
