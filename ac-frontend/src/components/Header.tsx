@@ -8,27 +8,34 @@ export default function Header() {
     const auth = useAuth()
     const logout = useLogout()
 
-
     return (
-        <header className="p-2 flex gap-2 bg-white text-black justify-between">
-            <nav className="flex flex-row w-full">
-                <div className="px-2 py-2 font-bold">
-                    <Link to="/">AstroCollector</Link>
+        <header className="sticky top-0 z-50 p-2 flex gap-2 bg-white/90 backdrop-blur border-b text-black">
+            <nav className="flex flex-row w-full items-end">
+                <div className="px-2 py-2 font-medium text-xl">
+                    <Link to="/" activeOptions={{ exact: true }} activeProps={{
+                        className: "font-extrabold underline",
+                    }}>AstroCollector</Link>
                 </div>
-                <div className="px-2 py-2 font-bold">
-                    <Link to="/catalogs">Supported catalogs</Link>
+                <div className="px-2 py-2 font-medium">
+                    <Link to="/catalogs" activeProps={{
+                        className: "font-extrabold underline",
+                    }}>Supported catalogs</Link>
                 </div>
-                <div className="px-2 py-2 font-bold">
-                    <Link to="/about">About</Link>
+                <div className="px-2 py-2 font-medium" >
+                    <Link to="/about" activeProps={{
+                        className: "font-extrabold underline",
+                    }}>About</Link>
                 </div>
                 <ProtectedContent permittedRoles={[UserRoleEnum.SUPER_ADMIN]}>
-                    <div className="px-2 py-2 font-bold">
-                        <Link to="/admin/catalogManagement">Catalog management</Link>
+                    <div className="px-2 py-2 font-medium">
+                        <Link to="/admin/catalogManagement" activeProps={{
+                            className: "font-extrabold underline",
+                        }}>Catalog management</Link>
                     </div>
                 </ ProtectedContent>
                 {
                 !auth?.isAuthenticated ?
-                    (<div className="bg-blue-400 text-black px-4 py-2 rounded hover:bg-blue-500 ml-auto">
+                    (<div className="text-white bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded ml-auto">
                         <Link to="/login" search={{redirect: "/"}}>Login</Link>
                     </div>)
                 : (

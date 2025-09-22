@@ -23,6 +23,8 @@ class AidPlugin(CatalogPlugin[AidIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__()
         self._directly_identifies_objects = True
+        self._description = "The AAVSO International Database has over 54 million variable star observations going back over one hundred years. It is the largest and most comprehensive digital variable star database in the world. Over 1,000,000 new variable star brightness measurements are added to the database every year by over 700 observers from all over the world."
+        self._catalog_url = "https://www.aavso.org/aavso-international-database"
 
     def __list_url(self, ra: float, dec: float, radius: float) -> str:
         return f"https://vsx.aavso.org/index.php?view=api.list&ra={ra}&dec={dec}&radius={radius}&format=json"

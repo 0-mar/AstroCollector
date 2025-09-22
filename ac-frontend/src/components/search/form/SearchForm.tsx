@@ -20,6 +20,7 @@ import CoordsPanel from "@/components/search/form/CoordsPanel.tsx";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 import {ObjectCoordsContext} from "@/components/search/form/ObjectCoordsProvider.tsx";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
+import useCatalogPluginsQuery from "@/features/plugin/useCatalogs.ts";
 
 
 const LabeledInput = ({label, ...props}) => {
@@ -53,13 +54,7 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
     })
 
 
-    const pluginQuery = useQuery({
-        queryKey: ['plugins'],
-        queryFn: () => BaseApi.post<PaginationResponse<PluginDto>>('/plugins/list', {}, {params: {
-                offset: 0,
-                count: 1000
-            }}),
-    })
+    const pluginQuery = useCatalogPluginsQuery()
 
     const onSubmit = (formData: SearchValues) => {
         setLightcurveSectionVisible(false)

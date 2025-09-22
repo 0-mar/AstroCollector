@@ -28,6 +28,8 @@ class DaschPlugin(CatalogPlugin[DaschStellarObjectIdentificatorDto]):
         self.querycat_endpoint = f"{self.base_url}/dasch/dr7/querycat"
         self.lightcurve_endpoint = f"{self.base_url}/dasch/dr7/lightcurve"
         self._directly_identifies_objects = True
+        self._description = "DASCH was the project to digitize the Harvard College Observatory’s Astronomical Photographic Glass Plate Collection for scientific applications. This enormous — multi-decade — undertaking was completed in 2024. Its legacy is DASCH Data Release 7, an extraordinary dataset that enables scientific study of the entire night sky on 100-year timescales."
+        self._catalog_url = "https://dasch.cfa.harvard.edu/"
 
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID

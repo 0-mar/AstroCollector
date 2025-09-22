@@ -185,6 +185,8 @@ class PluginService:
                         name=cls.__name__[: cls.__name__.rfind("Plugin")],
                         created_by="system",
                         directly_identifies_objects=plugin_instance.directly_identifies_objects,
+                        description=plugin_instance.description,
+                        catalog_url=plugin_instance.catalog_url,
                     )
                 )
 

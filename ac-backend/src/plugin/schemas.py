@@ -8,17 +8,23 @@ class PluginDto(BaseIdDto):
     created_by: str
     created: datetime.datetime
     directly_identifies_objects: bool
+    description: str
+    catalog_url: str
 
 
 class CreatePluginDto(BaseDto):
     name: str
     created_by: str
     directly_identifies_objects: bool
+    catalog_url: str
+    description: str
 
 
 class UpdatePluginDto(BaseIdDto):
     name: str | None = None
-    directly_identifies_objects: bool
+    directly_identifies_objects: bool | None = None
+    description: str | None = None
+    catalog_url: str | None = None
 
 
 class UpdatePluginFileDto(BaseIdDto):

@@ -21,6 +21,8 @@ class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
         super().__init__()
         self._url = "http://survey.favor2.info/favor2/photometry/json"
         self._directly_identifies_objects = False
+        self._description = "The Mini-MegaTORTORA (MMT-9) system is an unique multi-purpose wide-field monitoring instrument built for and owned by the Kazan Federal University, presently operated under an agreement between Kazan Federal University and Special Astrophysical Observatory, Russia."
+        self._catalog_url = "http://survey.favor2.info/favor2/"
 
     async def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
