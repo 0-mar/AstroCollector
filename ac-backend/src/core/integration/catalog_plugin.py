@@ -26,6 +26,8 @@ class CatalogPlugin(Generic[T], ABC):
             0 * units.m, 0 * units.m, 0 * units.m
         )
         self._directly_identifies_objects = True
+        self._description = ""
+        self._catalog_url = ""
 
     def batch_limit(self):
         return self.__batch_limit
@@ -33,6 +35,14 @@ class CatalogPlugin(Generic[T], ABC):
     @property
     def directly_identifies_objects(self) -> bool:
         return self._directly_identifies_objects
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def catalog_url(self) -> str:
+        return self._catalog_url
 
     @abstractmethod
     async def list_objects(

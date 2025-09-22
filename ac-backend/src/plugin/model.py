@@ -13,6 +13,8 @@ class Plugin(DbEntity):
     __tablename__ = "ac_plugin"
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
+    catalog_url: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
     created_by: Mapped[str] = mapped_column(String(100), nullable=False)
     created: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
