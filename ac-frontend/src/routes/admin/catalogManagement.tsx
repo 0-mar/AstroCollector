@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
+import {roleGuard} from "@/features/routing/roleGuard.ts";
+import {UserRoleEnum} from "@/features/auth/types.ts";
 
 
-export const Route = createFileRoute('/_superAdmin/admin/catalogManagement')({
+export const Route = createFileRoute('/admin/catalogManagement')({
+    beforeLoad: roleGuard([UserRoleEnum.SUPER_ADMIN]),
     component: DashboardComponent,
 })
 
