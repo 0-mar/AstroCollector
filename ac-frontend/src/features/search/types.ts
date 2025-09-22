@@ -53,6 +53,8 @@ export type PluginDto = BaseDto & {
     created_by: string
     created: string
     directly_identifies_objects: boolean
+    catalog_url: string
+    description: string
 }
 
 export type StellarObjectIdentifierDto = {
