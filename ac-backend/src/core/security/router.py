@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
+from starlette.requests import Request
 from starlette.responses import Response
 
 from src.core.config.config import settings
@@ -62,11 +63,29 @@ async def login_for_access_token(
     )
 
 
+class RefreshToken(BaseDto):
+    refresh_token: str
+
+
 @router.post("/refresh")
 async def refresh_access_token(
-    user_service: UserServiceDep, response: Response, refresh_token: str
+    user_service: UserServiceDep,
+    request: Request,
+    response: Response,
+    refresh_token_dto: RefreshToken | None = None,
 ) -> Tokens:
     """Return fresh tokens."""
+    refresh_token = (
+        refresh_token_dto.refresh_token
+        if refresh_token_dto is not None
+        else request.cookies.get("refresh_token_ac")
+    )
+
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+        )
+
     user_id = get_user_id_from_refresh_token(refresh_token)
     user_exists = await user_service.get_user(user_id)
 
@@ -75,9 +94,9 @@ async def refresh_access_token(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         )
 
-    if not user_exists.is_active:
+    if user_exists.disabled:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is inactive"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is disabled"
         )
 
     access_token, refresh_token = create_user_tokens(user_id)
@@ -98,7 +117,9 @@ async def refresh_access_token(
 
 
 @router.post("/logout")
-async def logout(response: Response):
+async def logout(
+    _: Annotated[User, Depends(get_current_active_user)], response: Response
+):
     """Logout user."""
     response.delete_cookie("refresh_token_ac", domain=settings.COOKIE_DOMAIN)
     return {"message": "Successfully logged out!"}
