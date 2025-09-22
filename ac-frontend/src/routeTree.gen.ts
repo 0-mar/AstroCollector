@@ -9,20 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SuperAdminRouteImport } from './routes/_superAdmin'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
-import { Route as SuperAdminAdminCatalogManagementRouteImport } from './routes/_superAdmin.admin/catalogManagement'
+import { Route as AdminCatalogManagementRouteImport } from './routes/admin/catalogManagement'
 
-const SuperAdminRoute = SuperAdminRouteImport.update({
-  id: '/_superAdmin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -33,68 +23,44 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SuperAdminAdminCatalogManagementRoute =
-  SuperAdminAdminCatalogManagementRouteImport.update({
-    id: '/admin/catalogManagement',
-    path: '/admin/catalogManagement',
-    getParentRoute: () => SuperAdminRoute,
-  } as any)
+const AdminCatalogManagementRoute = AdminCatalogManagementRouteImport.update({
+  id: '/admin/catalogManagement',
+  path: '/admin/catalogManagement',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin/catalogManagement': typeof AdminCatalogManagementRoute
   '/login': typeof LoginIndexRoute
-  '/admin/catalogManagement': typeof SuperAdminAdminCatalogManagementRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/catalogManagement': typeof AdminCatalogManagementRoute
   '/login': typeof LoginIndexRoute
-  '/admin/catalogManagement': typeof SuperAdminAdminCatalogManagementRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRoute
-  '/_superAdmin': typeof SuperAdminRouteWithChildren
+  '/admin/catalogManagement': typeof AdminCatalogManagementRoute
   '/login/': typeof LoginIndexRoute
-  '/_superAdmin/admin/catalogManagement': typeof SuperAdminAdminCatalogManagementRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/admin/catalogManagement'
+  fullPaths: '/' | '/admin/catalogManagement' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/admin/catalogManagement'
-  id:
-    | '__root__'
-    | '/'
-    | '/_authenticated'
-    | '/_superAdmin'
-    | '/login/'
-    | '/_superAdmin/admin/catalogManagement'
+  to: '/' | '/admin/catalogManagement' | '/login'
+  id: '__root__' | '/' | '/admin/catalogManagement' | '/login/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRoute
-  SuperAdminRoute: typeof SuperAdminRouteWithChildren
+  AdminCatalogManagementRoute: typeof AdminCatalogManagementRoute
   LoginIndexRoute: typeof LoginIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_superAdmin': {
-      id: '/_superAdmin'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof SuperAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -109,32 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_superAdmin/admin/catalogManagement': {
-      id: '/_superAdmin/admin/catalogManagement'
+    '/admin/catalogManagement': {
+      id: '/admin/catalogManagement'
       path: '/admin/catalogManagement'
       fullPath: '/admin/catalogManagement'
-      preLoaderRoute: typeof SuperAdminAdminCatalogManagementRouteImport
-      parentRoute: typeof SuperAdminRoute
+      preLoaderRoute: typeof AdminCatalogManagementRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface SuperAdminRouteChildren {
-  SuperAdminAdminCatalogManagementRoute: typeof SuperAdminAdminCatalogManagementRoute
-}
-
-const SuperAdminRouteChildren: SuperAdminRouteChildren = {
-  SuperAdminAdminCatalogManagementRoute: SuperAdminAdminCatalogManagementRoute,
-}
-
-const SuperAdminRouteWithChildren = SuperAdminRoute._addFileChildren(
-  SuperAdminRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRoute,
-  SuperAdminRoute: SuperAdminRouteWithChildren,
+  AdminCatalogManagementRoute: AdminCatalogManagementRoute,
   LoginIndexRoute: LoginIndexRoute,
 }
 export const routeTree = rootRouteImport

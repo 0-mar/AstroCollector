@@ -23,7 +23,8 @@ export const useLogout = () => {
         onSuccess: async () => {
             auth?.setAccessToken(null)
             removeHeaderToken()
-            await navigate({ to: "/" });
+            // TODO fixme: bug - login returns back to
+            await navigate({ to: "/login", search: {redirect: "/"} });
         },
     });
 
