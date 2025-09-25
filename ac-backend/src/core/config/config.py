@@ -86,6 +86,11 @@ class Settings(BaseSettings):
 
     pwd_context: CryptContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+    # Super admin credentials
+    SUPER_ADMIN_USERNAME: str = "admin"
+    SUPER_ADMIN_PASSWORD: str
+    SUPER_ADMIN_EMAIL: str
+
     model_config = SettingsConfigDict(
         env_file=(Path(".env")),
         env_file_encoding="utf-8",
