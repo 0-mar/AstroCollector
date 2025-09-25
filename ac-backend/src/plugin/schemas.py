@@ -10,6 +10,7 @@ class PluginDto(BaseIdDto):
     directly_identifies_objects: bool
     description: str
     catalog_url: str
+    file_name: str | None
 
 
 class CreatePluginDto(BaseDto):
