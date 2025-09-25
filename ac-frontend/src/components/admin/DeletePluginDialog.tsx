@@ -3,7 +3,6 @@ import {toast} from "sonner";
 import BaseApi from "@/features/api/baseApi.ts";
 import {Button} from "../../../components/ui/button.tsx";
 import {Trash, X} from "lucide-react";
-import type {PluginDto} from "@/features/search/types.ts";
 import {
     Dialog,
     DialogClose,
@@ -14,6 +13,7 @@ import {
     DialogTrigger
 } from "../../../components/ui/dialog.tsx";
 import {useState} from "react";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 type DeletePluginButtonProps = {
     pluginDto: PluginDto

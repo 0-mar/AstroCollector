@@ -1,7 +1,8 @@
 import {useQuery} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import type {PaginationResponse} from "@/features/api/types.ts";
-import type {PluginDto} from "@/features/search/types.ts";
+
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 const useCatalogPluginsQuery = () => {
     return useQuery({

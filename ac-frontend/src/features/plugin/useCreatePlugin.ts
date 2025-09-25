@@ -1,8 +1,7 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import {toast} from "sonner";
-import type {PluginDto} from "@/features/search/types.ts";
-import type {CreatePluginDto} from "@/features/plugin/types.ts";
+import type {CreatePluginDto, PluginDto} from "@/features/plugin/types.ts";
 import {useAuth} from "@/features/auth/useAuth.ts";
 import useUploadPlugin from "@/features/plugin/useUploadPlugin.ts";
 

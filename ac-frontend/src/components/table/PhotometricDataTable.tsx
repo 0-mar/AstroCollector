@@ -13,7 +13,7 @@ import {
     TableRow,
 } from "@/../components/ui/table"
 import {useMemo, useState} from "react";
-import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
+import type {PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {DataTablePagination} from "@/components/table/DataTablePagination.tsx";
 import {useQuery} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";

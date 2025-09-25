@@ -1,11 +1,12 @@
 import type {ColumnDef} from "@tanstack/react-table"
-import type {Identifier, PluginDto} from "@/features/search/types.ts";
 import IdentifierCheckbox from "@/components/search/menu/IdentifierCheckbox.tsx";
 import {Button} from "../../../components/ui/button.tsx";
 import {ArrowUpDown} from "lucide-react";
 import DownloadPluginSrcButton from "@/components/admin/DownloadPluginSrcButton.tsx";
 import EditPluginDialog from "@/components/admin/EditPluginDialog.tsx";
 import DeletePluginDialog from "@/components/admin/DeletePluginDialog.tsx";
+import type {Identifier} from "@/features/search/menu/types.ts";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 
 export const identifierColumns: ColumnDef<Identifier>[] = [

@@ -1,12 +1,12 @@
 import {useForm} from "react-hook-form";
-import {yupResolver} from "@hookform/resolvers/yup";
-import {zoomFormSchema, type ZoomValues} from "@/features/search/lightcurve/schema.ts";
+import {zoomFormSchema, type ZoomValues} from "@/features/search/photometricDataSection/schema.ts";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "../../../../../components/ui/form.tsx";
 import {Input} from "../../../../../components/ui/input.tsx";
 import {Button} from "../../../../../components/ui/button.tsx";
 import {useContext, useEffect} from "react";
 import {OptionsContext} from "@/components/search/photometricData/plotOptions/OptionsContext.tsx";
 import {RangeContext} from "@/components/search/photometricData/plotOptions/CurrentRangeContext.tsx";
+import {zodResolver} from "@hookform/resolvers/zod";
 
 
 const LabeledInput = ({label, ...props}) => {
@@ -23,7 +23,7 @@ const ZoomForm = () => {
     const context = useContext(OptionsContext)
     const rangeContext = useContext(RangeContext)
     const form = useForm<ZoomValues>({
-        resolver: yupResolver(zoomFormSchema),
+        resolver: zodResolver(zoomFormSchema),
         defaultValues: {
             min: 0,
             max: 0

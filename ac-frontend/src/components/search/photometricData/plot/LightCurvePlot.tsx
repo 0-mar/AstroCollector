@@ -1,5 +1,5 @@
 import * as React from "react";
-import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
+import type {PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {colorFromId} from "@/utils/color.ts";
 import {useContext, useMemo} from "react";
 import "@/styles/lightcurve.css";

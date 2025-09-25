@@ -1,6 +1,5 @@
 import {createFileRoute} from '@tanstack/react-router'
 import {useEffect, useState} from "react";
-import type {PluginDto} from "@/features/search/types.ts";
 import SearchForm from "@/components/search/form/SearchForm.tsx";
 import StellarObjectsMenu from "@/components/search/menu/StellarObjectsMenu.tsx";
 import PhotometricDataSection from "@/components/search/photometricData/PhotometricDataSection.tsx";
@@ -8,6 +7,7 @@ import {IdentifiersProvider} from "@/components/search/menu/IdentifiersContext.t
 import {SearchFormProvider} from "@/components/search/form/SearchFormContext.tsx";
 import {ObjectCoordsProvider} from "@/components/search/form/ObjectCoordsProvider.tsx";
 import AladinCutout from "@/components/search/form/AladinCutout.tsx";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 export const Route = createFileRoute('/')({
     component: App,

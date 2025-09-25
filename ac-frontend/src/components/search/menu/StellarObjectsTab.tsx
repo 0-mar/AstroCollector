@@ -1,6 +1,6 @@
-import type {Identifier} from "@/features/search/types.ts";
 import {ClientPaginatedDataTable} from "@/components/table/ClientPaginatedDataTable.tsx";
 import {identifierColumns} from "@/components/table/Columns.tsx";
+import type {Identifier} from "@/features/search/menu/types.ts";
 
 type StellarObjectsTabProps = {
     identifiers: Identifier[]

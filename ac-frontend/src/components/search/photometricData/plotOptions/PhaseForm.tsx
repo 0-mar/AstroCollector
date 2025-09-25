@@ -1,10 +1,10 @@
 import {useForm} from "react-hook-form";
-import {yupResolver} from "@hookform/resolvers/yup";
-import {phaseFormSchema, type PhaseValues} from "@/features/search/lightcurve/schema.ts";
+import {phaseFormSchema, type PhaseValues} from "@/features/search/photometricDataSection/schema.ts";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "../../../../../components/ui/form.tsx";
 import {Input} from "../../../../../components/ui/input.tsx";
 import {Button} from "../../../../../components/ui/button.tsx";
 import React, {useEffect} from "react";
+import {zodResolver} from "@hookform/resolvers/zod";
 
 
 const LabeledInput = ({label, ...props}) => {
@@ -26,7 +26,7 @@ type PhaseFormProps = {
 
 const PhaseForm = ({epoch, period, setEpoch, setPeriod}: PhaseFormProps) => {
     const form = useForm<PhaseValues>({
-        resolver: yupResolver(phaseFormSchema),
+        resolver: zodResolver(phaseFormSchema),
         defaultValues: {
             epoch: epoch,
             period: period

@@ -1,5 +1,5 @@
-import type {PluginDto} from "@/features/search/types.ts";
 import {MapPinCheckInside} from "lucide-react";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 type CatalogCardProps = {
     catalogData: PluginDto

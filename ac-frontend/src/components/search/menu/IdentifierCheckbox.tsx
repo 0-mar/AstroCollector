@@ -1,8 +1,7 @@
 import {Checkbox} from "@/../components/ui/checkbox"
 import {useContext, useEffect, useState} from "react";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
-import type {Identifiers} from "@/features/search/menu/types.ts";
-import type {StellarObjectIdentifierDto} from "@/features/search/types.ts";
+import type {Identifiers, StellarObjectIdentifierDto} from "@/features/search/menu/types.ts";
 
 type IdentifierCheckboxProps = {
     id: string,

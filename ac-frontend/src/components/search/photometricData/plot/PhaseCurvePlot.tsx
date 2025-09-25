@@ -1,6 +1,6 @@
 import * as React from "react";
 import {useContext, useEffect, useMemo, useState} from "react";
-import type {PhaseCurveDataDto, PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
+import type {PhaseCurveDataDto, PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {colorFromId} from "@/utils/color.ts";
 import "@/styles/lightcurve.css";
 import {OptionsContext} from "@/components/search/photometricData/plotOptions/OptionsContext.tsx";

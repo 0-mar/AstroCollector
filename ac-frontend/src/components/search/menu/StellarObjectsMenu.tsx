@@ -1,8 +1,6 @@
-import type {Identifier, PluginDto} from "@/features/search/types.ts";
 import * as React from "react";
-import type {Identifiers} from "@/features/search/menu/types.ts";
+import type {Identifier, Identifiers} from "@/features/search/menu/types.ts";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/../components/ui/tabs"
-import {Button} from "@/../components/ui/button"
 import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import {useEffect, useContext, useMemo} from "react";
 import {useQueries} from "@tanstack/react-query";
@@ -19,6 +17,7 @@ import {type PaginationResponse, type SubmitTaskDto, TaskStatus, type TaskStatus
 import StellarObjectsTab from "@/components/search/menu/StellarObjectsTab.tsx";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
 import {Commet} from "react-loading-indicators";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 type StellarObjectsMenuProps = {
     pluginData: PluginDto[]

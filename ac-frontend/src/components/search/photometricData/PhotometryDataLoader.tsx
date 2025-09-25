@@ -1,4 +1,4 @@
-import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
+import type {PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {useInfiniteQuery} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import type {PaginationResponse} from "@/features/api/types.ts";

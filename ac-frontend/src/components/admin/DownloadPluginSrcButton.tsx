@@ -3,7 +3,8 @@ import {toast} from "sonner";
 import BaseApi from "@/features/api/baseApi.ts";
 import {Button} from "../../../components/ui/button.tsx";
 import {Download} from "lucide-react";
-import type {PluginDto} from "@/features/search/types.ts";
+
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 type DownloadPluginSrcButtonProps = {
     pluginDto: PluginDto

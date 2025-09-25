@@ -1,4 +1,4 @@
-import type {Identifier, PluginDto} from "@/features/search/types.ts";
+import type {Identifier} from "@/features/types.ts";
 import {useQuery} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
@@ -10,6 +10,7 @@ import {useContext, useEffect} from "react";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
 import type {Identifiers} from "@/features/search/menu/types.ts";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 type StellarObjectsListProps = {
     plugin: PluginDto,

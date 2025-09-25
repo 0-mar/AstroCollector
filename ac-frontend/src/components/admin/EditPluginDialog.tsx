@@ -1,6 +1,5 @@
 import {Button} from "../../../components/ui/button.tsx";
 import {Save, SquarePen, X} from "lucide-react";
-import type {PluginDto} from "@/features/search/types.ts";
 import {
     Dialog,
     DialogClose,
@@ -12,6 +11,7 @@ import {
 } from "../../../components/ui/dialog.tsx";
 import {useState} from "react";
 import EditPluginForm from "@/components/admin/EditPluginForm.tsx";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 
 type EditPluginButtonProps = {
