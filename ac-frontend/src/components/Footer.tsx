@@ -1,7 +1,23 @@
 export default function Footer() {
     return (
-        <footer className="p-8 flex gap-2 bg-white text-black justify-between">
-            Last updated: 21.09.2025
+        <footer className="footer footer-horizontal footer-center bg-secondary text-primary-content p-10">
+            <div className="flex flex-row items-center gap-y-2">
+                <img className={"w-15 h-15"}
+                     src="../../public/planet.svg"
+                     alt="planet logo" />
+                <span
+                    className="self-center text-2xl font-semibold whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r to-black from-amber-400">
+                    AstroCollector
+                </span>
+            </div>
+
+            <p className="font-bold">
+
+                <br/>
+                Developed for the <a className={"text-blue-600 hover:underline"} href={"https://physics.muni.cz/en"} target={"_blank"}>Department of physics at Masaryk University</a>
+            </p>
+            <p>Copyright © {new Date().getFullYear()} Ondřej Marek</p>
+            <p>Last update: 25.9.2025</p>
         </footer>
     )
 }

@@ -18,14 +18,22 @@ export type RouterCtx = {
 export const Route = createRootRouteWithContext<RouterCtx>()({
     component: () => {
     return (
-        <>
-            <Header/>
-            <Outlet/>
+        <div className="min-h-dvh flex flex-col">
+            <div className={"shrink-0"}>
+                <Header/>
+            </div>
+            <main className="flex-1">
+                <Outlet />
+            </main>
+            <div className={"shrink-0"}>
+                <Footer/>
+            </div>
+
             <TanStackRouterDevtools/>
             <ReactQueryDevtools initialIsOpen={false} />
             <Toaster />
-            <Footer/>
-        </>
+
+        </div>
     )
     },
 })

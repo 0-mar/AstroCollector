@@ -17,7 +17,9 @@ export const Route = createFileRoute('/login/')({
 function Login(){
     return (
         <div className="flex flex-col justify-center items-center p-2">
-            <h1>Log in</h1>
+            <header className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Log in</h1>
+            </header>
             <LoginForm />
         </div>
     )

@@ -1,7 +1,5 @@
 import {useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
-import BaseApi from "@/features/api/baseApi.ts";
-import {useQuery} from "@tanstack/react-query";
 
 import {
     Form,
@@ -14,7 +12,6 @@ import {
 import {Input} from "@/../components/ui/input"
 import SearchFormSubmitButton from "@/components/search/form/SearchFormSubmitButton.tsx";
 import {formSchema, type PluginDto, type SearchValues} from "@/features/search/types.ts";
-import type {PaginationResponse} from "@/features/api/types.ts";
 import React, {useContext, useState} from "react";
 import CoordsPanel from "@/components/search/form/CoordsPanel.tsx";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
