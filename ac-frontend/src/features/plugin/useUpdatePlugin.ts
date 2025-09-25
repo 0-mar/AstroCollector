@@ -9,16 +9,16 @@ const useUpdatePlugin = (pluginId: string) => {
     const queryClient = useQueryClient()
     const uploadPluginMutation = useUploadPlugin()
 
-    const updateMutation = useMutation({
+    return useMutation({
         onError: (_error) => {
             toast.error("Failed to update plugin.")
         },
-        mutationFn: async ({updateData, file}: {updateData: UpdatePluginDto, file: File | null}) => {
+        mutationFn: async ({updateData, file}: { updateData: UpdatePluginDto, file: File | null }) => {
             const updated = await BaseApi.put<PluginDto>(`/plugins/${pluginId}`, updateData)
             return {updated, file}
         },
         onSuccess: async ({updated, file}) => {
-            await queryClient.invalidateQueries({ queryKey: ['plugins'] })
+            await queryClient.invalidateQueries({queryKey: ['plugins']})
             if (file !== null) {
                 await uploadPluginMutation.mutateAsync({
                     pluginId: updated.id,
@@ -33,8 +33,6 @@ const useUpdatePlugin = (pluginId: string) => {
             return Math.min(1000 * 2 ** failureCount, 30000);
         },
     })
-
-    return updateMutation
 }
 
 export default useUpdatePlugin;
