@@ -44,7 +44,7 @@ export const formSchema = yup
 
 export type SearchValues = InferType<typeof formSchema>
 
-type BaseDto = {
+export type BaseDto = {
     id: string
 }
 
@@ -55,6 +55,7 @@ export type PluginDto = BaseDto & {
     directly_identifies_objects: boolean
     catalog_url: string
     description: string
+    file_name: string | null
 }
 
 export type StellarObjectIdentifierDto = {

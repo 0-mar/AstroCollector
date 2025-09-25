@@ -31,7 +31,6 @@ function App() {
 
     return (
         //<div className="grid grid-cols-1 grid-rows-3 gap-4">
-        <div className={"h-full bg-blue-400"}>
             <SearchFormProvider>
                 <ObjectCoordsProvider>
                     <IdentifiersProvider>
@@ -58,6 +57,5 @@ function App() {
                     </IdentifiersProvider>
                 </ObjectCoordsProvider>
             </SearchFormProvider>
-        </div>
     )
 }
