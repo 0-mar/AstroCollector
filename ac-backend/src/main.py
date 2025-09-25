@@ -121,6 +121,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 # cache: https://stackoverflow.com/questions/65686318/sharing-python-objects-across-multiple-workers

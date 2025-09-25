@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         if (userQuery.isSuccess) {
             setUser(userQuery.data)
-            console.log(userQuery.data)
         }
     }, [userQuery.isSuccess]);
 

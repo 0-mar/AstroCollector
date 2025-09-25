@@ -92,7 +92,9 @@ class PluginService:
         plugin = await self._repository.update(update_dto.id, update_data)
         return PluginDto.model_validate(plugin)
 
-    async def upload_plugin(self, plugin_id: UUID, plugin_file: UploadFile) -> None:
+    async def upload_plugin(
+        self, plugin_id: UUID, plugin_file: UploadFile
+    ) -> PluginDto:
         plugin_entity: Plugin = await self._repository.get(plugin_id)  # check if exists
 
         new_file_name = str(uuid.uuid4()) + ".py"
@@ -102,12 +104,15 @@ class PluginService:
                 await out_file.write(content)  # async write chunk
 
         update_data = UpdatePluginFileDto(id=plugin_entity.id, file_name=new_file_name)
-        await self._repository.update(plugin_id, update_data.model_dump())
+        plugin = await self._repository.update(plugin_id, update_data.model_dump())
+        return PluginDto.model_validate(plugin)
 
     async def delete_plugin(self, plugin_id: UUID) -> None:
         plugin = await self._repository.get(plugin_id)
-        plugin_file_path = Path.joinpath(PLUGIN_DIR, plugin.file_name).resolve()
-        await run_in_threadpool(plugin_file_path.unlink)
+        if plugin.file_name is not None:
+            plugin_file_path = Path.joinpath(PLUGIN_DIR, plugin.file_name).resolve()
+            await run_in_threadpool(plugin_file_path.unlink)
+
         await self._repository.delete(plugin_id)
 
     async def list_plugins(

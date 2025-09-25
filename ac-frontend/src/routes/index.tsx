@@ -31,17 +31,16 @@ function App() {
 
     return (
         //<div className="grid grid-cols-1 grid-rows-3 gap-4">
-        <div>
             <SearchFormProvider>
                 <ObjectCoordsProvider>
                     <IdentifiersProvider>
-                        <div className="flex flex-row bg-blue-100">
-                            <div className="p-8 w-1/2 0mx-auto">
+                        <div className="flex flex-wrap bg-blue-100">
+                            <div className="p-8 w-full md:w-1/2 min-w-0">
                                 <SearchForm setMenuVisible={setMenuVisible}
                                             setLightcurveSectionVisible={setLightcurveSectionVisible}
                                             setPluginData={setPluginData}/>
                             </div>
-                            {menuVisible && <div className="p-8 w-1/2 0mx-auto">
+                            {menuVisible && <div className="p-8 w-full md:w-1/2 min-w-0">
                                 <AladinCutout loaded={aladinLoaded} />
                             </div>}
                         </div>
@@ -58,6 +57,5 @@ function App() {
                     </IdentifiersProvider>
                 </ObjectCoordsProvider>
             </SearchFormProvider>
-        </div>
     )
 }

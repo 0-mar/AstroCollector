@@ -2,9 +2,9 @@ from pathlib import Path
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, UploadFile, HTTPException
 from starlette import status
-from starlette.responses import Response
+from starlette.responses import Response, FileResponse
 
 from src.core.config.config import settings
 from src.core.schemas import PaginationResponseDto
@@ -12,11 +12,9 @@ from src.core.security.auth import required_roles
 from src.core.security.models import User
 from src.core.security.schemas import UserRoleEnum
 from src.plugin.schemas import PluginDto, CreatePluginDto, UpdatePluginDto
-from src.plugin.service import PluginService
+from src.plugin.service import PluginService, PLUGIN_DIR
 
 PluginServiceDep = Annotated[PluginService, Depends(PluginService)]
-
-PLUGIN_DIR = Path(__file__).parent.parent.parent
 
 router = APIRouter(
     prefix="/api/plugins",
@@ -37,6 +35,24 @@ async def list_plugins(
         filters = {}
     plugins = await service.list_plugins(offset=offset, count=count, **filters)
     return plugins
+
+
+@router.get("/download/{plugin_id}")
+async def download_plugin(
+    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    service: PluginServiceDep,
+    plugin_id: UUID,
+):
+    plugin = await service.get_plugin(plugin_id)
+    if plugin.file_name is None:
+        raise HTTPException(status_code=404, detail="Plugin file does not exist")
+
+    plugin_file_path = Path.joinpath(PLUGIN_DIR, plugin.file_name).resolve()
+    return FileResponse(
+        plugin_file_path,
+        media_type="text/x-python; charset=utf-8",
+        filename=f"{plugin.name}.py",
+    )
 
 
 @router.get("/{plugin_id}", response_model=PluginDto)
@@ -83,10 +99,9 @@ async def upload_plugin(
     plugin_id: UUID,
     plugin_file: UploadFile,
     service: PluginServiceDep,
-) -> None:
-    """Upload plugin"""
-
-    await service.upload_plugin(plugin_id, plugin_file)
+) -> PluginDto:
+    """Upload plugin source code file"""
+    return await service.upload_plugin(plugin_id, plugin_file)
 
 
 @router.delete("/{plugin_id}")

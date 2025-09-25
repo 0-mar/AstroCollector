@@ -12,7 +12,7 @@ function RouteComponent() {
                 <p><span className="font-extrabold text-lg text-transparent bg-clip-text bg-gradient-to-r to-black from-amber-400">AstroCollector</span> is a tool for searching for photometric data of stellar objects.
                 </p>
                 <p>
-                    The tool was developed for the <a href={"https://www.physics.muni.cz/en"} target={"_blank"} className={"font-medium text-blue-600 dark:text-blue-500 hover:underline"}>Department of Physics at Masaryk university</a>.
+                    The tool was developed for the <a href={"https://www.physics.muni.cz/en"} target={"_blank"} className={"font-medium text-blue-600 hover:underline"}>Department of Physics at Masaryk university</a>.
                 </p>
             </div>
         </div>
