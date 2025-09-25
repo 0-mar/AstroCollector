@@ -1,8 +1,8 @@
 import React, {createContext, useMemo, useState} from "react"
-import type {SearchValues} from "@/features/search/types.ts";
+import type {SearchFormValues} from "@/features/search/searchSection/schemas.ts";
 
 type SearchFormCtx = {
-    searchValues: SearchValues; setSearchValues: React.Dispatch<React.SetStateAction<SearchValues>>;
+    searchValues: SearchFormValues; setSearchValues: React.Dispatch<React.SetStateAction<SearchValues>>;
 };
 
 export const SearchFormContext = createContext<SearchFormCtx | null>(null)

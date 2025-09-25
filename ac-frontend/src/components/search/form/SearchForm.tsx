@@ -1,5 +1,4 @@
 import {useForm} from "react-hook-form";
-import {yupResolver} from "@hookform/resolvers/yup";
 
 import {
     Form,
@@ -11,13 +10,15 @@ import {
 } from "@/../components/ui/form"
 import {Input} from "@/../components/ui/input"
 import SearchFormSubmitButton from "@/components/search/form/SearchFormSubmitButton.tsx";
-import {formSchema, type PluginDto, type SearchValues} from "@/features/search/types.ts";
 import React, {useContext, useState} from "react";
 import CoordsPanel from "@/components/search/form/CoordsPanel.tsx";
 import {SearchFormContext} from "@/components/search/form/SearchFormContext.tsx";
 import {ObjectCoordsContext} from "@/components/search/form/ObjectCoordsProvider.tsx";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
 import useCatalogPluginsQuery from "@/features/plugin/useCatalogs.ts";
+import {searchFormSchema, type SearchFormValues} from "@/features/search/searchSection/schemas.ts";
+import {zodResolver} from "@hookform/resolvers/zod";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 
 const LabeledInput = ({label, ...props}) => {
@@ -40,8 +41,8 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
     const objectCoordsContext = useContext(ObjectCoordsContext)
     const identifiersContext = useContext(IdentifiersContext)
 
-    const form = useForm<SearchValues>({
-        resolver: yupResolver(formSchema),
+    const form = useForm<SearchFormValues>({
+        resolver: zodResolver(searchFormSchema),
         defaultValues: {
             objectName: "",
             rightAscension: "",
@@ -53,7 +54,7 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
 
     const pluginQuery = useCatalogPluginsQuery()
 
-    const onSubmit = (formData: SearchValues) => {
+    const onSubmit = (formData: SearchFormValues) => {
         setLightcurveSectionVisible(false)
         searchFormContext?.setSearchValues(formData)
         setPluginData(pluginQuery.data?.data ?? [])

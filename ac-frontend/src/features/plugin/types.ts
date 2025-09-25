@@ -1,4 +1,4 @@
-import type {BaseDto} from "@/features/search/types.ts";
+import type {BaseDto} from "@/features/types.ts";
 
 export type UpdatePluginDto = {
     name: string | null
@@ -13,4 +13,13 @@ export type CreatePluginDto = {
     description: string
     catalog_url: string
     created_by: string
+}
+export type PluginDto = BaseDto & {
+    name: string
+    created_by: string
+    created: string
+    directly_identifies_objects: boolean
+    catalog_url: string
+    description: string
+    file_name: string | null
 }

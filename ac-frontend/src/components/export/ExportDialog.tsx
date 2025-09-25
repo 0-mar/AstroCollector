@@ -10,9 +10,9 @@ import {
 } from "@/../components/ui/dialog"
 import {useMutation} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
-import type {StellarObjectIdentifierDto} from "@/features/search/types.ts";
 import InfoAlert from "@/components/alerts/InfoAlert.tsx";
 import { toast } from "sonner"
+import type {StellarObjectIdentifierDto} from "@/features/search/menu/types.ts";
 
 type ExportDialogProps = {
     readyData: Array<[StellarObjectIdentifierDto, string]>,

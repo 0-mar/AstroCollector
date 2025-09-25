@@ -1,12 +1,11 @@
 import {useQueries} from "@tanstack/react-query";
 import BaseApi from "@/features/api/baseApi.ts";
 import {type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/api/types.ts";
-import type {PhotometricDataDto} from "@/features/search/lightcurve/types.ts";
+import type {PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {useCallback, useContext, useEffect, useMemo, useState} from "react";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../../../../components/ui/tabs.tsx";
 import LightCurvePlot from "@/components/search/photometricData/plot/LightCurvePlot.tsx";
 import PlotOptionsPanel from "@/components/search/photometricData/plotOptions/PlotOptionsPanel.tsx";
-import type {PluginDto, StellarObjectIdentifierDto} from "@/features/search/types.ts";
 import {OptionsProvider} from "@/components/search/photometricData/plotOptions/OptionsContext.tsx";
 import {RangeProvider} from "@/components/search/photometricData/plotOptions/CurrentRangeContext.tsx";
 import PhotometricDataTable from "@/components/table/PhotometricDataTable.tsx";
@@ -16,6 +15,8 @@ import PhaseCurvePlot from "@/components/search/photometricData/plot/PhaseCurveP
 import ExportDialog from "@/components/export/ExportDialog.tsx";
 import PhotometryDataLoader from "@/components/search/photometricData/PhotometryDataLoader.tsx";
 import {IdentifiersContext} from "@/components/search/menu/IdentifiersContext.tsx";
+import type {StellarObjectIdentifierDto} from "@/features/search/menu/types.ts";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 
 type PhotometricDataSectionProps = {

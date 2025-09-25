@@ -1,7 +1,6 @@
 import {useForm} from "react-hook-form";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "../../../components/ui/form.tsx";
 import {Input} from "../../../components/ui/input.tsx";
-import type {PluginDto} from "@/features/search/types.ts";
 import {
     pluginUpdateFormSchema,
     type PluginUpdateFormValues
@@ -12,6 +11,7 @@ import React from "react";
 import useUpdatePlugin from "@/features/plugin/useUpdatePlugin.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
+import type {PluginDto} from "@/features/plugin/types.ts";
 
 type EditPluginFormProps = {
     pluginDto: PluginDto
