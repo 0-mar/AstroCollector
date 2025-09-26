@@ -26,7 +26,7 @@ export default function Header() {
                     onClick={() => setOpen(false)}
                 >
                     <img className={"w-10 h-10"}
-                        src="../../public/planet.svg"
+                        src="/planet.svg"
                         alt="planet logo" />
                     <span
                         className="self-center text-2xl font-semibold whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r to-black from-amber-400">

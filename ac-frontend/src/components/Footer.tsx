@@ -3,7 +3,7 @@ export default function Footer() {
         <footer className="footer footer-horizontal footer-center bg-secondary text-primary-content p-10">
             <div className="flex flex-row items-center gap-y-2">
                 <img className={"w-15 h-15"}
-                     src="../../public/planet.svg"
+                     src="/planet.svg"
                      alt="planet logo" />
                 <span
                     className="self-center text-2xl font-semibold whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r to-black from-amber-400">
