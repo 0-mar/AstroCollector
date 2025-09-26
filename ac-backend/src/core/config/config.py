@@ -1,3 +1,4 @@
+import datetime
 import logging
 from pathlib import Path
 from typing import Any, Literal
@@ -11,6 +12,12 @@ class Settings(BaseSettings):
     """Application settings."""
 
     PROJECT_NAME: str = "AstroCollector"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def ROOT_DIR(self) -> Path:
+        return Path.joinpath(Path(__file__).parent.parent.parent.parent).resolve()
+
     DEBUG: bool = False
     APPLAUSE_TOKEN: str
 
@@ -21,7 +28,18 @@ class Settings(BaseSettings):
     DB_HOST: str = Field(..., alias="POSTGRES_HOST")
     CACHE_PORT: str = Field(..., alias="REDIS_PORT")
 
-    LOGGING_CONSOLE_LEVEL: int = logging.INFO
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def PLUGIN_DIR(self) -> Path:
+        return Path.joinpath(self.ROOT_DIR, "plugins").resolve()
+
+    LOGGING_LEVEL: int = logging.INFO
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def LOGGING_DIR(self) -> Path:
+        return Path.joinpath(self.ROOT_DIR, "logs").resolve()
+
     TASK_DATA_DELETE_INTERVAL: int = 2  # in hours
     MAX_PAGINATION_BATCH_COUNT: int = 5000
 
@@ -38,29 +56,46 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def LOGGING_CONFIG(self) -> dict[str, Any]:
+        today = datetime.datetime.today()
         return {
             "version": 1,
             "disable_existing_loggers": False,
             "formatters": {
                 "base": {
                     "()": "uvicorn.logging.DefaultFormatter",
-                    "fmt": "%(asctime)s : %(name)s : %(levelname)s : %(message)s",
+                    "fmt": "[%(levelname)s %(asctime)s]: %(name)s - %(message)s",
                 }
             },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
-                    "level": self.LOGGING_CONSOLE_LEVEL,
+                    "level": self.LOGGING_LEVEL,
                     "formatter": "base",
                     "stream": "ext://sys.stdout",
+                },
+                "file": {
+                    "class": "logging.handlers.TimedRotatingFileHandler",
+                    "level": self.LOGGING_LEVEL,
+                    "utc": True,
+                    "formatter": "base",
+                    "filename": str(
+                        Path.joinpath(
+                            self.LOGGING_DIR,
+                            f"info-{today.day:02}-{today.month:02}-{today.year}.log",
+                        )
+                    ),
+                    # Roll over on the first day of the weekday
+                    "when": "W0",
+                    # Roll over at midnight
+                    "atTime": datetime.time(hour=0),
+                    # Number of files to keep.
+                    "backupCount": 8,
                 },
             },
             "loggers": {
                 "root": {
                     "level": "DEBUG",
-                    "handlers": [
-                        "console",
-                    ],
+                    "handlers": ["console", "file"],
                 },
             },
         }

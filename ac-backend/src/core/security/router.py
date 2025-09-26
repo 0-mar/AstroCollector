@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,7 +12,7 @@ from src.core.repository.schemas import BaseDto
 from src.core.security.auth import get_current_active_user, required_roles
 from src.core.security.dependencies import UserServiceDep
 from src.core.security.models import User
-from src.core.security.schemas import UserDto, UserRoleEnum
+from src.core.security.schemas import UserDto, UserRoleEnum, Tokens
 from src.core.security.utils import (
     authenticate_user,
     create_user_tokens,
@@ -24,11 +25,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-
-class Tokens(BaseDto):
-    access_token: str
-    refresh_token: str
-    token_type: str
+logger = logging.getLogger(__name__)
 
 
 @router.post("/login")
@@ -47,6 +44,8 @@ async def login_for_access_token(
         )
 
     access_token, refresh_token = create_user_tokens(user.id)
+
+    logger.info(f"User {user.email} logged in (ID: {user.id})")
 
     response.set_cookie(
         "refresh_token_ac",
@@ -101,6 +100,8 @@ async def refresh_access_token(
 
     access_token, refresh_token = create_user_tokens(user_id)
 
+    logger.info(f"User {user_exists.email} refreshed tokens (ID: {user_exists.id})")
+
     response.set_cookie(
         "refresh_token_ac",
         refresh_token,
@@ -118,10 +119,13 @@ async def refresh_access_token(
 
 @router.post("/logout")
 async def logout(
-    _: Annotated[User, Depends(get_current_active_user)], response: Response
+    user: Annotated[User, Depends(get_current_active_user)], response: Response
 ):
     """Logout user."""
     response.delete_cookie("refresh_token_ac", domain=settings.COOKIE_DOMAIN)
+
+    logger.info(f"User {user.email} logged out (ID: {user.id})")
+
     return {"message": "Successfully logged out!"}
 
 

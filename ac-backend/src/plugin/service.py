@@ -34,7 +34,6 @@ from src.plugin.schemas import (
 )
 
 PluginRepositoryDep = Annotated[Repository[Plugin], Depends(get_repository(Plugin))]
-PLUGIN_DIR = Path.joinpath(Path(__file__).parent.parent.parent, "plugins").resolve()
 
 # What about plugin cache?
 # https://stackoverflow.com/questions/65041691/is-python-dictionary-async-safe
@@ -98,7 +97,7 @@ class PluginService:
         plugin_entity: Plugin = await self._repository.get(plugin_id)  # check if exists
 
         new_file_name = str(uuid.uuid4()) + ".py"
-        plugin_file_path = Path.joinpath(PLUGIN_DIR, new_file_name).resolve()
+        plugin_file_path = Path.joinpath(settings.PLUGIN_DIR, new_file_name).resolve()
         async with aiofiles.open(plugin_file_path, "wb") as out_file:
             while content := await plugin_file.read(1024):  # async read chunk
                 await out_file.write(content)  # async write chunk
@@ -110,7 +109,9 @@ class PluginService:
     async def delete_plugin(self, plugin_id: UUID) -> None:
         plugin = await self._repository.get(plugin_id)
         if plugin.file_name is not None:
-            plugin_file_path = Path.joinpath(PLUGIN_DIR, plugin.file_name).resolve()
+            plugin_file_path = Path.joinpath(
+                settings.PLUGIN_DIR, plugin.file_name
+            ).resolve()
             await run_in_threadpool(plugin_file_path.unlink)
 
         await self._repository.delete(plugin_id)
@@ -133,7 +134,9 @@ class PluginService:
         self, plugin_id: UUID
     ) -> CatalogPlugin[StellarObjectIdentificatorDto]:
         db_plugin = await self._repository.get(plugin_id)
-        plugin_file_path = Path.joinpath(PLUGIN_DIR, db_plugin.file_name).resolve()
+        plugin_file_path = Path.joinpath(
+            settings.PLUGIN_DIR, db_plugin.file_name
+        ).resolve()
 
         plugin = await run_in_threadpool(
             self._load_plugin, db_plugin.file_name, plugin_file_path
@@ -196,7 +199,9 @@ class PluginService:
                 )
 
                 new_file_name = str(uuid.uuid4()) + ".py"
-                plugin_file_path = Path.joinpath(PLUGIN_DIR, new_file_name).resolve()
+                plugin_file_path = Path.joinpath(
+                    settings.PLUGIN_DIR, new_file_name
+                ).resolve()
                 async with aiofiles.open(plugin_file_path, "wb") as out_file:
                     async with aiofiles.open(plugin_module.__file__, "rb") as in_file:
                         while content := await in_file.read(1024):

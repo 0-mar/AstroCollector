@@ -12,7 +12,7 @@ from src.core.security.auth import required_roles
 from src.core.security.models import User
 from src.core.security.schemas import UserRoleEnum
 from src.plugin.schemas import PluginDto, CreatePluginDto, UpdatePluginDto
-from src.plugin.service import PluginService, PLUGIN_DIR
+from src.plugin.service import PluginService
 
 PluginServiceDep = Annotated[PluginService, Depends(PluginService)]
 
@@ -47,7 +47,7 @@ async def download_plugin(
     if plugin.file_name is None:
         raise HTTPException(status_code=404, detail="Plugin file does not exist")
 
-    plugin_file_path = Path.joinpath(PLUGIN_DIR, plugin.file_name).resolve()
+    plugin_file_path = Path.joinpath(settings.PLUGIN_DIR, plugin.file_name).resolve()
     return FileResponse(
         plugin_file_path,
         media_type="text/x-python; charset=utf-8",

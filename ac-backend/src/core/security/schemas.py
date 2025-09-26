@@ -37,3 +37,9 @@ class UserCreateDto(BaseDto):
     email: str
     password: str
     role: UserRoleEnum
+
+
+class Tokens(BaseDto):
+    access_token: str
+    refresh_token: str
+    token_type: str
