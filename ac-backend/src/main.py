@@ -1,7 +1,9 @@
 import logging
 import logging.config
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from aiocache import Cache
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -58,6 +60,11 @@ async def clear_task_data():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     HttpClient()
+
+    # create log directory if not present
+    if not Path.exists(settings.LOGGING_DIR):
+        os.mkdir(settings.LOGGING_DIR)
+
     logging.config.dictConfig(settings.LOGGING_CONFIG)
 
     await init_db()

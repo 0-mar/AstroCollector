@@ -163,3 +163,4 @@ cython_debug/
 plugins/*
 !plugins/__init__.py
 dev-journal.md
+logs/*
