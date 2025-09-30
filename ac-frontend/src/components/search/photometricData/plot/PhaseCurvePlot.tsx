@@ -1,10 +1,10 @@
 import * as React from "react";
-import {useContext, useEffect, useMemo, useState} from "react";
+import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import type {PhaseCurveDataDto, PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {colorFromId} from "@/utils/color.ts";
 import "@/styles/lightcurve.css";
 import {OptionsContext} from "@/components/search/photometricData/plotOptions/OptionsContext.tsx";
-import {SetRangeContext} from '../plotOptions/CurrentRangeContext.tsx';
+import {RangeContext, SetRangeContext} from '../plotOptions/CurrentRangeContext.tsx';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-dist-min';
 import {useQuery} from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
 import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
 import InfoAlert from "@/components/alerts/InfoAlert.tsx";
 import PhaseForm from "@/components/search/photometricData/plotOptions/PhaseForm.tsx";
+import {lowerBound, lttb, upperBound} from "@/features/search/photometricDataSection/utils.ts";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -35,6 +36,7 @@ const unknownBand = "Unknown"
 const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
     const optionsContext = useContext(OptionsContext);
     const rangeContext = useContext(SetRangeContext);
+    const getRangeContext = useContext(RangeContext)
     const searchFormContext = useContext(SearchFormContext)
     const objectCoordsContext = useContext(ObjectCoordsContext)
 
@@ -64,6 +66,41 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
         }
     }
 
+    const sortedData = useMemo(() => {
+        return lightCurveData.sort((a, b) => a.julian_date - b.julian_date);
+    }, [lightCurveData])
+
+    // Observe container width for viewport-aware decimation target
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [plotWidth, setPlotWidth] = useState(800);
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const ro = new ResizeObserver(([entry]) => {
+            setPlotWidth(Math.max(300, Math.floor(entry.contentRect.width)));
+        });
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+
+    // 3 points per pixel
+    const targetPoints = useMemo(() => {console.log(Math.max(800, Math.min(4000, plotWidth * 3))); return Math.max(800, Math.min(4000, plotWidth * 3))}, [plotWidth]);
+
+    const downsampledData = useMemo(() => {
+        let lower = 0;
+        let upper = sortedData.length;
+
+        if (getRangeContext?.currMinRange !== undefined && getRangeContext?.currMaxRange !== undefined) {
+            lower = Math.max(0, lowerBound(sortedData, getRangeContext?.currMinRange + 2400000));
+            upper = Math.min(sortedData.length, upperBound(sortedData, getRangeContext?.currMaxRange + 2400000));
+        }
+
+        const threshold = targetPoints;
+        return lttb(sortedData, lower, upper, threshold)
+    }, [sortedData,
+        getRangeContext?.currMinRange,
+        getRangeContext?.currMaxRange])
+
     const phaseDataQuery = useQuery({
         queryKey: ['phaseData', searchFormContext?.searchValues.declination, searchFormContext?.searchValues.rightAscension, objectCoordsContext?.objectCoords.rightAscension, objectCoordsContext?.objectCoords.declination],
         queryFn: () => BaseApi.get<PhaseCurveDataDto>('/phase-curve', searchFormContext?.searchValues.objectName !== "" ? {
@@ -91,11 +128,11 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
             return [sourceGroupedLcData, bandGroupedLcData]
         }
 
-        lightCurveData.forEach((dto) => addEntry(sourceGroupedLcData, dto.plugin_id, dto));
-        lightCurveData.forEach((dto) => addEntry(bandGroupedLcData, dto.light_filter ?? unknownBand, dto));
+        downsampledData.forEach((dto) => addEntry(sourceGroupedLcData, dto.plugin_id, dto));
+        downsampledData.forEach((dto) => addEntry(bandGroupedLcData, dto.light_filter ?? unknownBand, dto));
 
         return [sourceGroupedLcData, bandGroupedLcData];
-    }, [lightCurveData, epoch, period])
+    }, [downsampledData, epoch, period])
 
 
     const plotData = useMemo(() => {
@@ -125,7 +162,11 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
         });
 
         return Object.entries(groupedData).map(([key, lcData]) => buildTrace(key, lcData));
-    }, [optionsContext?.groupBy, optionsContext?.showErrorBars, sourceGroupedLcData, bandGroupedLcData, pluginNames])
+    }, [optionsContext?.groupBy,
+        optionsContext?.showErrorBars,
+        sourceGroupedLcData,
+        bandGroupedLcData,
+        pluginNames])
 
     const xaxis = useMemo(() => {
         return optionsContext?.minRange !== undefined && optionsContext?.maxRange !== undefined ? {
@@ -151,14 +192,18 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
     }, [phaseDataQuery.data])
 
 
+    // Relayout: update current visible range
+    const relayoutRAF = useRef<number | null>(null);
     const handleRelayout = (eventData: any) => {
-        const newMin = eventData["xaxis.range[0]"];
-        const newMax = eventData["xaxis.range[1]"];
-
-        if (newMin !== undefined && newMax !== undefined) {
-            rangeContext?.setCurrMaxRange(Number(newMax))
-            rangeContext?.setCurrMinRange(Number(newMin))
-        }
+        if (relayoutRAF.current) cancelAnimationFrame(relayoutRAF.current);
+        relayoutRAF.current = requestAnimationFrame(() => {
+            const r0 = eventData["xaxis.range[0]"];
+            const r1 = eventData["xaxis.range[1]"];
+            if (r0 !== undefined && r1 !== undefined) {
+                rangeContext?.setCurrMinRange(Number(r0));
+                rangeContext?.setCurrMaxRange(Number(r1));
+            }
+        });
     };
 
     return (
@@ -178,28 +223,31 @@ const PhaseCurvePlot = ({pluginNames, lightCurveData}: PhaseCurvePlotProps) => {
                         <p>Phase is the fractional part of: (JD - Epoch) / Period</p>
                     </InfoAlert>}
             </div>
-            <Plot
-                data={plotData}
-                layout={{
-                    title: {text: "Phase Curve"},
-                    xaxis: xaxis,
-                    yaxis: {
-                        title: {text: "Magnitude"},
-                        autorange: "reversed", // Lower mag = brighter
-                    },
-                    dragmode: "pan",
-                    //   hovermode: "closest",
-                }}
-                config={{
-                    responsive: true,
-                    scrollZoom: true,
-                    displaylogo: false,
-                    modeBarButtonsToRemove: ["lasso2d", "select2d", "resetScale2d"],
-                    displayModeBar: true
-                }}
-                onRelayout={handleRelayout}
-                style={{width: "100%", height: "100%"}}
-            />
+            <div ref={containerRef} className="p-1 shadow-md rounded-md bg-white h-[450px]">
+                <Plot
+                    className={"w-full h-[420px]"}
+                    data={plotData}
+                    layout={{
+                        title: {text: "Phase Curve"},
+                        xaxis: xaxis,
+                        yaxis: {
+                            title: {text: "Magnitude"},
+                            autorange: "reversed", // Lower mag = brighter
+                        },
+                        dragmode: "pan",
+                        //   hovermode: "closest",
+                    }}
+                    config={{
+                        responsive: true,
+                        scrollZoom: true,
+                        displaylogo: false,
+                        modeBarButtonsToRemove: ["lasso2d", "select2d", "resetScale2d"],
+                        displayModeBar: true
+                    }}
+                    onRelayout={handleRelayout}
+                    style={{width: "100%", height: "100%"}}
+                />
+            </div>
         </div>
     );
 }
