@@ -40,6 +40,9 @@ services:
       database:
         condition: service_healthy
 
+    volumes:
+      - "${SERVER_LOGS_DIRECTORY}:/app/logs"
+
   frontend:
     build:
       context: ../ac-frontend
