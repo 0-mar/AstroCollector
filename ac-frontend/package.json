@@ -34,6 +34,7 @@
     "axios-auth-refresh": "^3.3.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "deck.gl": "^9.1.15",
     "lucide-react": "^0.536.0",
     "next-themes": "^0.4.6",
     "plotly.js": "^3.0.3",
