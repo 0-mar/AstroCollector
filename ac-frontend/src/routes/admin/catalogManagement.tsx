@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
 import {roleGuard} from "@/features/routing/roleGuard.ts";
-import {UserRoleEnum} from "@/features/auth/types.ts";
-import useCatalogPluginsQuery from "@/features/plugin/useCatalogs.ts";
-import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
-import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
-import {ClientPaginatedDataTable} from "@/components/table/ClientPaginatedDataTable.tsx";
-import {catalogPluginsColumns} from "@/components/table/Columns.tsx";
-import AddPluginDialog from "@/components/admin/AddPluginDialog.tsx";
+import {UserRoleEnum} from "@/features/common/auth/types.ts";
+import useCatalogPluginsQuery from "@/features/plugin/hooks/useCatalogPlugins.ts";
+import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
+import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
+import {ClientPaginatedDataTable} from "@/features/common/dataTable/ClientPaginatedDataTable.tsx";
+import {catalogPluginsColumns} from "@/features/common/dataTable/Columns.tsx";
+import AddPluginDialog from "@/features/admin/components/AddPluginDialog.tsx";
 
 
 export const Route = createFileRoute('/admin/catalogManagement')({

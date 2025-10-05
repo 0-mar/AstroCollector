@@ -2,10 +2,10 @@ import {Outlet, createRootRouteWithContext} from '@tanstack/react-router'
 import {TanStackRouterDevtools} from '@tanstack/react-router-devtools'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-import Header from '../components/Header'
-import Footer from "@/components/Footer.tsx";
+import Header from '../features/common/components/Header.tsx'
+import Footer from "@/features/common/components/Footer.tsx";
 import { Toaster } from "@/../components/ui/sonner"
-import type {User} from "@/features/auth/types.ts";
+import type {User} from "@/features/common/auth/types.ts";
 
 export type RouterCtx = {
     auth: {

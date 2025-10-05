@@ -1,9 +1,9 @@
 import {createFileRoute} from "@tanstack/react-router";
-import useCatalogPluginsQuery from "@/features/plugin/useCatalogs.ts";
-import LoadingSkeleton from "@/components/loading/LoadingSkeleton.tsx";
-import ErrorAlert from "@/components/alerts/ErrorAlert.tsx";
-import CatalogCard from "@/components/catalogsOverview/CatalogCard.tsx";
-import InfoAlert from "@/components/alerts/InfoAlert.tsx";
+import useCatalogPluginsQuery from "@/features/plugin/hooks/useCatalogPlugins.ts";
+import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
+import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
+import CatalogCard from "@/features/catalogsOverview/components/CatalogCard.tsx";
+import InfoAlert from "@/features/common/alerts/InfoAlert.tsx";
 import {MapPinCheckInside} from "lucide-react";
 
 export const Route = createFileRoute('/catalogs')({

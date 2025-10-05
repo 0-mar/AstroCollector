@@ -1,0 +1,140 @@
+import {useForm} from "react-hook-form";
+
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "../../../../../components/ui/form.tsx"
+import {Input} from "../../../../../components/ui/input.tsx"
+import SearchFormSubmitButton from "@/features/search/searchSection/components/SearchFormSubmitButton.tsx";
+import React, {useContext, useState} from "react";
+import CoordsPanel from "@/features/search/searchSection/components/CoordsPanel.tsx";
+import {SearchFormContext} from "@/features/search/searchSection/components/SearchFormContext.tsx";
+import {ObjectCoordsContext} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
+import {IdentifiersContext} from "@/features/search/menuSection/components/IdentifiersContext.tsx";
+import useCatalogPluginsQuery from "@/features/plugin/hooks/useCatalogPlugins.ts";
+import {searchFormSchema, type SearchFormValues} from "@/features/search/searchSection/schemas.ts";
+import {zodResolver} from "@hookform/resolvers/zod";
+import type {PluginDto} from "@/features/plugin/types.ts";
+
+
+const LabeledInput = ({label, ...props}) => {
+    return (
+        <div className={"flex gap-x-2 items-center"}>
+            <Input className={"w-5/6"} placeholder={"e. g. 2.55"} {...props} />
+            <span className={"w-1/6"}>{label}</span>
+        </div>
+    )
+}
+
+type SearchFormProps = {
+    setMenuVisible: React.Dispatch<React.SetStateAction<boolean>>,
+    setLightcurveSectionVisible: React.Dispatch<React.SetStateAction<boolean>>,
+    setPluginData: React.Dispatch<React.SetStateAction<PluginDto[]>>,
+}
+
+const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}: SearchFormProps) => {
+    const searchFormContext = useContext(SearchFormContext)
+    const objectCoordsContext = useContext(ObjectCoordsContext)
+    const identifiersContext = useContext(IdentifiersContext)
+
+    const form = useForm<SearchFormValues>({
+        resolver: zodResolver(searchFormSchema),
+        defaultValues: {
+            objectName: "",
+            rightAscension: "",
+            declination: "",
+            radius: ""
+        },
+    })
+
+
+    const pluginQuery = useCatalogPluginsQuery()
+
+    const onSubmit = (formData: SearchFormValues) => {
+        setLightcurveSectionVisible(false)
+        searchFormContext?.setSearchValues(formData)
+        setPluginData(pluginQuery.data?.data ?? [])
+        identifiersContext?.setSelectedObjectIdentifiers({})
+
+        if (formData.objectName !== "") {
+            setCoordsPanelVisible(true)
+        } else {
+            setCoordsPanelVisible(false)
+            objectCoordsContext?.setObjectCoords({declination: undefined, rightAscension: undefined})
+        }
+
+        setMenuVisible(true)
+    }
+
+    const [coordsPanelVisible, setCoordsPanelVisible] = useState(false)
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <h2 className="text-lg font-medium text-gray-900">Search by object name</h2>
+                <FormField
+                    control={form.control}
+                    name="objectName"
+                    render={({field}) => (
+                        <FormItem>
+                            <FormLabel>Stellar object name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="V Lep" {...field} />
+                            </FormControl>
+                            <FormMessage/>
+                        </FormItem>
+                    )}
+                />
+                {coordsPanelVisible && <CoordsPanel/>}
+                <h2 className="text-lg font-medium text-gray-900">Search by coordinates</h2>
+                <FormField
+                    control={form.control}
+                    name="rightAscension"
+                    render={({field}) => (
+                        <FormItem>
+                            <FormLabel>Right ascension</FormLabel>
+                            <FormControl>
+                                <LabeledInput label={"deg"} {...field}/>
+                            </FormControl>
+                            <FormMessage/>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="declination"
+                    render={({field}) => (
+                        <FormItem>
+                            <FormLabel>Declination</FormLabel>
+                            <FormControl>
+                                <LabeledInput label={"deg"} {...field}/>
+                            </FormControl>
+                            <FormMessage/>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="radius"
+                    render={({field}) => (
+                        <FormItem>
+                            <FormLabel>Radius</FormLabel>
+                            <FormControl>
+                                <LabeledInput label={"arcsec"} {...field}/>
+                            </FormControl>
+                            <FormMessage/>
+                        </FormItem>
+                    )}
+                />
+                {<p className="text-destructive text-sm">{form.formState.errors.global?.message}</p>}
+                <SearchFormSubmitButton pluginQuery={pluginQuery}/>
+            </form>
+        </Form>
+    )
+}
+
+export default SearchForm;

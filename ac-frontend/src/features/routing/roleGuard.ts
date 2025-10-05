@@ -1,4 +1,4 @@
-import type {UserRoleEnum} from "@/features/auth/types.ts";
+import type {UserRoleEnum} from "@/features/common/auth/types.ts";
 import {redirect, type BeforeLoadFn} from "@tanstack/react-router";
 
 
