@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from src.core.config.config import settings
-from src.core.repository.repository import Repository, get_repository
+from src.core.repository.repository import Repository, get_repository, Filters
 from src.core.security.models import User, UserRole
 from src.core.security.schemas import UserCreateDto, UserDto, UserInDbDto
 
@@ -28,20 +28,24 @@ class UserService:
         self._user_role_repository = user_role_repository
 
     async def get_user_by_email(self, email: str) -> UserInDbDto | None:
-        user = await self._user_repository.find_first(**{"email__eq": email})
+        user = await self._user_repository.find_first(
+            Filters(filters={"email__eq": email})
+        )
         if user is None:
             return None
         return UserInDbDto.model_validate(user)
 
     async def get_user(self, user_id: str) -> UserDto | None:
-        user = await self._user_repository.find_first(**{"id__eq": user_id})
+        user = await self._user_repository.find_first(
+            Filters(filters={"id__eq": user_id})
+        )
         if user is None:
             return None
         return UserDto.model_validate(user)
 
     async def create_user(self, create_dto: UserCreateDto):
         role_entity = await self._user_role_repository.find_first_or_raise(
-            **{"name__eq": create_dto.role.value}
+            Filters(filters={"name__eq": create_dto.role.value})
         )
 
         user_to_save = User(
