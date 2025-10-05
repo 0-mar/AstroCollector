@@ -6,7 +6,7 @@ import { OptionsContext } from "../plotOptions/OptionsContext";
 import { SearchFormContext } from "@/features/search/searchSection/components/SearchFormContext";
 import {ObjectCoordsContext} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
 import { ColorsContext } from "../plotOptions/ColorsContext";
-import {unknownBandpassFilter} from "@/features/search/photometricDataSection/components/PhotometricDataSection.tsx";
+import {unknownLightFilter} from "@/features/search/photometricDataSection/components/PhotometricDataSection.tsx";
 import {useQuery} from "@tanstack/react-query";
 import PhaseForm from "@/features/search/photometricDataSection/components/plotOptions/PhaseForm.tsx";
 import ErrorAlert from "@/features/common/alerts/ErrorAlert";
@@ -29,19 +29,19 @@ const PhaseCurveGlPlot = ({data, pluginNames}: PhaseCurveGlPlotProps) => {
     const objectCoordsContext = useContext(ObjectCoordsContext)
 
     const filterByCatalog = useCallback((dto: PhotometricDataDto) => dto.plugin_id, [])
-    const filterByBandpassFilter = useCallback((dto: PhotometricDataDto) => dto.light_filter ?? unknownBandpassFilter, [])
+    const filterByLightFilter = useCallback((dto: PhotometricDataDto) => dto.light_filter ?? unknownLightFilter, [])
 
     const getCatalogColor = useCallback((dto: PhotometricDataDto) => {
         return colorContext?.catalogColors[pluginNames[dto.plugin_id]] ?? [0, 0, 0]
     }, [colorContext?.catalogColors])
 
-    const getBandpassFilterColor = useCallback((dto: PhotometricDataDto) => {
-        return colorContext?.bandpassFilterColors[dto.light_filter ?? unknownBandpassFilter] ?? [0, 0, 0]
-    }, [colorContext?.bandpassFilterColors])
+    const getLightFilterColor = useCallback((dto: PhotometricDataDto) => {
+        return colorContext?.lightFilterColors[dto.light_filter ?? unknownLightFilter] ?? [0, 0, 0]
+    }, [colorContext?.lightFilterColors])
 
     const tooltipFn = useCallback((dto: PhotometricDataDto | null) => {
             return (dto ? {
-                text: `JD: ${xDataFn(dto).toFixed(3)}\nMag: ${dto.magnitude.toFixed(2)}\nMag Err: ${dto.magnitude_error.toFixed(3)}\nFilter: ${dto.light_filter ?? unknownBandpassFilter}\nCatalog: ${pluginNames[dto.plugin_id]}`
+                text: `JD: ${xDataFn(dto).toFixed(3)}\nMag: ${dto.magnitude.toFixed(2)}\nMag Err: ${dto.magnitude_error.toFixed(3)}\nFilter: ${dto.light_filter ?? unknownLightFilter}\nCatalog: ${pluginNames[dto.plugin_id]}`
             } : null)}
         , [pluginNames])
 
@@ -107,11 +107,11 @@ const PhaseCurveGlPlot = ({data, pluginNames}: PhaseCurveGlPlotProps) => {
                 <ScatterPlotDeckGl data={data}
                                    xTitle={'Phase'}
                                    yTitle={'Magnitude'}
-                                   colorFn={optionsContext?.groupBy === GroupOptions.CATALOGS ? getCatalogColor : getBandpassFilterColor}
+                                   colorFn={optionsContext?.groupBy === GroupOptions.CATALOGS ? getCatalogColor : getLightFilterColor}
                                    xDataFn={xDataFn}
                                    tooltipFn={tooltipFn}
-                                   filterCategoryFn={optionsContext?.groupBy === GroupOptions.CATALOGS ? filterByCatalog : filterByBandpassFilter}
-                                   filterCategories={optionsContext?.groupBy === GroupOptions.CATALOGS ? Object.keys(optionsContext?.selectedPlugins) : Array.from(optionsContext?.selectedBandpassFilters ?? []).sort()}
+                                   filterCategoryFn={optionsContext?.groupBy === GroupOptions.CATALOGS ? filterByCatalog : filterByLightFilter}
+                                   filterCategories={optionsContext?.groupBy === GroupOptions.CATALOGS ? Object.keys(optionsContext?.selectedPlugins) : Array.from(optionsContext?.selectedLightFilters ?? []).sort()}
                                    zoomToCoords={optionsContext?.zoomToCoords ?? null}
                 />
             </div>

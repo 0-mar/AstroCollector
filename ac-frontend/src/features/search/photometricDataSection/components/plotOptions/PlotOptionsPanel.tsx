@@ -28,8 +28,8 @@ const PlotOptionsPanel = ({pluginNames, lightFilters}: PlotOptionsPanelProps) =>
                             <Label htmlFor={GroupOptions.CATALOGS}>Catalogs (sources)</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <RadioGroupItem value={GroupOptions.BANDPASS_FILTERS} id={GroupOptions.BANDPASS_FILTERS} />
-                            <Label htmlFor={GroupOptions.BANDPASS_FILTERS}>Photometric bandpass filters</Label>
+                            <RadioGroupItem value={GroupOptions.LIGHT_FILTERS} id={GroupOptions.LIGHT_FILTERS} />
+                            <Label htmlFor={GroupOptions.LIGHT_FILTERS}>Photometric light filters</Label>
                         </div>
                     </RadioGroup>
                 </section>

@@ -3,18 +3,18 @@ import {COLORS} from "@/utils/color.ts";
 
 type ColorsCtx = {
     catalogColors: Record<string, [number, number, number]>
-    bandpassFilterColors: Record<string, [number, number, number]>
+    lightFilterColors: Record<string, [number, number, number]>
 };
 
 export const ColorsContext = createContext<ColorsCtx | null>(null)
 
 type ColorsProviderProps = {
     currPluginNames: Record<string, string>,
-    currBandpassFilters: Array<string>,
+    currLightFilters: Array<string>,
     children: React.ReactNode
 }
 
-export const ColorsProvider = ({ children, currPluginNames, currBandpassFilters }: ColorsProviderProps) => {
+export const ColorsProvider = ({ children, currPluginNames, currLightFilters }: ColorsProviderProps) => {
     // mapping of plugin name to visual color
     const catalogColors = useMemo(() => {
         const colorDict: Record<string, [number, number, number]> = {}
@@ -24,17 +24,17 @@ export const ColorsProvider = ({ children, currPluginNames, currBandpassFilters 
         return colorDict
     }, [currPluginNames])
 
-    // mapping of bandpass filter to visual color
-    const bandpassFilterColors = useMemo(() => {
+    // mapping of light filter to visual color
+    const lightFilterColors = useMemo(() => {
         const colorDict: Record<string, [number, number, number]> = {}
-        currBandpassFilters.forEach((bandpassFilter, i) => {
-            colorDict[bandpassFilter] = COLORS[i % COLORS.length]
+        currLightFilters.forEach((lightFilter, i) => {
+            colorDict[lightFilter] = COLORS[i % COLORS.length]
         })
         return colorDict
-    }, [currBandpassFilters])
+    }, [currLightFilters])
 
     return (
-        <ColorsContext.Provider value={{catalogColors, bandpassFilterColors}}>
+        <ColorsContext.Provider value={{catalogColors, lightFilterColors}}>
             {children}
         </ColorsContext.Provider>
     );

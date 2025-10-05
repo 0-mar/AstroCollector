@@ -14,16 +14,16 @@ const LightFiltersLegend = ({lightFilters}: LightFiltersLegendProps) => {
 
     // show all traces in the beginning
     useEffect(() => {
-        optionsContext?.setSelectedBandpassFilters(new Set<string>(lightFilters));
+        optionsContext?.setSelectedLightFilters(new Set<string>(lightFilters));
     }, [lightFilters]);
 
     return (
         <>
             <h3 className="text-lg text-gray-900">Filter by</h3>
             {lightFilters.map((filter) => {
-                const isChecked = Boolean(optionsContext?.selectedBandpassFilters.has(filter))
+                const isChecked = Boolean(optionsContext?.selectedLightFilters.has(filter))
                 const onCheckedChange = (checked: boolean) => {
-                    optionsContext?.setSelectedBandpassFilters((prevSelected) => {
+                    optionsContext?.setSelectedLightFilters((prevSelected) => {
                         const updatedState = new Set<string>(prevSelected.values())
                         if (checked) {
                             updatedState.add(filter)
@@ -34,7 +34,7 @@ const LightFiltersLegend = ({lightFilters}: LightFiltersLegendProps) => {
                     })
                 }
                 return (
-                    <IconCheckbox key={`${filter}-checkbox`} checked={isChecked} id={`${filter}-checkbox`} onCheckedChange={onCheckedChange} iconActive={<Database style={{color: `rgb(${colorsContext?.bandpassFilterColors[filter] ?? "0, 0, 0"})`}}/>} iconMuted={<Database className={"text-gray-600"}/>} label={filter} />
+                    <IconCheckbox key={`${filter}-checkbox`} checked={isChecked} id={`${filter}-checkbox`} onCheckedChange={onCheckedChange} iconActive={<Database style={{color: `rgb(${colorsContext?.lightFilterColors[filter] ?? "0, 0, 0"})`}}/>} iconMuted={<Database className={"text-gray-600"}/>} label={filter} />
                 )
             })}
         </>

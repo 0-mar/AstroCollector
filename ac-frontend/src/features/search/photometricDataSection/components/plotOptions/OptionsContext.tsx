@@ -11,7 +11,7 @@ export type ZoomCords = {
 type OptionsCtx = {
     groupBy: GroupOptions; setGroupBy: React.Dispatch<React.SetStateAction<GroupOptions>>;
     selectedPlugins: Record<string, string>; setSelectedPlugins: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-    selectedBandpassFilters: Set<string>, setSelectedBandpassFilters: React.Dispatch<React.SetStateAction<Set<string>>>;
+    selectedLightFilters: Set<string>, setSelectedLightFilters: React.Dispatch<React.SetStateAction<Set<string>>>;
     zoomToCoords: ZoomCords | null; setZoomToCoords: React.Dispatch<React.SetStateAction<ZoomCords | null>>;
 };
 
@@ -20,7 +20,7 @@ export const OptionsContext = createContext<OptionsCtx | null>(null)
 export const OptionsProvider = ({ children }: {children: React.ReactNode}) => {
     const [groupBy, setGroupBy] = useState(GroupOptions.CATALOGS)
     const [selectedPlugins, setSelectedPlugins] = useState<Record<string, string>>({})
-    const [selectedBandpassFilters, setSelectedBandpassFilters] = useState<Set<string>>(new Set<string>())
+    const [selectedLightFilters, setSelectedLightFilters] = useState<Set<string>>(new Set<string>())
     const [zoomToCoords, setZoomToCoords] = useState(null)
 
     const value = useMemo(
@@ -29,12 +29,12 @@ export const OptionsProvider = ({ children }: {children: React.ReactNode}) => {
             setGroupBy,
             selectedPlugins,
             setSelectedPlugins,
-            selectedBandpassFilters,
-            setSelectedBandpassFilters,
+            selectedLightFilters,
+            setSelectedLightFilters,
             zoomToCoords,
             setZoomToCoords
         }),
-        [groupBy, selectedPlugins, selectedBandpassFilters, zoomToCoords]
+        [groupBy, selectedPlugins, selectedLightFilters, zoomToCoords]
     );
 
     return (

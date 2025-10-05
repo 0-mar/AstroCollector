@@ -24,13 +24,13 @@ type PhotometricDataSectionProps = {
     pluginData: PluginDto[]
 }
 
-export const unknownBandpassFilter = "Unknown"
+export const unknownLightFilter = "Unknown"
 
 const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
     const identifiersContext = useContext(IdentifiersContext);
     const currentObjectIdentifiers = identifiersContext?.selectedObjectIdentifiers ?? {};
 
-    const lightcurveTaskQueries = useQueries({
+    const photometricDataTaskQueries = useQueries({
         queries: Object.values(currentObjectIdentifiers).map((identifier) => {
             return {
                 queryKey: [`objectIdentifier_${identifier.plugin_id}_${identifier.ra_deg}_${identifier.dec_deg}`],
@@ -46,7 +46,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
             return {
                 queryKey: [`lcTaskStatus_${identifier.plugin_id}_${identifier.ra_deg}_${identifier.dec_deg}`],
                 queryFn: () => {
-                    const taskId = lightcurveTaskQueries[idx].data?.task_id
+                    const taskId = photometricDataTaskQueries[idx].data?.task_id
                     return BaseApi.get<TaskStatusDto>(`/tasks/task_status/${taskId}`)
                 },
                 refetchInterval: (query) => {
@@ -57,7 +57,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
                     return data.status === TaskStatus.COMPLETED || data.status === TaskStatus.FAILED ? false : 1000;
                 },
                 staleTime: Infinity,
-                enabled: lightcurveTaskQueries[idx].isSuccess
+                enabled: photometricDataTaskQueries[idx].isSuccess
             }
         }),
     })
@@ -75,24 +75,24 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
         const ids = Object.values(currentObjectIdentifiers)
             .map((_, idx) =>
                 taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED
-                    ? lightcurveTaskQueries[idx].data?.task_id
+                    ? photometricDataTaskQueries[idx].data?.task_id
                     : null
             )
             .filter((x): x is string => x !== null);
         return Array.from(new Set(ids)).sort();
     }, [taskStatusQueries.map(q => q.data?.status).join(','),
-        lightcurveTaskQueries.map(q => q.data?.task_id).join(',')]);
+        photometricDataTaskQueries.map(q => q.data?.task_id).join(',')]);
 
     const taskUniqueLightFiltersQueries = useQueries({
         queries: Object.values(currentObjectIdentifiers).map((identifier, idx) => {
             return {
                 queryKey: [`lightFilters_${identifier.plugin_id}_${identifier.ra_deg}_${identifier.dec_deg}`],
                 queryFn: () => {
-                    const taskId = lightcurveTaskQueries[idx].data?.task_id
+                    const taskId = photometricDataTaskQueries[idx].data?.task_id
                     return BaseApi.get<Array<string | null>>(`/retrieve/unique-light-filters/${taskId}`)
                 },
                 staleTime: Infinity,
-                enabled: lightcurveTaskQueries[idx].isSuccess && taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED
+                enabled: photometricDataTaskQueries[idx].isSuccess && taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED
             }
         }),
     })
@@ -110,7 +110,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
 
         lightFilterArrays.forEach(array => {
             array.forEach(filter => {
-                result.add(filter ?? unknownBandpassFilter)
+                result.add(filter ?? unknownLightFilter)
             })
         })
 
@@ -150,7 +150,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
         })
     }, [completedTaskIds]);
 
-    const lightCurveData = useMemo(
+    const photometricData = useMemo(
         () => {
             return Object.values(byTaskData).flat();
         },
@@ -180,7 +180,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
             <h2 className="text-xl font-medium text-gray-900">Photometric data</h2>
             <div>
                 <ExportDialog readyData={Object.values(currentObjectIdentifiers).reduce((acc, identifier, idx) => {
-                    const lq = lightcurveTaskQueries[idx];
+                    const lq = photometricDataTaskQueries[idx];
                     const tq = taskStatusQueries[idx];
 
                     if (!lq?.isSuccess) return acc;
@@ -196,12 +196,12 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
                     <TabsTrigger value="phasecurve">Phase Curve</TabsTrigger>
                     <TabsTrigger value="datatable">Data table</TabsTrigger>
                 </TabsList>
-                <ColorsProvider currPluginNames={currPluginNames} currBandpassFilters={taskUniqueLightFilters}>
+                <ColorsProvider currPluginNames={currPluginNames} currLightFilters={taskUniqueLightFilters}>
                     <TabsContent value="lightcurve">
                         <div className="flex flex-col gap-y-4">
                             <OptionsProvider>
                                 <PlotOptionsPanel pluginNames={currPluginNames} lightFilters={taskUniqueLightFilters}/>
-                                <LightCurveGlPlot data={lightCurveData} pluginNames={currPluginNames}></LightCurveGlPlot>
+                                <LightCurveGlPlot data={photometricData} pluginNames={currPluginNames}></LightCurveGlPlot>
                             </OptionsProvider>
                         </div>
                     </TabsContent>
@@ -209,7 +209,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
                         <div className="grid grid-cols-1 gap-y-4">
                             <OptionsProvider>
                                 <PlotOptionsPanel pluginNames={currPluginNames} lightFilters={taskUniqueLightFilters}/>
-                                <PhaseCurveGlPlot data={lightCurveData}
+                                <PhaseCurveGlPlot data={photometricData}
                                                   pluginNames={currPluginNames} />
                             </OptionsProvider>
                         </div>
@@ -227,12 +227,12 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
             <div>
                 {Object.values(currentObjectIdentifiers).map((identifier, idx) => {
                     const dataTarget = `${identifier.ra_deg} ${identifier.dec_deg} (${pluginNames[identifier.plugin_id]})`
-                    if (lightcurveTaskQueries[idx].isError) {
+                    if (photometricDataTaskQueries[idx].isError) {
                         return (
                             <ErrorAlert
                                 key={dataTarget}
                                 title={"Photometric data query failed: " + dataTarget}
-                                description={lightcurveTaskQueries[idx].error.message}/>
+                                description={photometricDataTaskQueries[idx].error.message}/>
                         )
                     }
                     if (taskStatusQueries[idx].isError) {
