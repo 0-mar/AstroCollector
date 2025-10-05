@@ -1,8 +1,8 @@
-from typing import TypeVar, Generic, Any, Optional
+from typing import TypeVar, Generic, Any, Optional, Literal
 from collections.abc import Callable
 from uuid import UUID
 
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_, or_, desc, asc
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +10,7 @@ from src.core.database.database import DbEntity
 from src.core.database.dependencies import DBSessionDep
 from src.core.repository.exception import RepositoryException, IntegrityException
 from src.core.config.config import settings
+from src.core.repository.schemas import BaseDto
 
 # using session correctly
 # https://docs.sqlalchemy.org/en/20/orm/session_basics.html
@@ -26,6 +27,21 @@ OPERATORS = {
     "ilike": lambda col, v: col.ilike(v),
     "in": lambda col, v: col.in_(v),
 }
+
+
+class OrderBy(BaseDto):
+    field: str
+    value: Literal["asc", "desc"] = "asc"
+
+
+class Distinct(BaseDto):
+    fields: list[str]
+
+
+class Filters(BaseDto):
+    filters: dict[str, Any] = {}
+    order_by: OrderBy | None = None
+    distinct: Distinct | None = None
 
 
 class Repository(Generic[Entity]):
@@ -68,7 +84,7 @@ class Repository(Generic[Entity]):
                 subexpressions = self._subexpressions_list(value)
                 expressions.append(and_(*subexpressions))
 
-            if key == "or":
+            elif key == "or":
                 subexpressions = self._subexpressions_list(value)
                 expressions.append(or_(*subexpressions))
 
@@ -83,29 +99,29 @@ class Repository(Generic[Entity]):
                 if op not in OPERATORS:
                     raise RepositoryException(f"Unsupported filter operator: {op}")
 
-                col = getattr(self._model, field)
+                try:
+                    col = getattr(self._model, field)
+                except AttributeError as e:
+                    raise RepositoryException(f"Unknown field: {e}")
+
                 expressions.append(OPERATORS[op](col, value))
 
         return and_(*expressions)
 
     async def find_first(
         self,
-        offset: int = 0,
-        count: int = settings.MAX_PAGINATION_BATCH_COUNT,
-        **filters: dict[str, Any],
+        filters: Filters | None = None,
     ) -> Optional[Entity]:
-        total_count, entities = await self.find(offset, count, **filters)
+        total_count, entities = await self.find(filters=filters)
         if total_count == 0:
             return None
         return entities[0]
 
     async def find_first_or_raise(
         self,
-        offset: int = 0,
-        count: int = settings.MAX_PAGINATION_BATCH_COUNT,
-        **filters: dict[str, Any],
+        filters: Filters | None = None,
     ) -> Optional[Entity]:
-        result = await self.find_first(offset, count, **filters)
+        result = await self.find_first(filters=filters)
         if result is None:
             raise RepositoryException("Entity not found")
         return result
@@ -114,7 +130,7 @@ class Repository(Generic[Entity]):
         self,
         offset: int = 0,
         count: int = settings.MAX_PAGINATION_BATCH_COUNT,
-        **filters: dict[str, Any],
+        filters: Filters | None = None,
     ) -> tuple[int, list[Entity]]:
         count = (
             count
@@ -123,18 +139,65 @@ class Repository(Generic[Entity]):
         )
 
         # build filters
-        filter = self._build_filter(**filters)
+        orm_filters = self._build_filter(**(filters.filters if filters else {}))
+
+        base_stmt = select(self._model).select_from(self._model).where(orm_filters)
+
+        if filters is not None and filters.order_by is not None:
+            try:
+                order_field = getattr(self._model, filters.order_by.field)
+            except AttributeError as e:
+                raise RepositoryException(f"Unknown field: {e}")
+
+            base_stmt = base_stmt.order_by(
+                desc(order_field)
+                if filters.order_by.value == "desc"
+                else asc(order_field)
+            )
+
+        if filters is not None and filters.distinct is not None:
+            try:
+                cols = [getattr(self._model, name) for name in filters.distinct.fields]
+            except AttributeError as e:
+                raise RepositoryException(f"Unknown distinct field: {e}")
+            base_stmt = base_stmt.distinct(*cols)
 
         # count of all rows
-        total_items_stmt = select(func.count()).select_from(self._model).filter(filter)
-        total_items_result = await self._session.execute(total_items_stmt)
-        total_items = total_items_result.scalar()
+        count_stmt = select(func.count()).select_from(base_stmt.subquery())
+        entity_count_result = await self._session.execute(count_stmt)
+        entity_count = entity_count_result.scalar()
 
         # get all rows
-        stmt = select(self._model).filter(filter).offset(offset).limit(count)
-        result = await self._session.execute(stmt)
+        entity_stmt = base_stmt.offset(offset).limit(count)
+        result = await self._session.execute(entity_stmt)
 
-        return total_items, list(result.scalars().all())
+        return entity_count, list(result.scalars().all())
+
+    async def distinct_entity_attribute_values(
+        self,
+        attribute: str,
+        filters: dict[str, Any] | None = None,
+    ) -> list[Any]:
+        if filters is None:
+            filters = {}
+
+        # build filters
+        orm_filters = self._build_filter(**filters)
+
+        try:
+            distinct_field = getattr(self._model, attribute)
+        except AttributeError as e:
+            raise RepositoryException(f"Unknown field: {e}")
+
+        distinct_stmt = (
+            select(distinct_field)
+            .select_from(self._model)
+            .where(orm_filters)
+            .distinct(distinct_field)
+        )
+
+        result = await self._session.execute(distinct_stmt)
+        return list(result.scalars().all())
 
     async def get(self, entity_id: UUID) -> Entity:
         result = await self.get_optional(entity_id)

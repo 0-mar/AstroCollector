@@ -11,7 +11,7 @@ import logging
 import importlib
 import pkgutil
 from types import ModuleType
-from typing import Annotated, Optional, Any
+from typing import Annotated, Optional
 
 from fastapi import Depends, UploadFile
 import aiofiles
@@ -21,7 +21,7 @@ from src import default_plugins
 from src.core.config.config import settings
 from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
-from src.core.repository.repository import Repository, get_repository
+from src.core.repository.repository import Repository, get_repository, Filters
 from src.core.schemas import PaginationResponseDto
 from src.default_plugins.mast.mast_plugin import MastPlugin
 from src.plugin.exceptions import NoPluginClassException
@@ -120,10 +120,10 @@ class PluginService:
         self,
         offset: int = 0,
         count: int = settings.MAX_PAGINATION_BATCH_COUNT,
-        **kwargs: dict[str, Any],
+        filters: Filters | None = None,
     ) -> PaginationResponseDto[PluginDto]:
         total_count, plugin_list = await self._repository.find(
-            offset=offset, count=count, **kwargs
+            offset=offset, count=count, filters=filters
         )
         data = list(map(PluginDto.model_validate, plugin_list))
         return PaginationResponseDto[PluginDto](

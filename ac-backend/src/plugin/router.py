@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, UploadFile, HTTPException
@@ -7,6 +7,7 @@ from starlette import status
 from starlette.responses import Response, FileResponse
 
 from src.core.config.config import settings
+from src.core.repository.repository import Filters
 from src.core.schemas import PaginationResponseDto
 from src.core.security.auth import required_roles
 from src.core.security.models import User
@@ -28,12 +29,10 @@ async def list_plugins(
     service: PluginServiceDep,
     offset: int = 0,
     count: int = settings.MAX_PAGINATION_BATCH_COUNT,
-    filters: dict[str, Any] | None = None,
+    filters: Filters | None = None,
 ) -> PaginationResponseDto[PluginDto]:
     """List plugins."""
-    if filters is None:
-        filters = {}
-    plugins = await service.list_plugins(offset=offset, count=count, **filters)
+    plugins = await service.list_plugins(offset=offset, count=count, filters=filters)
     return plugins
 
 

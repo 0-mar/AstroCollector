@@ -1,11 +1,11 @@
 import io
-from typing import Any
 
 from fastapi import APIRouter
 from starlette.responses import StreamingResponse
 
 from src.core.config.config import settings
 from src.core.exception.exceptions import APIException
+from src.core.repository.repository import Filters
 from src.data_retrieval.router import DataServiceDep
 from src.plugin.router import PluginServiceDep
 
@@ -21,10 +21,15 @@ async def photometric_data_to_csv(
     data_service: DataServiceDep,
     plugin_service: PluginServiceDep,
     delimiter: str = ",",
-    filters: dict[str, Any] | None = None,
+    filters: Filters | None = None,
 ):
-    if filters is None or (
-        "task_id__eq" not in filters and "task_id__in" not in filters
+    if (
+        filters is None
+        or filters.filters is None
+        or (
+            "task_id__eq" not in filters.filters
+            and "task_id__in" not in filters.filters
+        )
     ):
         raise APIException("task_id__eq or task_id__in required in filters")
 
@@ -40,7 +45,7 @@ async def photometric_data_to_csv(
 
         while True:
             page = await data_service.list_photometric_data(
-                offset=offset, count=count, **filters
+                offset=offset, count=count, filters=filters
             )
             offset += page.count
 
