@@ -1,18 +1,18 @@
 import { z } from "zod";
 
 
-const numField = z
-    .number()
+const num = z.coerce.number("Must be a number")
 
 export const zoomFormSchema = z
     .object({
-        min: numField,
-        max: numField,
+        xMin: num,
+        xMax: num,
+        yMin: num,
+        yMax: num,
     })
     .refine(function (values) {
-        const { min, max } = values || {};
-        if (min === undefined || max === undefined) return true;
-        return min <= max;
+        const { xMin, xMax, yMin, yMax } = values || {};
+        return xMin <= xMax && yMin <= yMax;
 
     }, "Min must be ≤ Max");
 

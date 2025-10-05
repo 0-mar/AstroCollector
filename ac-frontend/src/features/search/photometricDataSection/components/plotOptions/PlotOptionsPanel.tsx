@@ -1,38 +1,46 @@
-import {Checkbox} from "../../../../../../components/ui/checkbox.tsx"
-import { Label } from "../../../../../../components/ui/label.tsx"
-import {RadioGroup, RadioGroupItem} from "../../../../../../components/ui/radio-group.tsx";
-import ZoomForm from "@/features/search/photometricDataSection/components/plotOptions/ZoomForm.tsx";
 import {useContext} from "react";
-import {OptionsContext} from "@/features/search/photometricDataSection/components/plotOptions/OptionsContext.tsx";
+import { OptionsContext } from "./OptionsContext";
+import { RadioGroup, RadioGroupItem } from "@/../components/ui/radio-group";
+import { GroupOptions } from "./types";
+import { Label } from "@radix-ui/react-label";
+import CatalogsLegend from "@/features/search/photometricDataSection/components/plotOptions/CatalogsLegend.tsx";
+import LightFiltersLegend from "@/features/search/photometricDataSection/components/plotOptions/LightFIltersLegend.tsx";
+import ZoomForm from "@/features/search/photometricDataSection/components/plotOptions/ZoomForm.tsx";
 
 
-const PlotOptionsPanel = () => {
-    const context = useContext(OptionsContext)
+type PlotOptionsPanelProps = {
+    pluginNames: Record<string, string>
+    lightFilters: string[]
+}
+
+const PlotOptionsPanel = ({pluginNames, lightFilters}: PlotOptionsPanelProps) => {
+    const optionsContext = useContext(OptionsContext)
 
     return (
         <div className={"p-4 bg-white rounded-md shadow-md"}>
-            <h2>Options</h2>
-            <div className={"grid grid-cols-2 gap-x-2"}>
-                <div>
-                    <h3>Error bars</h3>
-                    <div className={"flex mt-2 mb-2 items-center space-x-2"}>
-                        <Checkbox id={"errorBars"} checked={context?.showErrorBars} onCheckedChange={(checked) => context?.setShowErrorBars(checked)}></Checkbox>
-                        <Label htmlFor="errorBars">Show error bars</Label>
-                    </div>
-                </div>
-                <div>
-                    <h3>Group by</h3>
-                    <RadioGroup className={"mt-2"} defaultValue={context?.groupBy} onValueChange={(value) => {context?.setGroupBy(value)}}>
+            <h2 className="text-xl font-medium text-gray-900">Options</h2>
+            <div className={"grid grid-cols-3 gap-x-2"}>
+                <section>
+                    <h3 className="text-lg text-gray-900">Group by</h3>
+                    <RadioGroup className={"mt-2"} value={optionsContext?.groupBy} onValueChange={(value: GroupOptions) => {optionsContext?.setGroupBy(value)}}>
                         <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="sources" id="sources" />
-                            <Label htmlFor="sources">Sources (catalogs)</Label>
+                            <RadioGroupItem value={GroupOptions.CATALOGS} id={GroupOptions.CATALOGS} />
+                            <Label htmlFor={GroupOptions.CATALOGS}>Catalogs (sources)</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="bands" id="bands" />
-                            <Label htmlFor="bands">Photometric bands</Label>
+                            <RadioGroupItem value={GroupOptions.BANDPASS_FILTERS} id={GroupOptions.BANDPASS_FILTERS} />
+                            <Label htmlFor={GroupOptions.BANDPASS_FILTERS}>Photometric bandpass filters</Label>
                         </div>
                     </RadioGroup>
-                </div>
+                </section>
+                <section className={"flex flex-col gap-y-2 max-w-[200px] overflow-y-auto scrollbar-hide border-2 rounded-md p-2 border-gray-200"}>
+                    {optionsContext?.groupBy === GroupOptions.CATALOGS ?
+                        <CatalogsLegend pluginNames={pluginNames}/>
+                        :
+                        <LightFiltersLegend lightFilters={lightFilters}/>
+                    }
+
+                </section>
                 <div>
                     <ZoomForm/>
                 </div>

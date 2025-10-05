@@ -17,7 +17,7 @@ export default function Footer() {
                 Developed for the <a className={"text-blue-600 hover:underline"} href={"https://physics.muni.cz/en"} target={"_blank"}>Department of physics at Masaryk University</a>
             </p>
             <p>Copyright © {new Date().getFullYear()} Ondřej Marek</p>
-            <p>Last update: 25.9.2025</p>
+            <p>Last update: 5.10.2025</p>
         </footer>
     )
 }

@@ -11,7 +11,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "../../../../../components/ui/table.tsx"
+} from "@/../components/ui/table.tsx"
 import {useMemo, useState} from "react";
 import type {PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {DataTablePagination} from "@/features/common/dataTable/DataTablePagination.tsx";
@@ -97,7 +97,7 @@ function PhotometricDataTable({taskIds, pluginNames}: PhotometricDataTableProps)
     const photometricResultsQuery = useQuery({
         queryKey: [`photometric_data_page`, pagination, taskIds],
         queryFn: () => {
-            return BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data`, {task_id__in: taskIds}, {params: {offset: offset, count: count}})
+            return BaseApi.post<PaginationResponse<PhotometricDataDto>>(`/retrieve/photometric-data`, {filters: {task_id__in: taskIds}}, {params: {offset: offset, count: count}})
         },
         refetchInterval: (query) => {
             const data = query.state.data;

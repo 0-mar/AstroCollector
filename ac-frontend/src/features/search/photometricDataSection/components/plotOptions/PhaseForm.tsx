@@ -1,10 +1,10 @@
 import {useForm} from "react-hook-form";
 import {phaseFormSchema, type PhaseValues} from "@/features/search/photometricDataSection/schema.ts";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "../../../../../../components/ui/form.tsx";
-import {Input} from "../../../../../../components/ui/input.tsx";
-import {Button} from "../../../../../../components/ui/button.tsx";
 import React, {useEffect} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
+import { Input } from "@/../components/ui/input";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/../components/ui/form.tsx";
+import {Button} from "@/../components/ui/button.tsx";
 
 
 const LabeledInput = ({label, ...props}) => {
@@ -46,7 +46,7 @@ const PhaseForm = ({epoch, period, setEpoch, setPeriod}: PhaseFormProps) => {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <h3>Phase curve parameters</h3>
+                <h3 className='text-lg text-gray-900'>Phase curve parameters</h3>
                 <FormField
                     control={form.control}
                     name="epoch"

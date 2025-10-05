@@ -75,7 +75,7 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <h2 className="text-lg font-medium text-gray-900">Search by object name</h2>
+                <h2 className="text-xl font-medium text-gray-900">Search by object name</h2>
                 <FormField
                     control={form.control}
                     name="objectName"
@@ -90,7 +90,7 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
                     )}
                 />
                 {coordsPanelVisible && <CoordsPanel/>}
-                <h2 className="text-lg font-medium text-gray-900">Search by coordinates</h2>
+                <h2 className="text-xl font-medium text-gray-900">Search by coordinates</h2>
                 <FormField
                     control={form.control}
                     name="rightAscension"

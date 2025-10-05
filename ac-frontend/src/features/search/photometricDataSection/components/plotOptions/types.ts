@@ -1,0 +1,4 @@
+export enum GroupOptions {
+  CATALOGS = "CATALOGS",
+  BANDPASS_FILTERS = "BANDPASS_FILTERS",
+}

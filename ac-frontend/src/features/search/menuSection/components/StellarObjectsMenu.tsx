@@ -83,7 +83,7 @@ const StellarObjectsMenu = ({
                 queryFn: () => {
                     // get task ID. The ID will be ALWAYS present, since the query starts only when the taskQuery was successful
                     const taskId = taskQueries[idx].data?.task_id
-                    return BaseApi.post<PaginationResponse<Identifier>>(`/retrieve/object-identifiers`, {task_id__eq: taskId})
+                    return BaseApi.post<PaginationResponse<Identifier>>(`/retrieve/object-identifiers`, {filters: {task_id__eq: taskId}})
                 },
                 enabled: taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED,
                 staleTime: Infinity
@@ -164,7 +164,7 @@ const StellarObjectsMenu = ({
     return (
         <>
             <div className="flex flex-row items-center gap-2 mb-4">
-                <h2 className="text-lg font-medium text-gray-900">Search results by sources</h2>
+                <h2 className="text-xl font-medium text-gray-900">Search results by sources</h2>
                 <Tooltip>
                     <TooltipTrigger asChild>
                         {ongoingTasks.length > 0 && <div>

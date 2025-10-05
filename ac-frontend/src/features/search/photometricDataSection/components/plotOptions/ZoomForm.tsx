@@ -1,62 +1,46 @@
 import {useForm} from "react-hook-form";
 import {zoomFormSchema, type ZoomValues} from "@/features/search/photometricDataSection/schema.ts";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "../../../../../../components/ui/form.tsx";
-import {Input} from "../../../../../../components/ui/input.tsx";
-import {Button} from "../../../../../../components/ui/button.tsx";
-import {useContext, useEffect} from "react";
-import {OptionsContext} from "@/features/search/photometricDataSection/components/plotOptions/OptionsContext.tsx";
-import {RangeContext} from "@/features/search/photometricDataSection/components/plotOptions/CurrentRangeContext.tsx";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/../components/ui/form.tsx";
+import {Input} from "@/../components/ui/input.tsx";
+import {Button} from "@/../components/ui/button.tsx";
+import {useContext} from "react";
 import {zodResolver} from "@hookform/resolvers/zod";
-
-
-const LabeledInput = ({label, ...props}) => {
-    return (
-        <div className={"flex gap-x-2 items-center"}>
-            <Input className={"w-5/6"} placeholder={"12235.55"} {...props} />
-            <span className={"w-1/6"}>{label}</span>
-        </div>
-    )
-}
+import {OptionsContext} from "@/features/search/photometricDataSection/components/plotOptions/OptionsContext.tsx";
 
 
 const ZoomForm = () => {
-    const context = useContext(OptionsContext)
-    const rangeContext = useContext(RangeContext)
+    const optionsContext = useContext(OptionsContext)
     const form = useForm<ZoomValues>({
         resolver: zodResolver(zoomFormSchema),
         defaultValues: {
-            min: 0,
-            max: 0
+            xMin: 0,
+            xMax: 0,
+            yMin: 0,
+            yMax: 0
         }
     });
 
-    useEffect(() => {
-        form.setValue("min", rangeContext?.currMinRange)
-        form.setValue("max", rangeContext?.currMaxRange)
-    }, [rangeContext?.currMinRange, rangeContext?.currMaxRange])
-
     const onSubmit = (formData: ZoomValues) => {
-        if (formData.min !== null) {
-            context?.setMinRange(formData.min)
-        }
-        if (formData.max !== null) {
-            context?.setMaxRange(formData.max)
-        }
-        context?.setPlotVersion(context?.plotVersion + 1)
+        optionsContext?.setZoomToCoords({
+            xMin: formData.xMin,
+            xMax: formData.xMax,
+            yMin: formData.yMin,
+            yMax: formData.yMax
+        })
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <h3>Set X axis viewport</h3>
+                <h3 className="text-lg text-gray-900">Set plot viewport</h3>
                 <FormField
                     control={form.control}
-                    name="min"
+                    name="xMin"
                     render={({field}) => (
                         <FormItem>
-                            <FormLabel>Lower bound</FormLabel>
+                            <FormLabel>Lower bound X</FormLabel>
                             <FormControl>
-                                <LabeledInput label={""} {...field} />
+                                <Input className={"w-5/6"} {...field} />
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
@@ -64,12 +48,38 @@ const ZoomForm = () => {
                 />
                 <FormField
                     control={form.control}
-                    name="max"
+                    name="xMax"
                     render={({field}) => (
                         <FormItem>
-                            <FormLabel>Upper bound</FormLabel>
+                            <FormLabel>Upper bound X</FormLabel>
                             <FormControl>
-                                <LabeledInput label={""} {...field} />
+                                <Input className={"w-5/6"} {...field} />
+                            </FormControl>
+                            <FormMessage/>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="yMin"
+                    render={({field}) => (
+                        <FormItem>
+                            <FormLabel>Lower bound Y</FormLabel>
+                            <FormControl>
+                                <Input className={"w-5/6"} {...field} />
+                            </FormControl>
+                            <FormMessage/>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="yMax"
+                    render={({field}) => (
+                        <FormItem>
+                            <FormLabel>Upper bound Y</FormLabel>
+                            <FormControl>
+                                <Input className={"w-5/6"} {...field} />
                             </FormControl>
                             <FormMessage/>
                         </FormItem>

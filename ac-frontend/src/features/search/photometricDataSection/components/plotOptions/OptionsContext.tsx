@@ -1,36 +1,40 @@
 import React, {createContext, useMemo, useState} from "react"
+import {GroupOptions} from "@/features/search/photometricDataSection/components/plotOptions/types.ts";
+
+export type ZoomCords = {
+    xMin: number,
+    xMax: number,
+    yMin: number,
+    yMax: number,
+}
 
 type OptionsCtx = {
-    showErrorBars: boolean; setShowErrorBars: React.Dispatch<React.SetStateAction<boolean>>;
-    groupBy: string; setGroupBy: React.Dispatch<React.SetStateAction<string>>;
-    minRange: number | undefined; setMinRange: React.Dispatch<React.SetStateAction<number | undefined>>;
-    maxRange: number | undefined; setMaxRange: React.Dispatch<React.SetStateAction<number | undefined>>;
-    plotVersion: number; setPlotVersion: React.Dispatch<React.SetStateAction<number>>;
+    groupBy: GroupOptions; setGroupBy: React.Dispatch<React.SetStateAction<GroupOptions>>;
+    selectedPlugins: Record<string, string>; setSelectedPlugins: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+    selectedBandpassFilters: Set<string>, setSelectedBandpassFilters: React.Dispatch<React.SetStateAction<Set<string>>>;
+    zoomToCoords: ZoomCords | null; setZoomToCoords: React.Dispatch<React.SetStateAction<ZoomCords | null>>;
 };
 
 export const OptionsContext = createContext<OptionsCtx | null>(null)
 
-export const OptionsProvider = ({ children }) => {
-    const [showErrorBars, setShowErrorBars] = useState(false)
-    const [groupBy, setGroupBy] = useState("sources")
-    const [minRange, setMinRange] = useState<number | undefined>(undefined)
-    const [maxRange, setMaxRange] = useState<number | undefined>(undefined)
-    const [plotVersion, setPlotVersion] = useState<number>(0)
+export const OptionsProvider = ({ children }: {children: React.ReactNode}) => {
+    const [groupBy, setGroupBy] = useState(GroupOptions.CATALOGS)
+    const [selectedPlugins, setSelectedPlugins] = useState<Record<string, string>>({})
+    const [selectedBandpassFilters, setSelectedBandpassFilters] = useState<Set<string>>(new Set<string>())
+    const [zoomToCoords, setZoomToCoords] = useState(null)
 
     const value = useMemo(
         () => ({
-            showErrorBars,
-            setShowErrorBars,
             groupBy,
             setGroupBy,
-            minRange,
-            setMinRange,
-            maxRange,
-            setMaxRange,
-            plotVersion,
-            setPlotVersion
+            selectedPlugins,
+            setSelectedPlugins,
+            selectedBandpassFilters,
+            setSelectedBandpassFilters,
+            zoomToCoords,
+            setZoomToCoords
         }),
-        [showErrorBars, groupBy, minRange, maxRange, plotVersion]
+        [groupBy, selectedPlugins, selectedBandpassFilters, zoomToCoords]
     );
 
     return (

@@ -1,23 +1,25 @@
 import type {PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {useInfiniteQuery} from "@tanstack/react-query";
+import {useEffect} from "react";
 import BaseApi from "@/features/common/api/baseApi.ts";
 import type {PaginationResponse} from "@/features/common/api/types.ts";
-import {useEffect} from "react";
 
-type PhotometricDataLoader = {
+type PhotometryDataLoader = {
     taskId: string;
-    onData: (rows: PhotometricDataDto[]) => void
+    onData: (rows: PhotometricDataDto[]) => void,
 }
 
-const PhotometryDataLoader = ({ taskId, onData }: PhotometricDataLoader) => {
-    const COUNT = 5000;
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+const COUNT = 5000;
+
+const PhotometricDataLoader = ({ taskId, onData }: PhotometryDataLoader) => {
     const q = useInfiniteQuery({
         queryKey: ['pd', taskId],
         initialPageParam: 0,
         queryFn: ({ pageParam }) =>
             BaseApi.post<PaginationResponse<PhotometricDataDto>>(
                 `/retrieve/photometric-data?offset=${pageParam}&count=${COUNT}`,
-                { task_id__eq: taskId }
+                { filters: {task_id__eq: taskId} }
             ),
         getNextPageParam: (lastPage, pages) => {
             const offset = pages.reduce((n, p) => n + p.count, 0);
@@ -31,16 +33,21 @@ const PhotometryDataLoader = ({ taskId, onData }: PhotometricDataLoader) => {
         if (!q.hasNextPage || q.isFetchingNextPage) {
             return;
         }
-        q.fetchNextPage();
+        sleep(500).then(() => q.fetchNextPage());
     }, [q.hasNextPage, q.isFetchingNextPage]);
 
     // merge data
     useEffect(() => {
-        const rows = q.data?.pages.flatMap(p => p.data) ?? [];
-        onData(rows);
+        if (!q.hasNextPage) {
+            const rows = q.data?.pages.flatMap(p => p.data) ?? [];
+            if (rows.length === 0) {
+                return;
+            }
+            onData(rows);
+        }
     }, [q.dataUpdatedAt]);
 
     return null;
 }
 
-export default PhotometryDataLoader
+export default PhotometricDataLoader

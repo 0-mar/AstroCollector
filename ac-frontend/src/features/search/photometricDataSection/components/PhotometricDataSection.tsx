@@ -1,28 +1,30 @@
 import {useQueries} from "@tanstack/react-query";
-import BaseApi from "@/features/common/api/baseApi.ts";
-import {type SubmitTaskDto, TaskStatus, type TaskStatusDto} from "@/features/common/api/types.ts";
 import type {PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {useCallback, useContext, useEffect, useMemo, useState} from "react";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "../../../../../components/ui/tabs.tsx";
-import LightCurvePlot from "@/features/search/photometricDataSection/components/plot/LightCurvePlot.tsx";
-import PlotOptionsPanel from "@/features/search/photometricDataSection/components/plotOptions/PlotOptionsPanel.tsx";
-import {OptionsProvider} from "@/features/search/photometricDataSection/components/plotOptions/OptionsContext.tsx";
-import {RangeProvider} from "@/features/search/photometricDataSection/components/plotOptions/CurrentRangeContext.tsx";
-import PhotometricDataTable from "@/features/search/photometricDataSection/components/PhotometricDataTable.tsx";
-import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
-import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
-import PhaseCurvePlot from "@/features/search/photometricDataSection/components/plot/PhaseCurvePlot.tsx";
-import ExportDialog from "@/features/export/components/ExportDialog.tsx";
-import PhotometryDataLoader from "@/features/search/photometricDataSection/components/PhotometricDataLoader.tsx";
-import {IdentifiersContext} from "@/features/search/menuSection/components/IdentifiersContext.tsx";
-import type {StellarObjectIdentifierDto} from "@/features/search/menuSection/types.ts";
 import type {PluginDto} from "@/features/plugin/types.ts";
+import { IdentifiersContext } from "../../menuSection/components/IdentifiersContext";
+import BaseApi from "@/features/common/api/baseApi";
+import {TaskStatus, type SubmitTaskDto, type TaskStatusDto } from "@/features/common/api/types";
+import PhotometricDataLoader from "./PhotometricDataLoader";
+import ExportDialog from "@/features/export/components/ExportDialog";
+import type { StellarObjectIdentifierDto } from "../../menuSection/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../components/ui/tabs";
+import { ColorsProvider } from "./plotOptions/ColorsContext";
+import { OptionsProvider } from "./plotOptions/OptionsContext";
+import PlotOptionsPanel from "./plotOptions/PlotOptionsPanel";
+import LightCurveGlPlot from "@/features/search/photometricDataSection/components/plot/LightCurveGlPlot.tsx";
+import PhaseCurveGlPlot from "./plot/PhaseCurveGlPlot";
+import PhotometricDataTable from "@/features/search/photometricDataSection/components/PhotometricDataTable.tsx";
+import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
+import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
+
 
 
 type PhotometricDataSectionProps = {
     pluginData: PluginDto[]
 }
 
+export const unknownBandpassFilter = "Unknown"
 
 const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
     const identifiersContext = useContext(IdentifiersContext);
@@ -81,7 +83,53 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
     }, [taskStatusQueries.map(q => q.data?.status).join(','),
         lightcurveTaskQueries.map(q => q.data?.task_id).join(',')]);
 
+    const taskUniqueLightFiltersQueries = useQueries({
+        queries: Object.values(currentObjectIdentifiers).map((identifier, idx) => {
+            return {
+                queryKey: [`lightFilters_${identifier.plugin_id}_${identifier.ra_deg}_${identifier.dec_deg}`],
+                queryFn: () => {
+                    const taskId = lightcurveTaskQueries[idx].data?.task_id
+                    return BaseApi.get<Array<string | null>>(`/retrieve/unique-light-filters/${taskId}`)
+                },
+                staleTime: Infinity,
+                enabled: lightcurveTaskQueries[idx].isSuccess && taskStatusQueries[idx].data?.status === TaskStatus.COMPLETED
+            }
+        }),
+    })
+
+    // all unique light filters used in all tasks
+    const taskUniqueLightFilters = useMemo(() => {
+        const result = new Set<string>()
+        const lightFilterArrays = taskUniqueLightFiltersQueries
+            .map((_, idx) =>
+                taskUniqueLightFiltersQueries[idx].isSuccess
+                    ? taskUniqueLightFiltersQueries[idx].data
+                    : null
+            )
+            .filter((x): x is Array<string | null> => x !== null);
+
+        lightFilterArrays.forEach(array => {
+            array.forEach(filter => {
+                result.add(filter ?? unknownBandpassFilter)
+            })
+        })
+
+        return Array.from(result).sort()
+    }, [taskUniqueLightFiltersQueries.map(q => q.isSuccess).join(',')]);
+
+    // mapping of task IDs with their corresponding photometric data
     const [byTaskData, setByTaskData] = useState<Record<string, PhotometricDataDto[]>>({});
+
+    // keep track of all pluginIds used in the currently loaded data
+    const currPluginIds = useMemo(() => {
+        const result = new Set<string>();
+        for (const data of Object.values(byTaskData)) {
+            if (data.length > 0) {
+                result.add(data[0].plugin_id)
+            }
+        }
+        return result;
+    }, [byTaskData])
 
     const updateData = useCallback((taskId: string) => (rows: PhotometricDataDto[]) => {
         setByTaskData(prev => {
@@ -109,15 +157,27 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
         [byTaskData]
     );
 
+    // mapping of ids to names of plugins the current data originates from
+    // used as the legend
+    const currPluginNames = useMemo(
+        () => {
+            const currPluginNames: Record<string, string> = {}
+            for (const pluginId of currPluginIds) {
+                currPluginNames[pluginId] = pluginNames[pluginId]
+            }
+            return currPluginNames
+        },
+        [currPluginIds]
+    );
 
     return (
         <div className={"flex flex-col space-y-2"}>
             {completedTaskIds.map((taskId) => {
                 return (
-                    <PhotometryDataLoader key={taskId} taskId={taskId} onData={updateData(taskId)} />
+                    <PhotometricDataLoader key={taskId} taskId={taskId} onData={updateData(taskId)} />
                 )
             })}
-            <h2 className="text-lg font-medium text-gray-900">Photometric data</h2>
+            <h2 className="text-xl font-medium text-gray-900">Photometric data</h2>
             <div>
                 <ExportDialog readyData={Object.values(currentObjectIdentifiers).reduce((acc, identifier, idx) => {
                     const lq = lightcurveTaskQueries[idx];
@@ -136,28 +196,25 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
                     <TabsTrigger value="phasecurve">Phase Curve</TabsTrigger>
                     <TabsTrigger value="datatable">Data table</TabsTrigger>
                 </TabsList>
-                <TabsContent value="lightcurve">
-                    <div className="grid grid-cols-1 gap-y-4">
-                        <RangeProvider>
+                <ColorsProvider currPluginNames={currPluginNames} currBandpassFilters={taskUniqueLightFilters}>
+                    <TabsContent value="lightcurve">
+                        <div className="flex flex-col gap-y-4">
                             <OptionsProvider>
-                                <PlotOptionsPanel/>
-                                <LightCurvePlot pluginNames={pluginNames}
-                                                lightCurveData={lightCurveData}></LightCurvePlot>
+                                <PlotOptionsPanel pluginNames={currPluginNames} lightFilters={taskUniqueLightFilters}/>
+                                <LightCurveGlPlot data={lightCurveData} pluginNames={currPluginNames}></LightCurveGlPlot>
                             </OptionsProvider>
-                        </RangeProvider>
-                    </div>
-                </TabsContent>
-                <TabsContent value="phasecurve">
-                    <div className="grid grid-cols-1 gap-y-4">
-                        <RangeProvider>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="phasecurve">
+                        <div className="grid grid-cols-1 gap-y-4">
                             <OptionsProvider>
-                                <PlotOptionsPanel/>
-                                <PhaseCurvePlot pluginNames={pluginNames}
-                                                lightCurveData={lightCurveData}></PhaseCurvePlot>
+                                <PlotOptionsPanel pluginNames={currPluginNames} lightFilters={taskUniqueLightFilters}/>
+                                <PhaseCurveGlPlot data={lightCurveData}
+                                                  pluginNames={currPluginNames} />
                             </OptionsProvider>
-                        </RangeProvider>
-                    </div>
-                </TabsContent>
+                        </div>
+                    </TabsContent>
+                </ColorsProvider>
                 <TabsContent value="datatable">
                     <div className="bg-white rounded-md shadow-md">
                         <PhotometricDataTable
