@@ -4,8 +4,11 @@ import inspect
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 from uuid import UUID
+
+from sqlalchemy import insert
+from sqlalchemy.orm import Session
 
 from src.core.config.config import settings
 from src.core.integration.catalog_plugin import CatalogPlugin
@@ -14,16 +17,17 @@ from src.core.repository.exception import RepositoryException
 from src.default_plugins.mast.mast_plugin import MastPlugin
 from src.plugin.exceptions import NoPluginClassException
 from src.plugin.model import Plugin
+from src.tasks.types import TaskStatus
 
 logger = logging.getLogger(__name__)
 
 
-class SyncTaskService:
-    def __init__(self, session, model):
+class SyncTaskService[DbEntity]:
+    def __init__(self, session: Session, model: DbEntity) -> None:
         self._session = session
         self._model = model
 
-    def _get(self, entity_id: UUID) -> Plugin:
+    def _get_plugin_entity(self, entity_id: UUID) -> Plugin:
         result = self._session.get(Plugin, entity_id)
         if result is None:
             raise RepositoryException("Plugin with ID " + str(entity_id) + " not found")
@@ -58,7 +62,7 @@ class SyncTaskService:
     def get_plugin_instance(
         self, plugin_id: UUID
     ) -> CatalogPlugin[StellarObjectIdentificatorDto]:
-        db_plugin = self._session.get(Plugin, plugin_id)
+        db_plugin = self._get_plugin_entity(plugin_id)
         plugin_file_path = Path.joinpath(
             settings.PLUGIN_DIR, db_plugin.file_name
         ).resolve()
@@ -68,3 +72,13 @@ class SyncTaskService:
             raise NoPluginClassException()
 
         return plugin
+
+    def bulk_insert(self, data: list[dict[Any, Any]]):
+        self._session.execute(insert(self._model), data)
+        self._session.commit()
+
+    def set_task_status(self, task_id: str, status: TaskStatus):
+        uuid = UUID(task_id)
+        self._session.query(self._model).filter(self._model.id == uuid).update(
+            {"status": status.value}
+        )
