@@ -13,8 +13,8 @@ router = APIRouter(
 
 
 @router.post("")
-async def resolve_name(
+def resolve_name(
     requested_name: StellarObjectNameDto,
 ) -> ResolvedCoordsDto:
-    coords = await resolve_name_to_coordinates(requested_name.name)
+    coords = resolve_name_to_coordinates(requested_name.name)
     return ResolvedCoordsDto(ra_deg=coords.ra.deg, dec_deg=coords.dec.deg)

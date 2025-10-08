@@ -8,6 +8,16 @@ cd ../dev
 podman-compose up -d
 cd ../ac-backend
 ```
+```shell
+POSTGRES_USER=postgres \
+POSTGRES_PASSWORD=postgres \
+POSTGRES_PORT=5432 \
+POSTGRES_DB=astrocollectordb \
+POSTGRES_HOST=localhost \
+REDIS_HOST=localhost \
+REDIS_PORT=6379 \
+celery -A src.core.celery.worker worker
+```
 
 Then apply migrations
 ```shell
@@ -17,6 +27,7 @@ POSTGRES_PORT=5432 \
 POSTGRES_DB=astrocollectordb \
 POSTGRES_HOST=localhost \
 REDIS_PORT=6379 \
+REDIS_HOST=localhost \
 alembic upgrade head
 ```
 
