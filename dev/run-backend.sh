@@ -5,12 +5,6 @@ podman-compose up -d
 
 echo "Waiting for postgres..."
 
-
-#while ! nc -z localhost 5432; do
-#  sleep 0.5
-#done
-#sleep 1
-
 until podman exec ac-database pg_isready -U postgres; do
     sleep 0.5
 done
@@ -33,4 +27,8 @@ cd "plugins"
 ls | grep -P "^(?!__init__\.py).*$" | xargs -d"\n" rm -rf
 
 cd ..
-python -m uvicorn src.main:app --reload --reload-dir src
+celery -A src.core.celery.worker worker &
+celery -A src.core.celery.worker beat &
+python -m uvicorn src.main:app --reload --reload-dir src &
+
+wait
