@@ -158,22 +158,3 @@ class DaschPlugin(CatalogPlugin[DaschIdentificatorDto]):
 
         if chunk != []:
             yield chunk
-
-    def _write_raw_photometric_data_to_csv(
-        self, path: Path, identificator: DaschIdentificatorDto
-    ) -> None:
-        lc_body = {
-            "gsc_bin_index": identificator.gsc_bin_index,
-            "ref_number": identificator.ref_number,
-            "refcat": REFCAT_APASS,
-        }
-
-        with self._http_client.stream(
-            "POST", self.lightcurve_endpoint, data=lc_body
-        ) as resp:
-            resp.raise_for_status()
-
-            # write to CSV in chunks
-            with open(path, "wb") as f:
-                for chunk in resp.iter_bytes(1024 * 1024):
-                    f.write(chunk)

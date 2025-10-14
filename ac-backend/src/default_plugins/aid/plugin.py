@@ -1,5 +1,3 @@
-import os
-import tempfile
 from pathlib import Path
 from typing import Any, Iterator
 from uuid import UUID
@@ -92,24 +90,6 @@ class AidPlugin(CatalogPlugin[AidIdentificatorDto]):
             with open(path, "wb") as f:
                 for chunk in resp.iter_bytes(1024 * 1024):
                     f.write(chunk)
-
-    def __fetch_to_temp_csv(self, url: str) -> str:
-        fd, path = tempfile.mkstemp(suffix=".csv")
-        os.close(fd)
-
-        with self._http_client.stream("GET", url) as resp:
-            resp.raise_for_status()
-            try:
-                with open(path, "wb") as f:
-                    for chunk in resp.iter_bytes(1024 * 1024):
-                        f.write(chunk)
-                return path
-            except Exception:
-                try:
-                    os.remove(path)
-                except OSError:
-                    pass
-                raise
 
     def __get_chunk(
         self, path: Path, identificator: AidIdentificatorDto

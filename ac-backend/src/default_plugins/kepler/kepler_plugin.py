@@ -56,33 +56,6 @@ class KeplerPlugin(CatalogPlugin[KeplerStellarObjectIdentificatorDto]):
                 )
             ]
 
-        # search for targets in the TIC (Tess Input Catalog)
-        # search_table: Table = Catalogs.query_region(coords, radius=0.08333, catalog="TIC")
-        #
-        # chunk: list[TessStellarObjectIdentificatorDto] = []
-        # for i in range(len(search_table)):
-        #     if len(chunk) >= self.batch_limit():
-        #         yield chunk
-        #         chunk = []
-        #
-        #     tic = search_table['ID'][i]
-        #     ra = search_table['ra'][i]
-        #     dec = search_table['dec'][i]
-        #     dist_arcsec = search_table['dstArcSec'][i]
-        #     chunk.append(
-        #         TessStellarObjectIdentificatorDto(
-        #             plugin_id=plugin_id,
-        #             ra_deg=ra,
-        #             dec_deg=dec,
-        #             name=None,
-        #             dist_arcsec=float(dist_arcsec),
-        #             tic=tic,
-        #         )
-        #     )
-        #
-        # if chunk != []:
-        #     yield chunk
-
     def get_photometric_data(
         self, identificator: KeplerStellarObjectIdentificatorDto, csv_path: Path
     ) -> Iterator[list[PhotometricDataDto]]:
@@ -152,44 +125,3 @@ class KeplerPlugin(CatalogPlugin[KeplerStellarObjectIdentificatorDto]):
             header=not header_written,
             index=False,
         )
-
-    def _write_raw_photometric_data_to_csv(
-        self, path: Path, identificator: KeplerStellarObjectIdentificatorDto
-    ) -> None:
-        target = f"TIC {identificator.tic}"
-
-        search_results: SearchResult = search_lightcurve(
-            target, mission="TESS", author="SPOC"
-        )
-
-        header_written = False
-        for search_result in search_results:
-            try:
-                # https://heasarc.gsfc.nasa.gov/docs/tess/Target-Pixel-File-Tutorial.html
-                # downloads TESS target pixel file
-                lightcurve = search_result.download()
-
-            except LightkurveError:
-                # error when downloading the lightcurve file
-                continue
-
-            df = lightcurve.to_pandas()
-            sector = getattr(lightcurve, "sector", None) or lightcurve.meta.get(
-                "SECTOR"
-            )
-            camera = getattr(lightcurve, "camera", None) or lightcurve.meta.get(
-                "CAMERA"
-            )
-            ccd = getattr(lightcurve, "ccd", None) or lightcurve.meta.get("CCD")
-            df["sector"] = sector
-            df["camera"] = camera
-            df["ccd"] = ccd
-
-            # append to the CSV file
-            df.to_csv(
-                "test.csv",
-                mode="a" if header_written else "w",
-                header=not header_written,
-                index=False,
-            )
-            header_written = True
