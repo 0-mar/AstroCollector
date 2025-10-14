@@ -19,11 +19,6 @@ class TaskIdDto(BaseDto):
     task_id: UUID
 
 
-STATUS_COMPLETED = "COMPLETED"
-STATUS_FAILED = "FAILED"
-STATUS_IN_PROGRESS = "IN_PROGRESS"
-
-
 class TaskStatusDto(BaseDto):
     task_id: UUID
     status: str

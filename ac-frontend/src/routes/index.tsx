@@ -18,7 +18,7 @@ function App() {
     const [pluginData, setPluginData] = useState<PluginDto[]>([])
     const [aladinLoaded, setAladinLoaded] = useState(false)
 
-    const [lightcurveSectionVisible, setLightcurveSectionVisible] = useState(false)
+    const [photometricSectionVisible, setPhotometricSectionVisible] = useState(false)
 
     useEffect(() => {
         const scriptTag = document.createElement('script')
@@ -30,32 +30,31 @@ function App() {
     }, []);
 
     return (
-        //<div className="grid grid-cols-1 grid-rows-3 gap-4">
-            <SearchFormProvider>
-                <ObjectCoordsProvider>
-                    <IdentifiersProvider>
-                        <div className="flex flex-wrap bg-blue-100">
-                            <div className="p-8 w-full md:w-1/2 min-w-0">
-                                <SearchForm setMenuVisible={setMenuVisible}
-                                            setLightcurveSectionVisible={setLightcurveSectionVisible}
-                                            setPluginData={setPluginData}/>
-                            </div>
-                            {menuVisible && <div className="p-8 w-full md:w-1/2 min-w-0">
-                                <AladinCutout loaded={aladinLoaded} />
-                            </div>}
+        <SearchFormProvider>
+            <ObjectCoordsProvider>
+                <IdentifiersProvider>
+                    <div className="flex flex-wrap bg-blue-100">
+                        <div className="p-8 w-full md:w-1/2 min-w-0">
+                            <SearchForm setMenuVisible={setMenuVisible}
+                                        setLightcurveSectionVisible={setPhotometricSectionVisible}
+                                        setPluginData={setPluginData}/>
                         </div>
-                        {menuVisible && <div className="p-8 my-4">
-                            <StellarObjectsMenu pluginData={pluginData}
-                                                setLightcurveSectionVisible={setLightcurveSectionVisible}
-                            />
+                        {menuVisible && <div className="p-8 w-full md:w-1/2 min-w-0">
+                            <AladinCutout loaded={aladinLoaded} />
                         </div>}
-                        {lightcurveSectionVisible && <div className="bg-blue-100 rounded-md">
-                            <div className={"p-8"}>
-                                <PhotometricDataSection pluginData={pluginData}/>
-                            </div>
-                        </div>}
-                    </IdentifiersProvider>
-                </ObjectCoordsProvider>
-            </SearchFormProvider>
+                    </div>
+                    {menuVisible && <div className="p-8 my-4">
+                        <StellarObjectsMenu pluginData={pluginData}
+                                            setLightcurveSectionVisible={setPhotometricSectionVisible}
+                        />
+                    </div>}
+                    {photometricSectionVisible && <div className="bg-blue-100 rounded-md">
+                        <div className={"p-8"}>
+                            <PhotometricDataSection pluginData={pluginData}/>
+                        </div>
+                    </div>}
+                </IdentifiersProvider>
+            </ObjectCoordsProvider>
+        </SearchFormProvider>
     )
 }

@@ -18,20 +18,22 @@ services:
 
   redis:
     image: docker.io/redis:latest
+    networks:
+      - ac
 
   api:
     build:
       context: ../ac-backend
-      args:
-        PRODUCTION: ${PRODUCTION}
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
+      REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     container_name: ac-api
+    command: ["/app/entrypoint.sh"]
     ports:
       - "${API_PORT}:8082"
     networks:
@@ -41,7 +43,48 @@ services:
         condition: service_healthy
 
     volumes:
+      - plugins:/app/plugins  # the celery worker needs to access the plugin scripts directory
+      - temp:/app/temp  # the celery worker needs to access the temp directory
       - "${SERVER_LOGS_DIRECTORY}:/app/logs"
+
+  celery_worker:
+    build:
+      context: ../ac-backend
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    command: [ "celery", "-A", "src.core.celery.worker", "worker" ]
+    depends_on:
+      - redis
+    networks:
+      - ac
+    volumes:
+      - plugins:/app/plugins:ro
+      - temp:/app/temp  # the celery worker needs to access the temp directory
+
+  celery_beat:
+    build:
+      context: ../ac-backend
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    command: [ "celery", "-A", "src.core.celery.worker", "beat" ]
+    depends_on:
+      - redis
+    networks:
+      - ac
+    volumes:
+      - temp:/app/temp  # the celery beat needs to access the temp directory
 
   frontend:
     build:
@@ -62,3 +105,5 @@ networks:
 
 volumes:
   database:
+  plugins:
+  temp:

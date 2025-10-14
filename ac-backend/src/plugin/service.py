@@ -23,7 +23,8 @@ from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository, Filters
 from src.core.schemas import PaginationResponseDto
-from src.default_plugins.mast.mast_plugin import MastPlugin
+
+# from src.default_plugins.mast.mast_plugin import MastPlugin
 from src.plugin.exceptions import NoPluginClassException
 from src.plugin.model import Plugin
 from src.plugin.schemas import (
@@ -63,9 +64,8 @@ class PluginService:
             # Only add classes that are a sub class of PhotometricCataloguePlugin,
             # but NOT PhotometricCataloguePlugin itself
             if (
-                issubclass(cls, CatalogPlugin)
-                and cls is not CatalogPlugin
-                and cls is not MastPlugin
+                issubclass(cls, CatalogPlugin) and cls is not CatalogPlugin
+                #                and cls is not MastPlugin
             ):
                 logger.info(f"Found plugin class: {cls.__module__}.{cls.__name__}")
                 return cls()
@@ -178,9 +178,8 @@ class PluginService:
             # Only add classes that are a sub class of PhotometricCataloguePlugin,
             # but NOT PhotometricCataloguePlugin itself
             if (
-                issubclass(cls, CatalogPlugin)
-                and cls is not CatalogPlugin
-                and cls is not MastPlugin
+                issubclass(cls, CatalogPlugin) and cls is not CatalogPlugin
+                #                and cls is not MastPlugin
             ):
                 logger.info(
                     f"Found default plugin class: {cls.__module__}.{cls.__name__}"

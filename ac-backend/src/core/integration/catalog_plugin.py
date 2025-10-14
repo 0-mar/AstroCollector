@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, List, Generic, AsyncGenerator
+from pathlib import Path
+from typing import TypeVar, List, Generic, Iterator
 from uuid import UUID
 
-from aiohttp import ClientSession
 from astropy import units
 from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.time import Time
 
-from src.core.http_client import HttpClient
 from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
     PhotometricDataDto,
@@ -17,10 +16,7 @@ T = TypeVar("T", bound=StellarObjectIdentificatorDto)
 
 
 class CatalogPlugin(Generic[T], ABC):
-    _http_client: ClientSession
-
     def __init__(self) -> None:
-        self._http_client = HttpClient().get_session()
         self.__batch_limit = 20000
         self._geocenter = EarthLocation.from_geocentric(
             0 * units.m, 0 * units.m, 0 * units.m
@@ -45,9 +41,9 @@ class CatalogPlugin(Generic[T], ABC):
         return self._catalog_url
 
     @abstractmethod
-    async def list_objects(
+    def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
-    ) -> AsyncGenerator[List[T]]:
+    ) -> Iterator[List[T]]:
         """
         Yields chunks of found stellar objects
         :param coords:
@@ -55,18 +51,18 @@ class CatalogPlugin(Generic[T], ABC):
         :param plugin_id:
         :return:
         """
-        # fetch data from external catalogue in chunks
-        # async for data in self._get_object_data(coords, radius_arcsec, plugin_id):
-        #     # https://changyulee.oopy.io/201d939a-b8c2-8095-9430-c8d593dfdd2d
-        #     loop = asyncio.get_running_loop()
-        #     result = await loop.run_in_executor(None, self._process_objects_batch, data)
-        #     yield result
         pass
 
     @abstractmethod
-    async def get_photometric_data(
-        self, identificator: T
-    ) -> AsyncGenerator[List[PhotometricDataDto]]:
+    def get_photometric_data(
+        self, identificator: T, csv_path: Path
+    ) -> Iterator[list[PhotometricDataDto]]:
+        """
+        Yield chunks of photometric data for particular stellar object. Writes the original data to the provided csv file.
+        :param csv_path: path to the file with raw data
+        :param identificator: the stellar object to get photometric data for
+        :return:
+        """
         pass
 
     def _to_bjd(

@@ -17,6 +17,7 @@ import PhaseCurveGlPlot from "./plot/PhaseCurveGlPlot";
 import PhotometricDataTable from "@/features/search/photometricDataSection/components/PhotometricDataTable.tsx";
 import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
+import ExportRawDataDialog from "@/features/export/components/ExportRawDataDialog.tsx";
 
 
 
@@ -178,8 +179,18 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
                 )
             })}
             <h2 className="text-xl font-medium text-gray-900">Photometric data</h2>
-            <div>
+            <div className="flex flex-row gap-x-2">
                 <ExportDialog readyData={Object.values(currentObjectIdentifiers).reduce((acc, identifier, idx) => {
+                    const lq = photometricDataTaskQueries[idx];
+                    const tq = taskStatusQueries[idx];
+
+                    if (!lq?.isSuccess) return acc;
+                    if (tq?.data?.status !== TaskStatus.COMPLETED) return acc;
+
+                    acc.push([identifier, lq.data?.task_id]);
+                    return acc;
+                }, [] as Array<[StellarObjectIdentifierDto, string]>)} pluginNames={pluginNames}/>
+                <ExportRawDataDialog readyData={Object.values(currentObjectIdentifiers).reduce((acc, identifier, idx) => {
                     const lq = photometricDataTaskQueries[idx];
                     const tq = taskStatusQueries[idx];
 
@@ -224,13 +235,15 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
                     </div>
                 </TabsContent>
             </Tabs>
-            <div>
+            <div className="flex flex-col gap-y-4">
                 {Object.values(currentObjectIdentifiers).map((identifier, idx) => {
-                    const dataTarget = `${identifier.ra_deg} ${identifier.dec_deg} (${pluginNames[identifier.plugin_id]})`
+                    console.log(Object.values(currentObjectIdentifiers).length)
+                    const targetName = identifier.name !== '' ? ` (${identifier.name})` : ''
+                    const dataTarget = `${identifier.ra_deg} ${identifier.dec_deg}` + targetName + ` [${pluginNames[identifier.plugin_id]}]`
                     if (photometricDataTaskQueries[idx].isError) {
                         return (
                             <ErrorAlert
-                                key={dataTarget}
+                                key={dataTarget + `${identifier.plugin_id}`}
                                 title={"Photometric data query failed: " + dataTarget}
                                 description={photometricDataTaskQueries[idx].error.message}/>
                         )
@@ -238,7 +251,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
                     if (taskStatusQueries[idx].isError) {
                         return (
                             <ErrorAlert
-                                key={dataTarget}
+                                key={dataTarget + `${identifier.plugin_id}`}
                                 title={"Photometric data query failed: " + dataTarget}
                                 description={taskStatusQueries[idx].error.message}/>
                         )
@@ -246,22 +259,22 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
                     if (taskStatusQueries[idx].isPending || taskStatusQueries[idx].data?.status === TaskStatus.IN_PROGRESS) {
                         return (
                             <LoadingSkeleton
-                                key={dataTarget}
+                                key={dataTarget + `${identifier.plugin_id}`}
                                 text={"Loading photometric data for " + dataTarget}/>
                         )
                     }
                     if (taskStatusQueries[idx].data?.status === TaskStatus.FAILED) {
                         return (
                             <ErrorAlert
-                                key={dataTarget}
-                                title={"Failed to load photometric data for" + dataTarget}
+                                key={dataTarget + `${identifier.plugin_id}`}
+                                title={"Failed to load photometric data for " + dataTarget}
                                 description={"Job failed"}/>
                         )
                     }
                     if (taskStatusQueries[idx].isError) {
                         return (
                             <ErrorAlert
-                                key={dataTarget}
+                                key={dataTarget + `${identifier.plugin_id}`}
                                 title={"Photometric data query failed: " + dataTarget}
                                 description={taskStatusQueries[idx].error.message}/>
                         )

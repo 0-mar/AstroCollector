@@ -2,59 +2,26 @@ import logging
 import logging.config
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
 from pathlib import Path
 
-from aiocache import Cache
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette import status
 from starlette.responses import JSONResponse
 
 from src.core.config.config import settings
-from src.core.database.database import async_sessionmanager
 from src.core.database.db_init import init_db
 from src.core.exception.exceptions import ACException
 from src.core.http_client import HttpClient
-from src.core.repository.repository import Repository
-from src.data_retrieval import router as data_router
-from src.plugin import router as plugin_router
-from src.tasks import router as task_router
-from src.tasks.model import Task
-from src.so_name_resolving import router as name_resolving_router
-from src.phase_curve import router as phase_diagram_router
-from src.export import router as export_router
 from src.core.security import router as security_router
+from src.data_retrieval import router as data_router
+from src.export import router as export_router
+from src.phase_curve import router as phase_diagram_router
+from src.plugin import router as plugin_router
+from src.so_name_resolving import router as name_resolving_router
+from src.tasks import router as task_router
 
 logger = logging.getLogger(__name__)
-
-scheduler = AsyncIOScheduler()
-
-
-@scheduler.scheduled_job("interval", hours=settings.TASK_DATA_DELETE_INTERVAL)
-async def clear_task_data():
-    logger.info("Clearing old task data")
-    async with async_sessionmanager.session() as session:
-        task_repository = Repository(Task, session)
-
-        offset = 0
-        total = 1
-
-        while True:
-            if offset >= total:
-                break
-
-            total, results = await task_repository.find(offset=offset, count=1000)
-            offset += len(results)
-
-            for task in results:
-                if isinstance(task, Task):
-                    if task.created_at < (
-                        datetime.now()
-                        - timedelta(hours=settings.TASK_DATA_DELETE_INTERVAL)
-                    ):
-                        await task_repository.delete(task.id)
 
 
 @asynccontextmanager
@@ -65,14 +32,16 @@ async def lifespan(app: FastAPI):
     if not Path.exists(settings.LOGGING_DIR):
         os.mkdir(settings.LOGGING_DIR)
 
+    # create temp directory if not present
+    if not Path.exists(settings.TEMP_DIR):
+        os.mkdir(settings.TEMP_DIR)
+
     logging.config.dictConfig(settings.LOGGING_CONFIG)
 
     await init_db()
-    scheduler.start()
 
     yield
 
-    scheduler.shutdown()
     await HttpClient().get_session().close()
 
 
@@ -129,11 +98,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition"],
-)
-
-# cache: https://stackoverflow.com/questions/65686318/sharing-python-objects-across-multiple-workers
-plugin_cache = Cache(
-    Cache.REDIS, endpoint="localhost", port=settings.CACHE_PORT, namespace="main"
 )
 
 app.include_router(plugin_router.router)

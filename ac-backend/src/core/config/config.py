@@ -26,12 +26,42 @@ class Settings(BaseSettings):
     DB_PORT: int = Field(..., alias="POSTGRES_PORT")
     DB_NAME: str = Field(..., alias="POSTGRES_DB")
     DB_HOST: str = Field(..., alias="POSTGRES_HOST")
-    CACHE_PORT: str = Field(..., alias="REDIS_PORT")
+
+    REDIS_HOST: str = Field(..., alias="REDIS_HOST")
+    REDIS_PORT: str = Field(..., alias="REDIS_PORT")
+
+    OBJECT_SEARCH_RADIUS: float = 30
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def CELERY_CONFIG(self) -> dict[str, Any]:
+        return {
+            "broker_url": f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0",
+            "task_ignore_result": True,
+            # "result_backend": f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/1",
+            "result_expires": self.TASK_DATA_DELETE_INTERVAL
+            * 3600,  # Task results expire in 1 hour (cleanup)
+            "task_track_started": True,  # Enable tracking the STARTED state of tasks
+            "task_acks_late": True,  # Acknowledge tasks after execution, not before
+            "worker_prefetch_multiplier": 1,  # Each worker grabs only 1 task at a time
+            "worker_hijack_root_logger": False,  # Keep previously configured handlers on the root logger
+            "beat_schedule": {
+                "database-cleanup": {
+                    "task": "src.tasks.tasks.clear_task_data",
+                    "schedule": self.TASK_DATA_DELETE_INTERVAL * 3600,
+                },
+            },
+        }
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def PLUGIN_DIR(self) -> Path:
         return Path.joinpath(self.ROOT_DIR, "plugins").resolve()
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def TEMP_DIR(self) -> Path:
+        return Path.joinpath(self.ROOT_DIR, "temp").resolve()
 
     LOGGING_LEVEL: int = logging.INFO
 
@@ -51,7 +81,7 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SYNC_DATABASE_URL(self) -> str:
-        return f"postgresql+psycopg3://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -100,7 +130,9 @@ class Settings(BaseSettings):
             },
         }
 
+    # -----------------------
     # Auth settings
+    # -----------------------
     REFRESH_TOKEN_EXPIRE_SECONDS: int = 24 * 60 * 60
     ACCESS_TOKEN_EXPIRE_SECONDS: int = 10 * 60
     SECRET_KEY: SecretStr = Field(

@@ -10,10 +10,8 @@ from src.core.repository.repository import Filters
 from src.core.schemas import PaginationResponseDto
 from src.data_retrieval.schemas import StellarObjectIdentifierDto
 from src.data_retrieval.service import DataService, PhotometricDataRepositoryDep
-from src.tasks.service import TaskService
 
 DataServiceDep = Annotated[DataService, Depends(DataService)]
-StellarObjectServiceDep = Annotated[TaskService, Depends(TaskService)]
 
 router = APIRouter(
     prefix="/api/retrieve",

@@ -1,8 +1,9 @@
-from typing import List, AsyncIterator
+from pathlib import Path
+from typing import Iterator
 from uuid import UUID
 
+import httpx
 from astropy.coordinates import SkyCoord
-from fastapi.concurrency import run_in_threadpool
 
 from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import (
@@ -24,17 +25,18 @@ class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
         self._directly_identifies_objects = False
         self._description = "Through a grant from the Robert Martin Ayers Sciences Fund, the AAVSO is performing an all-sky photometric survey. This survey is conducted in eight filters: Johnson B and V, plus Sloan u', g′, r′, i′, z_s and Z. It is valid from about 7th magnitude to about 17th magnitude. Precise, reliable standardized photometry in this magnitude range is in high demand, both from our observers and from the professional community."
         self._catalog_url = "https://www.aavso.org/apass"
+        self._http_client = httpx.Client()
 
-    async def list_objects(
+    def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
-    ) -> AsyncIterator[List[ApassIdentificatorDto]]:
+    ) -> Iterator[list[ApassIdentificatorDto]]:
         query_params = {
             "radeg": f"{coords.ra.deg}",
             "decdeg": f"{coords.dec.deg}",
             "raddeg": f"{radius_arcsec / 3600}",
         }
-        async with self._http_client.get(self._url, params=query_params) as query_resp:
-            html = await query_resp.text()
+        query_resp = self._http_client.get(self._url, params=query_params)
+        html = query_resp.text
 
         soup = BeautifulSoup(html, "html.parser")
         root = soup.find("font", attrs={"face": "courier"})
@@ -54,65 +56,61 @@ class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
                 )
             ]
 
-    async def get_photometric_data(
-        self, identificator: ApassIdentificatorDto
-    ) -> AsyncIterator[List[ApassIdentificatorDto]]:
+    def get_photometric_data(
+        self, identificator: ApassIdentificatorDto, csv_path: Path
+    ) -> Iterator[list[PhotometricDataDto]]:
         query_params = {
             "radeg": f"{identificator.ra_deg}",
             "decdeg": f"{identificator.dec_deg}",
             "raddeg": f"{identificator.raddeg}",
         }
-        async with self._http_client.get(self._url, params=query_params) as query_resp:
-            html = await query_resp.text()
+        query_resp = self._http_client.get(self._url, params=query_params)
+        html = query_resp.text
 
-        batch = await run_in_threadpool(
-            self._process_photometric_data_batch,
-            html,
-            identificator,
-        )
-
-        if batch == []:
-            return
-
-        yield batch
-
-    def _process_photometric_data_batch(
-        self, html: str, identificator: ApassIdentificatorDto
-    ) -> List[PhotometricDataDto]:
-        result: list[PhotometricDataDto] = []
+        chunk: list[PhotometricDataDto] = []
 
         soup = BeautifulSoup(html, "html.parser")
         root = soup.find("font", attrs={"face": "courier"})
         records = root.get_text(strip=True, separator="\n").splitlines()
 
         if records[0] == "No rows were returned by query.":
-            return []
+            return
 
-        for i in range(2, len(records)):
-            record = records[i]
+        with open(csv_path, mode="w") as csv_file:
+            csv_file.write(records[1] + "\n")
 
-            # hjd-24e5, mag, errmag, filter
-            values = record.split(",")
+            for i in range(2, len(records)):
+                if len(chunk) >= self.batch_limit():
+                    yield chunk
+                    chunk = []
 
-            # convert HJD_UTC to BJD_TDB
-            hjd = float(values[0]) + 2400000
-            bjd = self._to_bjd(
-                hjd,
-                format="jd",
-                scale="utc",
-                ra_deg=identificator.ra_deg,
-                dec_deg=identificator.dec_deg,
-                is_hjd=True,
-            )
+                record = records[i]
 
-            result.append(
-                PhotometricDataDto(
-                    julian_date=bjd,
-                    magnitude=float(values[1]),
-                    magnitude_error=float(values[2]),
-                    plugin_id=identificator.plugin_id,
-                    light_filter=values[3].strip("'"),
+                csv_file.write(record + "\n")
+
+                # hjd-24e5, mag, errmag, filter
+                values = record.split(",")
+
+                # convert HJD_UTC to BJD_TDB
+                hjd = float(values[0]) + 2400000
+                bjd = self._to_bjd(
+                    hjd,
+                    format="jd",
+                    scale="utc",
+                    ra_deg=identificator.ra_deg,
+                    dec_deg=identificator.dec_deg,
+                    is_hjd=True,
                 )
-            )
 
-        return result
+                chunk.append(
+                    PhotometricDataDto(
+                        julian_date=bjd,
+                        magnitude=float(values[1]),
+                        magnitude_error=float(values[2]),
+                        plugin_id=identificator.plugin_id,
+                        light_filter=values[3].strip("'"),
+                    )
+                )
+
+        if chunk != []:
+            yield chunk

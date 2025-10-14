@@ -13,25 +13,25 @@ import BaseApi from "@/features/common/api/baseApi.ts";
 import InfoAlert from "@/features/common/alerts/InfoAlert.tsx";
 import { toast } from "sonner"
 import type {StellarObjectIdentifierDto} from "@/features/search/menuSection/types.ts";
-import {FileDown} from "lucide-react";
+import {Download} from "lucide-react";
 
 type ExportDialogProps = {
     readyData: Array<[StellarObjectIdentifierDto, string]>,
     pluginNames: Record<string, string>
 }
 
-const ExportDialog = ({readyData, pluginNames}: ExportDialogProps) => {
+const ExportRawDataDialog = ({readyData, pluginNames}: ExportDialogProps) => {
 
     const exportMutation = useMutation({
-        mutationFn: () => BaseApi.post<string>(`/export/csv`, {filters: {"task_id__in": readyData.map(([_ident, taskId]) => taskId)}}),
+        mutationFn: () => BaseApi.post<Blob>(`/export/raw`, {filters: {"task_id__in": readyData.map(([_ident, taskId]) => taskId)}}, { responseType: "blob" }),
         onError: (_error) => {
-            toast.error("Failed to export data")
+            toast.error("Failed to export raw data")
         },
         onSuccess: (data) => {
             const link = document.createElement("a");
-            link.download = `export.csv`;
-            const blob = new Blob([data], { type: "text/csv" });
-            link.href = URL.createObjectURL(blob);
+            link.download = `export.zip`;
+            //const blob = new Blob([new Uint8Array(data)]);
+            link.href = URL.createObjectURL(data);
             link.click();
             URL.revokeObjectURL(link.href);
         },
@@ -47,7 +47,7 @@ const ExportDialog = ({readyData, pluginNames}: ExportDialogProps) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline"><FileDown />Export plot data</Button>
+                <Button variant="outline"><Download />Export original data</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -70,4 +70,4 @@ const ExportDialog = ({readyData, pluginNames}: ExportDialogProps) => {
     )
 }
 
-export default ExportDialog;
+export default ExportRawDataDialog;
