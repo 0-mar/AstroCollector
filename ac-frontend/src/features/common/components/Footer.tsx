@@ -1,4 +1,7 @@
 export default function Footer() {
+    const date = new Date()
+    const dateString = date.getDay() + ". " + date.getMonth() + ". " + date.getFullYear()
+
     return (
         <footer className="footer footer-horizontal footer-center bg-secondary text-primary-content p-10">
             <div className="flex flex-row items-center gap-y-2">
@@ -17,7 +20,7 @@ export default function Footer() {
                 Developed for the <a className={"text-blue-600 hover:underline"} href={"https://physics.muni.cz/en"} target={"_blank"}>Department of physics at Masaryk University</a>
             </p>
             <p>Copyright © {new Date().getFullYear()} Ondřej Marek</p>
-            <p>Last update: 5.10.2025</p>
+            <p>Last update: {dateString}</p>
         </footer>
     )
 }
