@@ -91,6 +91,8 @@ class TessPlugin(CatalogPlugin[TessStellarObjectIdentificatorDto]):
                 if flux.value <= 0:
                     continue
 
+                # convert TESS flux to magnitude:
+                # https://heasarc.gsfc.nasa.gov/docs/tess/faq.html
                 mag = -2.5 * math.log10(flux.value) + 20.44
                 mag_err = (2.5 / math.log(10)) * (flux_err.value / flux.value)
 
