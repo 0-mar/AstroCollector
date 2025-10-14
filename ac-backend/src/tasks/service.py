@@ -75,6 +75,8 @@ class SyncTaskService:
         return plugin
 
     def bulk_insert(self, data: list[dict[Any, Any]]):
+        if data == []:
+            return
         self._session.execute(insert(self._model), data)
         # self._session.commit()
 

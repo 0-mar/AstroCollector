@@ -58,6 +58,11 @@ class Settings(BaseSettings):
     def PLUGIN_DIR(self) -> Path:
         return Path.joinpath(self.ROOT_DIR, "plugins").resolve()
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def TEMP_DIR(self) -> Path:
+        return Path.joinpath(self.ROOT_DIR, "temp").resolve()
+
     LOGGING_LEVEL: int = logging.INFO
 
     @computed_field  # type: ignore[prop-decorator]

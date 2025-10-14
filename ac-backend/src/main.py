@@ -32,6 +32,10 @@ async def lifespan(app: FastAPI):
     if not Path.exists(settings.LOGGING_DIR):
         os.mkdir(settings.LOGGING_DIR)
 
+    # create temp directory if not present
+    if not Path.exists(settings.TEMP_DIR):
+        os.mkdir(settings.TEMP_DIR)
+
     logging.config.dictConfig(settings.LOGGING_CONFIG)
 
     await init_db()

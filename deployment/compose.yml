@@ -44,6 +44,7 @@ services:
 
     volumes:
       - plugins:/app/plugins  # the celery worker needs to access the plugin scripts directory
+      - temp:/app/temp  # the celery worker needs to access the temp directory
       - "${SERVER_LOGS_DIRECTORY}:/app/logs"
 
   celery_worker:
@@ -64,6 +65,7 @@ services:
       - ac
     volumes:
       - plugins:/app/plugins:ro
+      - temp:/app/temp  # the celery worker needs to access the temp directory
 
   celery_beat:
     build:
@@ -81,6 +83,8 @@ services:
       - redis
     networks:
       - ac
+    volumes:
+      - temp:/app/temp  # the celery beat needs to access the temp directory
 
   frontend:
     build:
@@ -102,3 +106,4 @@ networks:
 volumes:
   database:
   plugins:
+  temp:

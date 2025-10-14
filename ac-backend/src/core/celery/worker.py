@@ -1,3 +1,4 @@
+import logging
 import os
 
 from celery import Celery
@@ -23,6 +24,8 @@ def config_loggers(*args, **kwargs):
 
     dictConfig(settings.LOGGING_CONFIG)
 
+
+logger = logging.getLogger(__name__)
 
 # connection pooling when forking processes:
 # https://docs.sqlalchemy.org/en/20/core/pooling.html#using-connection-pools-with-multiprocessing-or-os-fork

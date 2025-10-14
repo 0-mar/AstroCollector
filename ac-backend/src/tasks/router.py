@@ -1,8 +1,10 @@
+from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
+from src.core.config.config import settings
 from src.core.integration.schemas import (
     StellarObjectIdentificatorDto,
 )
@@ -76,7 +78,13 @@ async def submit_retrieve_data(
     identificator_model.plugin_id = plugin_id
     task_id = await create_task(task_repository)
 
-    get_photometric_data.delay(str(task_id), identificator_model.model_dump())
+    # filename =f"{plugin_dict[plugin_id]}-{str(identificator_model.ra_deg).replace(".", ",")}-{str(identificator_model.dec_deg).replace(".", ",")}.csv"
+    filename = f"{task_id}.csv"
+    csv_path = Path.joinpath(settings.TEMP_DIR, filename)
+
+    get_photometric_data.delay(
+        str(task_id), identificator_model.model_dump(), csv_path.resolve().as_posix()
+    )
 
     return TaskIdDto(task_id=task_id)
 

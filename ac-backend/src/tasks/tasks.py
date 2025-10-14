@@ -1,12 +1,13 @@
 import logging
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
 from astropy import units
 from astropy.coordinates import SkyCoord
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from src.tasks.service import SyncTaskService
@@ -76,6 +77,7 @@ def catalog_cone_search(self, task_id: str, query_dict: dict[Any, Any]):
             f"Find stellar object task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nQuery: {query_dict}",
             exc_info=True,
         )
+        self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
     else:
@@ -102,6 +104,7 @@ def find_stellar_object(self, task_id: str, query_dict: dict[Any, Any]):
             f"Find stellar object task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nQuery: {query_dict}",
             exc_info=True,
         )
+        self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
     else:
@@ -111,22 +114,25 @@ def find_stellar_object(self, task_id: str, query_dict: dict[Any, Any]):
 
 @celery_app.task(bind=True, base=TaskWithSession)
 def get_photometric_data(
-    self, task_id: str, identificator_dict: StellarObjectIdentificatorDto
+    self, task_id: str, identificator_dict: dict[str, Any], csv_path_str: str
 ):
+    csv_path = Path(csv_path_str)
+
     task_service = SyncTaskService(self.session, PhotometricData)
 
     try:
         identificator = StellarObjectIdentificatorDto.model_validate(identificator_dict)
         plugin = task_service.get_plugin_instance(identificator.plugin_id)
 
-        for data in plugin.get_photometric_data(identificator):
+        for data in plugin.get_photometric_data(identificator, csv_path):
             values = [{**dto.model_dump(), "task_id": task_id} for dto in data]
             task_service.bulk_insert(values)
     except Exception:
         logger.error(
-            f"Find stellar object task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nIdentificator: {identificator_dict}",
+            f"Get photometric data task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nIdentificator: {identificator_dict}",
             exc_info=True,
         )
+        self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
 
@@ -138,12 +144,43 @@ def get_photometric_data(
 @celery_app.task(bind=True, base=TaskWithSession)
 def clear_task_data(self):
     logger.info("Clearing old task data")
+    session: Session = self.session
 
+    # remove export files
+    stmt = (
+        select(Task.id)
+        .select_from(Task)
+        .where(
+            Task.created_at
+            < (datetime.now() - timedelta(hours=settings.TASK_DATA_DELETE_INTERVAL))
+        )
+    )
+    try:
+        result = session.execute(stmt)
+        task_ids = result.scalars().all()
+
+        for task_id in task_ids:
+            csv_path = Path.joinpath(settings.TEMP_DIR, f"{task_id}.csv")
+            zip_path = Path.joinpath(settings.TEMP_DIR, f"{task_id}.zip")
+
+            if Path.exists(csv_path):
+                os.remove(csv_path)
+
+            if Path.exists(zip_path):
+                os.remove(zip_path)
+
+    except Exception:
+        logger.error(
+            f"Clear task data task has failed (PID {os.getpid()})",
+            exc_info=True,
+        )
+        raise
+
+    # remove task data
     stmt = delete(Task).where(
         Task.created_at
         < (datetime.now() - timedelta(hours=settings.TASK_DATA_DELETE_INTERVAL))
     )
-    session: Session = self.session
     try:
         session.execute(stmt)
     except Exception:
