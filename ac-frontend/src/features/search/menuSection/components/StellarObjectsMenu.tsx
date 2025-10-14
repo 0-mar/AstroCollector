@@ -108,6 +108,22 @@ const StellarObjectsMenu = ({
         return ids;
     }, [resultQueries.map(q => q.status).join(','),]);
 
+    // count failed tasks
+    const failedTasksCount = useMemo(() => {
+        const count = pluginData
+            .map((_, idx) => {
+                    return taskQueries[idx].isError && (taskStatusQueries[idx].isSuccess && taskStatusQueries[idx].data.task_id === TaskStatus.FAILED) || resultQueries[idx].isError
+                }
+            )
+            .filter(Boolean)
+            .length
+        console.log(count)
+        return count;
+    }, [taskQueries.map(q => q.status).join(','),
+        taskStatusQueries.map(q => q.status).join(','),
+        resultQueries.map(q => q.status).join(',')
+    ]);
+
     const ongoingTasks = useMemo(() => {
         return taskQueries.map((query, idx) => query.data?.task_id !== undefined ? [idx, query.data?.task_id] : undefined)
             .filter(tuple => tuple !== undefined)
@@ -182,7 +198,7 @@ const StellarObjectsMenu = ({
                 </Tooltip>
             </div>
 
-            {completedTasks.length === 0 ? <LoadingSkeleton text={"Loading stellar objects..."}/> :
+            {failedTasksCount === pluginData.length ? <ErrorAlert description={"Please try again later"} title={"Cannot fetch search results"} /> : completedTasks.length === 0 ? <LoadingSkeleton text={"Loading stellar objects..."}/> :
                 <Tabs defaultValue={pluginData[0].id}>
                     <TabsList>
                         {completedTasks.map(([idx, taskId]) => {
