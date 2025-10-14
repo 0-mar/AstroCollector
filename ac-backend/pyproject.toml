@@ -14,6 +14,7 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "celery[redis]>=5.5.3",
     "fastapi[standard]>=0.115.12",
+    "httpx>=0.28.1",
     "lightkurve>=2.5.1",
     "mypy>=1.16.1",
     "passlib[bcrypt]>=1.7.4",
