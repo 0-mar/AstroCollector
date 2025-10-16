@@ -36,8 +36,8 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
         # valid identifiers are in format:
         # RA[h] DEC[deg]
         # see https://www.astrouw.edu.pl/asas/i_aasc/aasc_form.php?catsrc=asas3
-        ra_h = coords.ra.to(u.hourangle).value  # or: c.ra.hour
-        dec_deg = coords.dec.to(u.deg).value  # or: c.dec.deg
+        ra_h = coords.ra.to(u.hourangle).value
+        dec_deg = coords.dec.to(u.deg).value
         search_coords = f"{ra_h} {dec_deg}"
 
         form_data = {
@@ -109,6 +109,34 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
         # the data is in format:
         # HJD      MAG_0  MAG_1  MAG_2  MAG_3  MAG_4    MER_0 MER_1 MER_2 MER_3 MER_4 GRADE FRAME
         # skip C and D grade data
+
+        # determine the selected column based on smallest average magnitude error
+        mag_errors = [0, 0, 0, 0]
+        count = 0
+        for line in lines:
+            if line.startswith("#") or line == "":
+                continue
+            stripped = line.strip()
+            tokens = stripped.split()
+            if tokens[12] == "C" or tokens[12] == "D":
+                continue
+
+            count += 1
+            magnitude_errors = list(map(float, tokens[6:11]))
+            mag_errors[0] += magnitude_errors[0]
+            mag_errors[1] += magnitude_errors[1]
+            mag_errors[2] += magnitude_errors[2]
+            mag_errors[3] += magnitude_errors[3]
+
+        avgs = list(map(lambda x: x / count, mag_errors))
+        smallest_mag_err = avgs[0]
+        smallest_mag_err_idx = 0
+        for i in range(len(avgs)):
+            if avgs[i] < smallest_mag_err:
+                smallest_mag_err_idx = i
+                smallest_mag_err = avgs[i]
+
+        # process data
         with open(csv_path, mode="w") as csv_file:
             csv_file.write(
                 "HJD MAG_0,MAG_1,MAG_2,MAG_3,MAG_4,MER_0,MER_1,MER_2,MER_3,MER_4,GRADE,FRAME\n"
@@ -129,18 +157,9 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
                 if tokens[12] == "C" or tokens[12] == "D":
                     continue
 
-                magnitude_errors = list(map(float, tokens[6:11]))
-                best_mag_err_idx = 0
-                best_mag_err = float(tokens[6])
-
-                for i in range(len(magnitude_errors)):
-                    if magnitude_errors[i] < best_mag_err:
-                        best_mag_err_idx = i
-                        best_mag_err = magnitude_errors[i]
-
                 mag, mag_err = (
-                    float(tokens[1 + best_mag_err_idx]),
-                    float(tokens[6 + best_mag_err_idx]),
+                    float(tokens[1 + smallest_mag_err_idx]),
+                    float(tokens[6 + smallest_mag_err_idx]),
                 )
                 hjd = float(tokens[0]) + 2450000
 
