@@ -185,11 +185,11 @@ class PluginService:
                     f"Found default plugin class: {cls.__module__}.{cls.__name__}"
                 )
 
-                plugin_instance = cls()
+                plugin_instance: CatalogPlugin = cls()
 
                 dto = await self.create_plugin(
                     CreatePluginDto(
-                        name=cls.__name__[: cls.__name__.rfind("Plugin")],
+                        name=plugin_instance.catalog_name,
                         created_by="system",
                         directly_identifies_objects=plugin_instance.directly_identifies_objects,
                         description=plugin_instance.description,

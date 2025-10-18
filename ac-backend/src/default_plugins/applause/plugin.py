@@ -26,13 +26,15 @@ class ApplauseIdentificatorDto(StellarObjectIdentificatorDto):
 
 class ApplausePlugin(CatalogPlugin[ApplauseIdentificatorDto]):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(
+            "APPLAUSE",
+            "German astronomical observatories own considerable collection of photographic plates. While these observations lead to significant discoveries in the past, they are also of interest for scientists today and in the future. In particular, for the study of long-term variability of many types of stars, these measurements are of immense scientific value.",
+            "https://www.plate-archive.org/cms/home/",
+            True,
+        )
         self.__service = vo.dal.TAPService(
             APPLAUSE_TAP_URL, session=self.__tap_session()
         )
-        self._directly_identifies_objects = True
-        self._description = "German astronomical observatories own considerable collection of photographic plates. While these observations lead to significant discoveries in the past, they are also of interest for scientists today and in the future. In particular, for the study of long-term variability of many types of stars, these measurements are of immense scientific value."
-        self._catalog_url = "https://www.plate-archive.org/cms/home/"
 
     def __tap_session(self) -> requests.Session():
         session = requests.Session()

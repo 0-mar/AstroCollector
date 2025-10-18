@@ -20,12 +20,14 @@ class Mmt9IdentificatorDto(StellarObjectIdentificatorDto):
 class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
     # http://survey.favor2.info/favor2/
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(
+            "MMT9",
+            "The Mini-MegaTORTORA (MMT-9) system is an unique multi-purpose wide-field monitoring instrument built for and owned by the Kazan Federal University, presently operated under an agreement between Kazan Federal University and Special Astrophysical Observatory, Russia.",
+            "http://survey.favor2.info/favor2/",
+            False,
+        )
         self._url = "http://survey.favor2.info/favor2/photometry/json"
-        self._directly_identifies_objects = False
-        self._description = "The Mini-MegaTORTORA (MMT-9) system is an unique multi-purpose wide-field monitoring instrument built for and owned by the Kazan Federal University, presently operated under an agreement between Kazan Federal University and Special Astrophysical Observatory, Russia."
-        self._catalog_url = "http://survey.favor2.info/favor2/"
-        self._http_client = httpx.Client()
+        self._http_client = httpx.Client(timeout=30.0)
 
     def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
@@ -39,11 +41,11 @@ class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
             "ra": f"{coords.ra.deg}",
             "dec": f"{coords.dec.deg}",
         }
-        query_resp = self._http_client.get(self._url, params=query_params, timeout=10.0)
+        query_resp = self._http_client.get(self._url, params=query_params)
         query_data = query_resp.json()
 
         if query_data["lcs"] == []:
-            yield []
+            return
 
         # catalog does not group results by stellar object ID, so instead we treat measurements as one object.
         # It is up to the user to set appropriate radius
@@ -70,7 +72,7 @@ class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
             "ra": f"{identificator.ra_deg}",
             "dec": f"{identificator.dec_deg}",
         }
-        query_resp = self._http_client.get(self._url, params=query_params, timeout=10.0)
+        query_resp = self._http_client.get(self._url, params=query_params)
         query_data = query_resp.json()
 
         chunk: list[PhotometricDataDto] = []

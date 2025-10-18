@@ -23,13 +23,15 @@ class DaschIdentificatorDto(StellarObjectIdentificatorDto):
 class DaschPlugin(CatalogPlugin[DaschIdentificatorDto]):
     # https://dasch.cfa.harvard.edu/dr7/web-apis/
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(
+            "DASCH",
+            "DASCH was the project to digitize the Harvard College Observatory’s Astronomical Photographic Glass Plate Collection for scientific applications. This enormous — multi-decade — undertaking was completed in 2024. Its legacy is DASCH Data Release 7, an extraordinary dataset that enables scientific study of the entire night sky on 100-year timescales.",
+            "https://dasch.cfa.harvard.edu/",
+            True,
+        )
         self.base_url = "https://api.starglass.cfa.harvard.edu/public"
         self.querycat_endpoint = f"{self.base_url}/dasch/dr7/querycat"
         self.lightcurve_endpoint = f"{self.base_url}/dasch/dr7/lightcurve"
-        self._directly_identifies_objects = True
-        self._description = "DASCH was the project to digitize the Harvard College Observatory’s Astronomical Photographic Glass Plate Collection for scientific applications. This enormous — multi-decade — undertaking was completed in 2024. Its legacy is DASCH Data Release 7, an extraordinary dataset that enables scientific study of the entire night sky on 100-year timescales."
-        self._catalog_url = "https://dasch.cfa.harvard.edu/"
         self._http_client = httpx.Client()
 
     def list_objects(
