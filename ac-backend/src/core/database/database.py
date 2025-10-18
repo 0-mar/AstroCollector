@@ -125,7 +125,7 @@ async def get_async_db_session() -> AsyncGenerator[AsyncSession, Any]:
 
 class DatabaseSessionManager:
     def __init__(self, host: str):
-        self._engine = create_engine(host)
+        self._engine = create_engine(host, pool_pre_ping=True)
         self._sessionmaker = sessionmaker(autocommit=False, bind=self._engine)
 
     def session(self):

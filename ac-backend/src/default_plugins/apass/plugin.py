@@ -20,12 +20,14 @@ class ApassIdentificatorDto(StellarObjectIdentificatorDto):
 class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
     # https://tombstone.physics.mcmaster.ca/APASS/conesearch_offset.php
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(
+            "APASS",
+            "Through a grant from the Robert Martin Ayers Sciences Fund, the AAVSO is performing an all-sky photometric survey. This survey is conducted in eight filters: Johnson B and V, plus Sloan u', g′, r′, i′, z_s and Z. It is valid from about 7th magnitude to about 17th magnitude. Precise, reliable standardized photometry in this magnitude range is in high demand, both from our observers and from the professional community.",
+            "https://www.aavso.org/apass",
+            False,
+        )
         self._url = "https://tombstone.physics.mcmaster.ca/APASS/conesearch_offset.php"
-        self._directly_identifies_objects = False
-        self._description = "Through a grant from the Robert Martin Ayers Sciences Fund, the AAVSO is performing an all-sky photometric survey. This survey is conducted in eight filters: Johnson B and V, plus Sloan u', g′, r′, i′, z_s and Z. It is valid from about 7th magnitude to about 17th magnitude. Precise, reliable standardized photometry in this magnitude range is in high demand, both from our observers and from the professional community."
-        self._catalog_url = "https://www.aavso.org/apass"
-        self._http_client = httpx.Client()
+        self._http_client = httpx.Client(timeout=10.0)
 
     def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID

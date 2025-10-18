@@ -6,13 +6,13 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from httpx import AsyncClient
 from starlette import status
 from starlette.responses import JSONResponse
 
 from src.core.config.config import settings
 from src.core.database.db_init import init_db
 from src.core.exception.exceptions import ACException
-from src.core.http_client import HttpClient
 from src.core.security import router as security_router
 from src.data_retrieval import router as data_router
 from src.export import router as export_router
@@ -26,8 +26,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    HttpClient()
-
     # create log directory if not present
     if not Path.exists(settings.LOGGING_DIR):
         os.mkdir(settings.LOGGING_DIR)
@@ -40,9 +38,9 @@ async def lifespan(app: FastAPI):
 
     await init_db()
 
-    yield
-
-    await HttpClient().get_session().close()
+    async with AsyncClient() as http_client:
+        yield {"http_client": http_client}
+        # The Client closes on shutdown
 
 
 app = FastAPI(lifespan=lifespan)

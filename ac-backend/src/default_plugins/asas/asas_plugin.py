@@ -20,10 +20,12 @@ class AsasIdentificatorDto(StellarObjectIdentificatorDto):
 
 class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
     def __init__(self) -> None:
-        super().__init__()
-        self._directly_identifies_objects = True
-        self._description = "The All Sky Automated Survey (ASAS) is a low cost project dedicated to constant photometric monitoring of the whole available sky, which is approximately 10^7 stars brighter than 14 magnitude. The project's ultimate goal is detection and investigation of of any kind of the photometric variability. One of the main objectives of ASAS is to find and catalog variable stars. "
-        self._catalog_url = "https://www.astrouw.edu.pl/asas/?page=main"
+        super().__init__(
+            "ASAS",
+            "The All Sky Automated Survey (ASAS) is a low cost project dedicated to constant photometric monitoring of the whole available sky, which is approximately 10^7 stars brighter than 14 magnitude. The project's ultimate goal is detection and investigation of of any kind of the photometric variability. One of the main objectives of ASAS is to find and catalog variable stars.",
+            "https://www.astrouw.edu.pl/asas/?page=main",
+            True,
+        )
         self._http_client = httpx.Client(timeout=10.0)
         self._search_url = "https://www.astrouw.edu.pl/cgi-asas/asas_cat_input"
 
@@ -118,7 +120,7 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
                 continue
             stripped = line.strip()
             tokens = stripped.split()
-            if tokens[12] == "C" or tokens[12] == "D":
+            if tokens[11] == "C" or tokens[11] == "D":
                 continue
 
             count += 1
@@ -154,7 +156,7 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
                 csv_file.write(stripped + "\n")
 
                 tokens = stripped.split()
-                if tokens[12] == "C" or tokens[12] == "D":
+                if tokens[11] == "C" or tokens[11] == "D":
                     continue
 
                 mag, mag_err = (

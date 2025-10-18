@@ -9,10 +9,10 @@ function RouteComponent() {
         <div className="bg-blue-100">
             <div className="p-8 flex flex-col gap-y-2">
                 <h1 className={"text-3xl font-extrabold"}>About</h1>
-                <p><span className="font-extrabold text-lg text-transparent bg-clip-text bg-gradient-to-r to-black from-amber-400">AstroCollector</span> is a tool for searching for photometric data of stellar objects.
+                <p><span className="font-extrabold text-lg text-transparent bg-clip-text bg-gradient-to-r to-black from-amber-400">AstroCollector</span> is a tool for searching for photometric data of stellar objects. It allows users to display and download data from various star surveys / catalogs.
                 </p>
                 <p>
-                    The tool was developed for the <a href={"https://www.physics.muni.cz/en"} target={"_blank"} className={"font-medium text-blue-600 hover:underline"}>Department of Physics at Masaryk university</a>.
+                    The tool was developed for the <a href={"https://www.physics.muni.cz/en"} target={"_blank"} className={"font-medium text-blue-600 hover:underline"}>Department of Physics, Faculty of Science, Masaryk university</a>.
                 </p>
             </div>
         </div>

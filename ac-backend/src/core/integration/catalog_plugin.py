@@ -16,14 +16,17 @@ T = TypeVar("T", bound=StellarObjectIdentificatorDto)
 
 
 class CatalogPlugin(Generic[T], ABC):
-    def __init__(self) -> None:
+    def __init__(
+        self, name: str, description: str, url: str, directly_identifies_objects: bool
+    ) -> None:
         self.__batch_limit = 20000
         self._geocenter = EarthLocation.from_geocentric(
             0 * units.m, 0 * units.m, 0 * units.m
         )
-        self._directly_identifies_objects = True
-        self._description = ""
-        self._catalog_url = ""
+        self._directly_identifies_objects = directly_identifies_objects
+        self._description = description
+        self._catalog_url = url
+        self._catalog_name = name
 
     def batch_limit(self):
         return self.__batch_limit
@@ -35,6 +38,10 @@ class CatalogPlugin(Generic[T], ABC):
     @property
     def description(self) -> str:
         return self._description
+
+    @property
+    def catalog_name(self) -> str:
+        return self._catalog_name
 
     @property
     def catalog_url(self) -> str:

@@ -1,6 +1,6 @@
 export default function Footer() {
     const date = new Date()
-    const dateString = date.getDay() + ". " + date.getMonth() + ". " + date.getFullYear()
+    const dateString = new Intl.DateTimeFormat("cs-CZ").format(date).toString()
 
     return (
         <footer className="footer footer-horizontal footer-center bg-secondary text-primary-content p-10">
@@ -17,7 +17,7 @@ export default function Footer() {
             <p className="font-bold">
 
                 <br/>
-                Developed for the <a className={"text-blue-600 hover:underline"} href={"https://physics.muni.cz/en"} target={"_blank"}>Department of physics at Masaryk University</a>
+                Developed for the <a className={"text-blue-600 hover:underline"} href={"https://physics.muni.cz/en"} target={"_blank"}>Department of Physics, Faculty of Science, Masaryk University</a>
             </p>
             <p>Copyright © {new Date().getFullYear()} Ondřej Marek</p>
             <p>Last update: {dateString}</p>

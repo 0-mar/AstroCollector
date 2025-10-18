@@ -21,8 +21,12 @@ class KeplerStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
 
 class KeplerPlugin(CatalogPlugin[KeplerStellarObjectIdentificatorDto]):
     def __init__(self) -> None:
-        super().__init__()
-        self._directly_identifies_objects = True
+        super().__init__(
+            "Kepler",
+            "The Kepler spacecraft was launched into an earth trailing orbit and stared at a 100 sq. degree patch of sky near Cygnus in order to measure the brightness variations of about 200,000 stars.  Its primary mission was to find exoplanets transiting these stars and to determine the prevalence of exoplanets in the Galaxy.  The Kepler spacecraft rotated by 90 degrees every 90 days in order to keep the solar panels pointing at the sun and thus the Kepler data is divided into 90-day quarters. Kepler only downloaded the pixels surrounding selected stars of interest at either a 30-minute or 1-minute cadence. The mission produced a flux time series for each star and searched these light curves for the presence of a transiting exoplanet.",
+            "https://archive.stsci.edu/missions-and-data/kepler",
+            True,
+        )
 
     def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
