@@ -97,7 +97,7 @@ const StellarObjectsMenu = ({
             .map((_, idx) => {
 
                     return resultQueries[idx].isSuccess
-                        ? [idx, taskQueries[idx].data?.task_id]
+                        ? idx
                         : null
                 }
             )
@@ -132,23 +132,18 @@ const StellarObjectsMenu = ({
     ]);
 
     const ongoingTasks = useMemo(() => {
-        const ongoingTasks = taskQueries.map((query, idx) => query.data?.task_id !== undefined ? [idx, query.data?.task_id] : undefined)
-            .filter(tuple => tuple !== undefined)
-            .filter(([idx, _]) => {
-                for (const [idx2, _] of completedTasks) {
-                    if (idx === idx2) return false;
-                }
-                return true;
-            });
+        const ongoingTasks = pluginData.map((_, idx) => idx)
+            .filter(idx => !failedTasks.includes(idx))
+            .filter(idx => !completedTasks.includes(idx))
         return ongoingTasks;
-    }, [completedTasks]);
+    }, [completedTasks, failedTasks]);
 
     // select all stellar objects that are within 0.1 arcsec or closer (must be the object we searched for)
     useEffect(() => {
         identifiersContext?.setSelectedObjectIdentifiers(prev => {
             const updatedState: Identifiers = {...prev};
 
-            completedTasks.forEach(([idx, taskId]) => {
+            completedTasks.forEach((idx) => {
                 const resultQuery = resultQueries[idx]
                 if (!resultQuery.isSuccess) return;
 
@@ -196,7 +191,7 @@ const StellarObjectsMenu = ({
                         </div>}
                     </TooltipTrigger>
                     <TooltipContent>
-                        {ongoingTasks.map(([idx, _]) => {
+                        {ongoingTasks.map(idx => {
                             const plugin = pluginData[idx];
                             return (
                                 <p key={`ongoing_${plugin.id}`}>Loading results from {plugin.name}</p>
@@ -224,7 +219,7 @@ const StellarObjectsMenu = ({
             {failedTasks.length === pluginData.length ? <ErrorAlert description={"Please try again later"} title={"Cannot fetch search results"} /> : completedTasks.length === 0 ? <LoadingSkeleton text={"Loading stellar objects..."}/> :
                 <Tabs defaultValue={pluginData[0].id}>
                     <TabsList>
-                        {completedTasks.map(([idx, taskId]) => {
+                        {completedTasks.map(idx => {
                                 const plugin = pluginData[idx];
                                 if (resultQueries[idx].isSuccess && resultQueries[idx].data.count > 0) {
                                     return (
@@ -249,7 +244,7 @@ const StellarObjectsMenu = ({
                         )}
 
                     </TabsList>
-                    {completedTasks.map(([idx, taskId]) => {
+                    {completedTasks.map(idx => {
                             const plugin = pluginData[idx];
                             if (resultQueries[idx].isSuccess && resultQueries[idx].data.count > 0) {
                                 return (
