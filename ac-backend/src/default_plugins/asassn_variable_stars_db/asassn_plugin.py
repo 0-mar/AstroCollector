@@ -13,18 +13,20 @@ from src.core.integration.schemas import (
 from bs4 import BeautifulSoup
 
 
-class AsasnIdentificatorDto(StellarObjectIdentificatorDto):
+class AsassnIdentificatorDto(StellarObjectIdentificatorDto):
     asasn_uuid: str
 
 
-class AsasnPlugin(CatalogPlugin[AsasnIdentificatorDto]):
+class AsassnPlugin(CatalogPlugin[AsassnIdentificatorDto]):
     def __init__(self) -> None:
         # the data comes from here
         # https://asas-sn.osu.edu/variables
-        super().__init__()
-        self._directly_identifies_objects = True
-        self._description = "The sky is very big: until recently, only human eyes fully surveyed the sky for the transient, variable and violent events that are crucial probes of the nature and physics of our Universe. We changed that with our All-Sky Automated Survey for Supernovae (ASAS-SN) project, which is now automatically surveying the entire visible sky every night down to about 18th magnitude, more than 50,000 times deeper than human eye."
-        self._catalog_url = "https://www.astronomy.ohio-state.edu/asassn/index.shtml"
+        super().__init__(
+            "ASAS-SN VS Database",
+            "The sky is very big: until recently, only human eyes fully surveyed the sky for the transient, variable and violent events that are crucial probes of the nature and physics of our Universe. We changed that with our All-Sky Automated Survey for Supernovae (ASAS-SN) project, which is now automatically surveying the entire visible sky every night down to about 18th magnitude, more than 50,000 times deeper than human eye.",
+            "https://www.astronomy.ohio-state.edu/asassn/index.shtml",
+            True,
+        )
         self._http_client = httpx.Client(timeout=10.0)
         self._base_url = "https://asas-sn.osu.edu"
 
@@ -33,7 +35,7 @@ class AsasnPlugin(CatalogPlugin[AsasnIdentificatorDto]):
 
     def list_objects(
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
-    ) -> Iterator[list[AsasnIdentificatorDto]]:
+    ) -> Iterator[list[AsassnIdentificatorDto]]:
         response = self._http_client.get(self._search_url(coords, radius_arcsec))
         response.raise_for_status()
         html = response.text
@@ -44,7 +46,7 @@ class AsasnPlugin(CatalogPlugin[AsasnIdentificatorDto]):
 
         rows = body.find_all("tr")
 
-        chunk: list[AsasnIdentificatorDto] = []
+        chunk: list[AsassnIdentificatorDto] = []
 
         for row in rows:
             if len(chunk) >= self.batch_limit():
@@ -69,7 +71,7 @@ class AsasnPlugin(CatalogPlugin[AsasnIdentificatorDto]):
             dst_arc_sec = float(row_cols[4].text)
 
             chunk.append(
-                AsasnIdentificatorDto(
+                AsassnIdentificatorDto(
                     plugin_id=plugin_id,
                     ra_deg=ra,
                     dec_deg=dec,
@@ -83,7 +85,7 @@ class AsasnPlugin(CatalogPlugin[AsasnIdentificatorDto]):
             yield chunk
 
     def get_photometric_data(
-        self, identificator: AsasnIdentificatorDto, csv_path: Path
+        self, identificator: AsassnIdentificatorDto, csv_path: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         data_url = f"{self._base_url}/variables/{identificator.asasn_uuid}.json"
 
