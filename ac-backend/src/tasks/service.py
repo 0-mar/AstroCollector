@@ -15,7 +15,6 @@ from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.exception import RepositoryException
 
-# from src.default_plugins.mast.mast_plugin import MastPlugin
 from src.plugin.exceptions import NoPluginClassException
 from src.plugin.model import Plugin
 from src.tasks.model import Task
@@ -31,6 +30,7 @@ class SyncTaskService:
 
     def _get_plugin_entity(self, entity_id: UUID) -> Plugin:
         result = self._session.get(Plugin, entity_id)
+        self._session.commit()
         if result is None:
             raise RepositoryException("Plugin with ID " + str(entity_id) + " not found")
         return result
@@ -78,10 +78,10 @@ class SyncTaskService:
         if data == []:
             return
         self._session.execute(insert(self._model), data)
-        # self._session.commit()
+        self._session.commit()
 
     def set_task_status(self, task_id: str, status: TaskStatus):
         uuid = UUID(task_id)
         stmt = update(Task).where(Task.id == uuid).values(status=status)
         self._session.execute(stmt)
-        # self._session.commit()
+        self._session.commit()

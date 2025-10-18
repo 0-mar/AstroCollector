@@ -77,7 +77,7 @@ def catalog_cone_search(self, task_id: str, query_dict: dict[Any, Any]):
             f"Find stellar object task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nQuery: {query_dict}",
             exc_info=True,
         )
-        self.session.rollback()
+        # self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
     else:
@@ -104,7 +104,7 @@ def find_stellar_object(self, task_id: str, query_dict: dict[Any, Any]):
             f"Find stellar object task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nQuery: {query_dict}",
             exc_info=True,
         )
-        self.session.rollback()
+        # self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
     else:
@@ -132,7 +132,7 @@ def get_photometric_data(
             f"Get photometric data task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nIdentificator: {identificator_dict}",
             exc_info=True,
         )
-        self.session.rollback()
+        # self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
 

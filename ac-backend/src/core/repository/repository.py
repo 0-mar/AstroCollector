@@ -14,6 +14,8 @@ from src.core.repository.schemas import BaseDto
 
 # using session correctly
 # https://docs.sqlalchemy.org/en/20/orm/session_basics.html
+# https://www.francoisvoron.com/blog/sqlalchemy-stop-calling-session-commit
+# https://docs.sqlalchemy.org/en/20/orm/session_basics.html#when-do-i-construct-a-session-when-do-i-commit-it-and-when-do-i-close-it
 Entity = TypeVar("Entity", bound=DbEntity)
 
 OPERATORS = {
