@@ -46,10 +46,13 @@ cp ".env" "${DEPLOYMENT_TARGET_DIR}/.env"
 # always set PRODUCTION to True
 sed -i -E 's/^\s*PRODUCTION\s*=\s*false\s*$/PRODUCTION=true/' "${DEPLOYMENT_TARGET_DIR}/.env"
 
+echo "Deleting old files on the server..."
+ssh xmarek9@phoenix 'cd ~/astrocollector-src/deployment && podman-compose down -v; cd ~; rm -rf astrocollector-src'
+
 echo "Sending source files to the server..."
 scp -r astrocollector-src xmarek9@phoenix:~
 
 echo "Deploying containers on the server..."
-ssh xmarek9@phoenix 'cd ~/astrocollector-src/deployment; podman-compose down -v; podman-compose build --no-cache && podman-compose up -d'
+ssh xmarek9@phoenix 'cd ~/astrocollector-src/deployment; podman-compose build --no-cache && podman-compose up -d'
 
 rm -rf "astrocollector-src"
