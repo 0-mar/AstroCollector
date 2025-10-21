@@ -17,12 +17,17 @@ const PlotOptionsPanel = ({pluginNames, lightFilters}: PlotOptionsPanelProps) =>
     const optionsContext = useContext(OptionsContext)
 
     return (
-        <div className={"p-4 bg-white rounded-md shadow-md"}>
+        <div className="p-4 bg-white rounded-md shadow-md">
             <h2 className="text-xl font-medium text-gray-900">Options</h2>
-            <div className={"grid grid-cols-3 gap-x-2"}>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-2 gap-y-4 items-start">
                 <section>
                     <h3 className="text-lg text-gray-900">Group by</h3>
-                    <RadioGroup className={"mt-2"} value={optionsContext?.groupBy} onValueChange={(value: GroupOptions) => {optionsContext?.setGroupBy(value)}}>
+                    <RadioGroup
+                        className="mt-2"
+                        value={optionsContext?.groupBy}
+                        onValueChange={(value: GroupOptions) => optionsContext?.setGroupBy(value)}
+                    >
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value={GroupOptions.CATALOGS} id={GroupOptions.CATALOGS} />
                             <Label htmlFor={GroupOptions.CATALOGS}>Catalogs (sources)</Label>
@@ -33,15 +38,15 @@ const PlotOptionsPanel = ({pluginNames, lightFilters}: PlotOptionsPanelProps) =>
                         </div>
                     </RadioGroup>
                 </section>
-                <section className={"flex flex-col gap-y-2 max-w-[200px] overflow-y-auto scrollbar-hide border-2 rounded-md p-2 border-gray-200"}>
-                    {optionsContext?.groupBy === GroupOptions.CATALOGS ?
-                        <CatalogsLegend pluginNames={pluginNames}/>
-                        :
-                        <LightFiltersLegend lightFilters={lightFilters}/>
-                    }
 
+                <section className="flex flex-col gap-y-2 sm:max-w-none lg:max-w-[200px] overflow-y-auto scrollbar-hide border-2 rounded-md p-2 border-gray-200">
+                    {optionsContext?.groupBy === GroupOptions.CATALOGS
+                        ? <CatalogsLegend pluginNames={pluginNames}/>
+                        : <LightFiltersLegend lightFilters={lightFilters}/>}
                 </section>
-                <div>
+
+                {/* Wraps under on small screens, back to column on large */}
+                <div className="sm:col-span-2 lg:col-span-1">
                     <ZoomForm/>
                 </div>
             </div>

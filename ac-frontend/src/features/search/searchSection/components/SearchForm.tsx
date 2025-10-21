@@ -21,10 +21,10 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import type {PluginDto} from "@/features/plugin/types.ts";
 
 
-const LabeledInput = ({label, ...props}) => {
+const LabeledInput = ({label, placeholder, ...props}) => {
     return (
         <div className={"flex gap-x-2 items-center"}>
-            <Input className={"w-5/6"} placeholder={"e. g. 2.55"} {...props} />
+            <Input className={"w-5/6"} placeholder={placeholder} {...props} />
             <span className={"w-1/6"}>{label}</span>
         </div>
     )
@@ -98,7 +98,7 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
                         <FormItem>
                             <FormLabel>Right ascension</FormLabel>
                             <FormControl>
-                                <LabeledInput label={"deg"} {...field}/>
+                                <LabeledInput placeholder={"92.744381"} label={"deg"} {...field}/>
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
@@ -111,7 +111,7 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
                         <FormItem>
                             <FormLabel>Declination</FormLabel>
                             <FormControl>
-                                <LabeledInput label={"deg"} {...field}/>
+                                <LabeledInput placeholder={"-20.211581"} label={"deg"} {...field}/>
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
@@ -124,7 +124,7 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
                         <FormItem>
                             <FormLabel>Radius</FormLabel>
                             <FormControl>
-                                <LabeledInput label={"arcsec"} {...field}/>
+                                <LabeledInput placeholder={"30"} label={"arcsec"} {...field}/>
                             </FormControl>
                             <FormMessage/>
                         </FormItem>
