@@ -79,7 +79,7 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
                     plugin_id=plugin_id,
                     ra_deg=target_coords.ra.deg,
                     dec_deg=target_coords.dec.deg,
-                    name="",
+                    name=None,
                     dist_arcsec=coords.separation(target_coords).arcsec,
                     asas_id=asas_id,
                 )
@@ -165,13 +165,13 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
                 )
                 hjd = float(tokens[0]) + 2450000
 
-                bjd = self._to_bjd(
+                bjd = self._to_bjd_tdb(
                     hjd,
-                    format="jd",
-                    scale="utc",
+                    time_format="jd",
+                    time_scale="utc",
+                    reference_frame="heliocentric",
                     ra_deg=identificator.ra_deg,
                     dec_deg=identificator.dec_deg,
-                    is_hjd=True,
                 )
 
                 chunk.append(

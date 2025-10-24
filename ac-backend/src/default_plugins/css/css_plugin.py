@@ -101,13 +101,13 @@ class CatalinaPlugin(CatalogPlugin[CatalinaIdentificatorDto]):
             chunk = chunk.dropna(subset=["MJD", "Mag", "Magerr"])
             for mjd, mag, magerr in chunk.itertuples(index=False, name=None):
                 # convert MJD_UTC to BJD_TDB
-                bjd = self._to_bjd(
+                bjd = self._to_bjd_tdb(
                     mjd,
-                    format="mjd",
-                    scale="utc",
+                    time_format="mjd",
+                    time_scale="utc",
+                    reference_frame="geocentric",
                     ra_deg=identificator.ra_deg,
                     dec_deg=identificator.dec_deg,
-                    is_hjd=False,
                 )
 
                 batch.append(

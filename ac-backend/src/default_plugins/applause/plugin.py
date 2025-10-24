@@ -89,7 +89,7 @@ class ApplausePlugin(CatalogPlugin[ApplauseIdentificatorDto]):
                     ra_deg=ra,
                     dec_deg=dec,
                     ucac4_id=ucac4_id,
-                    name="",
+                    name=None,
                     dist_arcsec=angdist_arcsec,
                 )
             )
@@ -111,7 +111,7 @@ class ApplausePlugin(CatalogPlugin[ApplauseIdentificatorDto]):
                     ra_deg=ra,
                     dec_deg=dec,
                     ucac4_id=ucac4_id,
-                    name="",
+                    name=None,
                     dist_arcsec=angdist_arcsec,
                 )
             )
@@ -136,13 +136,13 @@ class ApplausePlugin(CatalogPlugin[ApplauseIdentificatorDto]):
                 chunk = []
 
             # convert JD_UTC to BJD_TDB
-            bjd = self._to_bjd(
+            bjd = self._to_bjd_tdb(
                 jd_mid,
-                format="jd",
-                scale="utc",
+                time_format="jd",
+                time_scale="utc",
+                reference_frame="geocentric",
                 ra_deg=identificator.ra_deg,
                 dec_deg=identificator.dec_deg,
-                is_hjd=False,
             )
 
             chunk.append(

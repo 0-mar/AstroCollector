@@ -115,13 +115,13 @@ class SwaspPlugin(CatalogPlugin[SwaspIdentificatorDto]):
             chunk = chunk.dropna(subset=["HJD", "magnitude", "magnitude error"])
             for hjd, mag, mag_err in chunk.itertuples(index=False, name=None):
                 # convert HJD_UTC to BJD_TDB
-                bjd = self._to_bjd(
+                bjd = self._to_bjd_tdb(
                     hjd,
-                    format="jd",
-                    scale="utc",
+                    time_format="jd",
+                    time_scale="utc",
+                    reference_frame="heliocentric",
                     ra_deg=identificator.ra_deg,
                     dec_deg=identificator.dec_deg,
-                    is_hjd=True,
                 )
 
                 batch.append(
