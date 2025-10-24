@@ -67,7 +67,7 @@ class AidPlugin(CatalogPlugin[AidIdentificatorDto]):
                     auid=record["AUID"],
                     ra_deg=record["RA2000"],
                     dec_deg=record["Declination2000"],
-                    name=record["Name"] if "Name" in record else "",
+                    name=record["Name"] if "Name" in record else None,
                     dist_arcsec=search_coords.separation(record_coords).arcsec,
                 )
             )
@@ -115,13 +115,13 @@ class AidPlugin(CatalogPlugin[AidIdentificatorDto]):
             chunk = chunk.dropna(subset=["JD", "mag", "uncert", "band"])
             for jd, mag, uncert, band in chunk.itertuples(index=False, name=None):
                 # convert JD_UTC to BJD_TDB
-                bjd = self._to_bjd(
+                bjd = self._to_bjd_tdb(
                     jd,
-                    format="jd",
-                    scale="utc",
+                    time_format="jd",
+                    time_scale="utc",
+                    reference_frame="geocentric",
                     ra_deg=identificator.ra_deg,
                     dec_deg=identificator.dec_deg,
-                    is_hjd=False,
                 )
 
                 batch.append(

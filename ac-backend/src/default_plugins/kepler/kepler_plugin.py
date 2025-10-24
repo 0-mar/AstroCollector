@@ -101,7 +101,7 @@ class KeplerPlugin(CatalogPlugin[KeplerStellarObjectIdentificatorDto]):
                 chunk.append(
                     PhotometricDataDto(
                         plugin_id=identificator.plugin_id,
-                        julian_date=time.jd,
+                        julian_date=time.tdb.jd,
                         magnitude=mag,
                         magnitude_error=mag_err,
                         light_filter=None,

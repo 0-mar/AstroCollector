@@ -103,13 +103,13 @@ class MachoPlugin(CatalogPlugin[MachoIdentificatorDto]):
                     csv_file.write(f"{jd},{mag},{mag_err}\n")
 
                     # convert JD_UTC to BJD_TDB
-                    bjd = self._to_bjd(
+                    bjd = self._to_bjd_tdb(
                         jd,
-                        format="jd",
-                        scale="utc",
+                        time_format="jd",
+                        time_scale="utc",
+                        reference_frame="geocentric",
                         ra_deg=identificator.ra_deg,
                         dec_deg=identificator.dec_deg,
-                        is_hjd=False,
                     )
 
                     batch.append(

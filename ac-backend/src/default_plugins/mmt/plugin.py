@@ -55,7 +55,7 @@ class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
                 ra_deg=coords.ra.deg,
                 dec_deg=coords.dec.deg,
                 radius_arcsec=radius_arcsec,
-                name="",
+                name=None,
                 dist_arcsec=0,
             )
         ]
@@ -126,13 +126,13 @@ class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
                         chunk = []
 
                     # convert MJD_UTC to BJD_TDB
-                    bjd = self._to_bjd(
+                    bjd = self._to_bjd_tdb(
                         float(record["mjds"][i]),
-                        format="mjd",
-                        scale="utc",
+                        time_format="mjd",
+                        time_scale="utc",
+                        reference_frame="geocentric",
                         ra_deg=identificator.ra_deg,
                         dec_deg=identificator.dec_deg,
-                        is_hjd=False,
                     )
 
                     chunk.append(

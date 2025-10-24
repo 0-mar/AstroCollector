@@ -43,7 +43,7 @@ class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
         soup = BeautifulSoup(html, "html.parser")
         root = soup.find("font", attrs={"face": "courier"})
         if root.text == "No rows were returned by query.":
-            yield []
+            return
 
         # TODO: how do I resolve names & distances?
         else:
@@ -53,7 +53,7 @@ class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
                     ra_deg=coords.ra.deg,
                     dec_deg=coords.dec.deg,
                     raddeg=radius_arcsec / 3600,
-                    name="",
+                    name=None,
                     dist_arcsec=0,
                 )
             ]
@@ -95,13 +95,13 @@ class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
 
                 # convert HJD_UTC to BJD_TDB
                 hjd = float(values[0]) + 2400000
-                bjd = self._to_bjd(
+                bjd = self._to_bjd_tdb(
                     hjd,
-                    format="jd",
-                    scale="utc",
+                    time_format="jd",
+                    time_scale="utc",
+                    reference_frame="heliocentric",
                     ra_deg=identificator.ra_deg,
                     dec_deg=identificator.dec_deg,
-                    is_hjd=True,
                 )
 
                 chunk.append(

@@ -85,7 +85,7 @@ class DaschPlugin(CatalogPlugin[DaschIdentificatorDto]):
                     ra_deg=float(identificator_ra_deg),
                     dec_deg=float(identificator_dec_deg),
                     plugin_id=plugin_id,
-                    name="",
+                    name=None,
                     dist_arcsec=coords.separation(record_coords).arcsec,
                 )
             )
@@ -136,13 +136,13 @@ class DaschPlugin(CatalogPlugin[DaschIdentificatorDto]):
                 # convert HJD_UTC to BJD_TDB
                 # see DASCH time format - Time column:
                 # https://dasch.cfa.harvard.edu/dr7/lightcurve-columns/
-                bjd = self._to_bjd(
+                bjd = self._to_bjd_tdb(
                     float(row[jd_idx]),
-                    format="jd",
-                    scale="utc",
+                    time_format="jd",
+                    time_scale="utc",
+                    reference_frame="heliocentric",
                     ra_deg=identificator.ra_deg,
                     dec_deg=identificator.dec_deg,
-                    is_hjd=True,
                 )
 
                 mag = float(row[mag_idx])

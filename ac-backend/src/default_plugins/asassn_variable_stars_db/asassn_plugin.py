@@ -108,13 +108,13 @@ class AsassnPlugin(CatalogPlugin[AsassnIdentificatorDto]):
                 hjd = float(result["hjd"])
                 mag = float(result["mag"])
                 mag_err = float(result["mag_err"])
-                bjd = self._to_bjd(
+                bjd = self._to_bjd_tdb(
                     hjd,
-                    format="jd",
-                    scale="utc",
+                    time_format="jd",
+                    time_scale="utc",
+                    reference_frame="heliocentric",
                     ra_deg=identificator.ra_deg,
                     dec_deg=identificator.dec_deg,
-                    is_hjd=True,
                 )
 
                 chunk.append(
