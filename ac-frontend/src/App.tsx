@@ -1,8 +1,9 @@
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import {RouterProvider, createRouter, Link} from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {AuthProvider} from "@/features/common/auth/components/AuthContext.tsx";
 import {useAuth} from "@/features/common/auth/hooks/useAuth.ts";
+import NotFound from "@/features/common/components/NotFound.tsx";
 
 export const router = createRouter({
     routeTree,
@@ -13,6 +14,7 @@ export const router = createRouter({
             accessToken: null
         }
     },
+    defaultNotFoundComponent: () => NotFound(),
     //defaultPreload: 'intent',
     //scrollRestoration: true,
     //defaultStructuralSharing: true,

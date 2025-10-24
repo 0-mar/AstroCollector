@@ -19,13 +19,13 @@ export const Route = createRootRouteWithContext<RouterCtx>()({
     component: () => {
     return (
         <div className="min-h-dvh flex flex-col">
-            <div className={"shrink-0"}>
+            <div className="shrink-0">
                 <Header/>
             </div>
             <main className="flex-1">
                 <Outlet />
             </main>
-            <div className={"shrink-0"}>
+            <div className="shrink-0">
                 <Footer/>
             </div>
 
