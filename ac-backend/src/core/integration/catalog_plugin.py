@@ -16,9 +16,21 @@ T = TypeVar("T", bound=StellarObjectIdentificatorDto)
 
 
 class CatalogPlugin(Generic[T], ABC):
+    """
+    Base class for all catalog plugins.
+    """
+
     def __init__(
         self, name: str, description: str, url: str, directly_identifies_objects: bool
     ) -> None:
+        """
+        Create new catalog plugin.
+        :param name: name of the catalog
+        :param description: catalog description
+        :param url: catalog website url
+        :param directly_identifies_objects: whether the catalog directly identifies objects or not.
+        That is, is each photometry record linked to an object with ID, or does the catalog just provide a list of measurements for given position?
+        """
         self.__batch_limit = 20000
         self._geocenter = EarthLocation.from_geocentric(
             0 * units.m, 0 * units.m, 0 * units.m
@@ -52,11 +64,12 @@ class CatalogPlugin(Generic[T], ABC):
         self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
     ) -> Iterator[List[T]]:
         """
-        Yields chunks of found stellar objects
-        :param coords:
-        :param radius_arcsec:
-        :param plugin_id:
-        :return:
+        Generator method that yields found stellar objects. Returns plugins corresponding stellar object identificators
+        found in the radius around the given coordinates.
+        :param coords: the coordinates which to search for objects around
+        :param radius_arcsec: search radius around the given coordinates in arcseconds
+        :param plugin_id: the plugin id of the used plugin database entity. Used to identify the plugin in the database.
+        :return: list of stellar object identificators.
         """
         pass
 
@@ -65,10 +78,16 @@ class CatalogPlugin(Generic[T], ABC):
         self, identificator: T, csv_path: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         """
-        Yield chunks of photometric data for particular stellar object. Writes the original (raw) data to the provided csv file.
+        Generator method that yields photometric data for a given stellar object. Writes the original fetched data to the provided csv file.
+
+        The data has to be converted into a unified format in this method. Please see PhotometricDataDto for format details. For timestamp unification, please use the _to_bjd_tdb helper method.
+
+        If the remote source returns large amounts of data, please split the data into chunks and yield each chunk. This is because the data is saved to the database,
+        so that we avoid inserting too much at once. The recommended chunk size is defined in batch_limit.
+
         :param csv_path: path to store the original data
         :param identificator: the stellar object to get photometric data for
-        :return:
+        :return: list of photometric data for the given stellar object.
         """
         pass
 
