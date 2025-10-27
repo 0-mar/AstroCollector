@@ -53,7 +53,7 @@ class SwaspPlugin(CatalogPlugin[SwaspIdentificatorDto]):
         soup = BeautifulSoup(html, "html.parser")
         table = soup.find("table", attrs={"class": "basic"})
         if table is None:
-            pass
+            return
 
         rows = table.find_all("tr")[1:]
 
