@@ -77,6 +77,19 @@ export default function Header() {
                                 </Link>
                             </li>
                         </ ProtectedContent>
+                        <ProtectedContent permittedRoles={[UserRoleEnum.SUPER_ADMIN]}>
+                            <li>
+                                <Link
+                                    to="/admin/catalogHelp"
+                                    activeProps={{ className: activeClass }}
+                                    inactiveProps={{ className: inactiveClass }}
+                                    onClick={() => setOpen(false)}
+                                >
+                                    Catalog help
+                                </Link>
+                            </li>
+                        </ ProtectedContent>
+
                         {
                             !auth?.isAuthenticated ?
                                 (<li>

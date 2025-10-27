@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as AdminCatalogManagementRouteImport } from './routes/admin/catalogManagement'
+import { Route as AdminCatalogHelpRouteImport } from './routes/admin/catalogHelp'
 
 const CatalogsRoute = CatalogsRouteImport.update({
   id: '/catalogs',
@@ -40,11 +41,17 @@ const AdminCatalogManagementRoute = AdminCatalogManagementRouteImport.update({
   path: '/admin/catalogManagement',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCatalogHelpRoute = AdminCatalogHelpRouteImport.update({
+  id: '/admin/catalogHelp',
+  path: '/admin/catalogHelp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/catalogs': typeof CatalogsRoute
+  '/admin/catalogHelp': typeof AdminCatalogHelpRoute
   '/admin/catalogManagement': typeof AdminCatalogManagementRoute
   '/login': typeof LoginIndexRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/catalogs': typeof CatalogsRoute
+  '/admin/catalogHelp': typeof AdminCatalogHelpRoute
   '/admin/catalogManagement': typeof AdminCatalogManagementRoute
   '/login': typeof LoginIndexRoute
 }
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/catalogs': typeof CatalogsRoute
+  '/admin/catalogHelp': typeof AdminCatalogHelpRoute
   '/admin/catalogManagement': typeof AdminCatalogManagementRoute
   '/login/': typeof LoginIndexRoute
 }
@@ -69,15 +78,23 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/catalogs'
+    | '/admin/catalogHelp'
     | '/admin/catalogManagement'
     | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/catalogs' | '/admin/catalogManagement' | '/login'
+  to:
+    | '/'
+    | '/about'
+    | '/catalogs'
+    | '/admin/catalogHelp'
+    | '/admin/catalogManagement'
+    | '/login'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/catalogs'
+    | '/admin/catalogHelp'
     | '/admin/catalogManagement'
     | '/login/'
   fileRoutesById: FileRoutesById
@@ -86,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   CatalogsRoute: typeof CatalogsRoute
+  AdminCatalogHelpRoute: typeof AdminCatalogHelpRoute
   AdminCatalogManagementRoute: typeof AdminCatalogManagementRoute
   LoginIndexRoute: typeof LoginIndexRoute
 }
@@ -127,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCatalogManagementRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/catalogHelp': {
+      id: '/admin/catalogHelp'
+      path: '/admin/catalogHelp'
+      fullPath: '/admin/catalogHelp'
+      preLoaderRoute: typeof AdminCatalogHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -134,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   CatalogsRoute: CatalogsRoute,
+  AdminCatalogHelpRoute: AdminCatalogHelpRoute,
   AdminCatalogManagementRoute: AdminCatalogManagementRoute,
   LoginIndexRoute: LoginIndexRoute,
 }
