@@ -1,12 +1,12 @@
 import {useQueries} from "@tanstack/react-query";
 import type {PhotometricDataDto} from "@/features/search/photometricDataSection/types.ts";
 import {useCallback, useContext, useEffect, useMemo, useState} from "react";
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 import { IdentifiersContext } from "../../menuSection/components/IdentifiersContext";
 import BaseApi from "@/features/common/api/baseApi";
 import {TaskStatus, type SubmitTaskDto, type TaskStatusDto } from "@/features/common/api/types";
 import PhotometricDataLoader from "./PhotometricDataLoader";
-import ExportDialog from "@/features/export/components/ExportDialog";
+import ExportDialog from "@/features/search/photometricDataSection/components/export/ExportDialog.tsx";
 import type { StellarObjectIdentifierDto } from "../../menuSection/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../components/ui/tabs";
 import { ColorsProvider } from "./plotOptions/ColorsContext";
@@ -17,7 +17,7 @@ import PhaseCurveGlPlot from "./plot/PhaseCurveGlPlot";
 import PhotometricDataTable from "@/features/search/photometricDataSection/components/PhotometricDataTable.tsx";
 import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
-import ExportRawDataDialog from "@/features/export/components/ExportRawDataDialog.tsx";
+import ExportRawDataDialog from "@/features/search/photometricDataSection/components/export/ExportRawDataDialog.tsx";
 
 
 

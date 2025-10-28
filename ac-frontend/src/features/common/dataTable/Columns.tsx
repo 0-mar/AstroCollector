@@ -6,7 +6,7 @@ import DownloadPluginSrcButton from "@/features/admin/components/DownloadPluginS
 import EditPluginDialog from "@/features/admin/components/EditPluginDialog.tsx";
 import DeletePluginDialog from "@/features/admin/components/DeletePluginDialog.tsx";
 import type {Identifier} from "@/features/search/menuSection/types.ts";
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
 
 export const identifierColumns: ColumnDef<Identifier>[] = [

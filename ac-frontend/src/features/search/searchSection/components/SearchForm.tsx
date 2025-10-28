@@ -15,10 +15,10 @@ import CoordsPanel from "@/features/search/searchSection/components/CoordsPanel.
 import {SearchFormContext} from "@/features/search/searchSection/components/SearchFormContext.tsx";
 import {ObjectCoordsContext} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
 import {IdentifiersContext} from "@/features/search/menuSection/components/IdentifiersContext.tsx";
-import useCatalogPluginsQuery from "@/features/plugin/hooks/useCatalogPlugins.ts";
+import useCatalogPluginsQuery from "@/features/catalogsOverview/hooks/useCatalogPlugins.ts";
 import {searchFormSchema, type SearchFormValues} from "@/features/search/searchSection/schemas.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
 
 const LabeledInput = ({label, placeholder, ...props}) => {

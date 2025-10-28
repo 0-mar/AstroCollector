@@ -1,4 +1,4 @@
-import type {BaseDto} from "@/features/types.ts";
+import type {BaseDto} from "@/features/common/types.ts";
 
 export type UpdatePluginDto = {
     name: string | null

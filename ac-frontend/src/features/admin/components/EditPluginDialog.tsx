@@ -11,7 +11,7 @@ import {
 } from "../../../../components/ui/dialog.tsx";
 import {useState} from "react";
 import EditPluginForm from "@/features/admin/components/EditPluginForm.tsx";
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
 
 type EditPluginButtonProps = {
