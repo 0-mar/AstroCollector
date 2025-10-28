@@ -1,5 +1,5 @@
 import {createFileRoute} from "@tanstack/react-router";
-import useCatalogPluginsQuery from "@/features/plugin/hooks/useCatalogPlugins.ts";
+import useCatalogPluginsQuery from "@/features/catalogsOverview/hooks/useCatalogPlugins.ts";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
 import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
 import CatalogCard from "@/features/catalogsOverview/components/CatalogCard.tsx";

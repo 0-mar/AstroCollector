@@ -3,7 +3,7 @@ import BaseApi from "@/features/common/api/baseApi.ts";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
 import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
 import SuccessAlert from "@/features/common/alerts/SuccessAlert.tsx";
-import type {ResolvedCoordsDto} from "@/features/nameResolving/types.ts";
+import type {ResolvedCoordsDto} from "@/features/search/searchSection/types.ts";
 import {useContext, useEffect} from "react";
 import {ObjectCoordsContext} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
 import {SearchFormContext} from "@/features/search/searchSection/components/SearchFormContext.tsx";

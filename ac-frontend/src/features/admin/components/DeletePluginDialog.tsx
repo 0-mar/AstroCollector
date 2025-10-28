@@ -13,7 +13,7 @@ import {
     DialogTrigger
 } from "../../../../components/ui/dialog.tsx";
 import {useState} from "react";
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
 type DeletePluginButtonProps = {
     pluginDto: PluginDto

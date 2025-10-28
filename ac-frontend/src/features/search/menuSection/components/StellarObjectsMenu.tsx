@@ -17,7 +17,7 @@ import {type PaginationResponse, type SubmitTaskDto, TaskStatus, type TaskStatus
 import StellarObjectsTab from "@/features/search/menuSection/components/StellarObjectsTab.tsx";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
 import {Commet} from "react-loading-indicators";
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
 type StellarObjectsMenuProps = {
     pluginData: PluginDto[]

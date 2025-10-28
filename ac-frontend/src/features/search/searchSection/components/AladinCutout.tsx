@@ -25,7 +25,7 @@ const AladinCutout = ({loaded}: AladinCutoutProps) => {
         }
         setShowError(false)
 
-        const target = searchFormContext?.searchValues.objectName ??
+        const target = searchFormContext?.searchValues.objectName != "" ? searchFormContext?.searchValues.objectName :
             `${searchFormContext?.searchValues.rightAscension} ${searchFormContext?.searchValues.declination}`
 
         const aladin = aladinGlobal.aladin(containerRef.current,

@@ -1,5 +1,5 @@
 import {createFileRoute, Link} from "@tanstack/react-router"
-import {roleGuard} from "@/features/routing/roleGuard.ts";
+import {roleGuard} from "@/features/common/auth/roleGuard.ts";
 import {UserRoleEnum} from "@/features/common/auth/types.ts";
 
 

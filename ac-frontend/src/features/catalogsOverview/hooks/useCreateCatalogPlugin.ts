@@ -1,9 +1,9 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import BaseApi from "@/features/common/api/baseApi.ts";
 import {toast} from "sonner";
-import type {CreatePluginDto, PluginDto} from "@/features/plugin/types.ts";
+import type {CreatePluginDto, PluginDto} from "@/features/catalogsOverview/types.ts";
 import {useAuth} from "@/features/common/auth/hooks/useAuth.ts";
-import useUploadCatalogPlugin from "@/features/plugin/hooks/useUploadCatalogPlugin.ts";
+import useUploadCatalogPlugin from "@/features/catalogsOverview/hooks/useUploadCatalogPlugin.ts";
 
 const useCreateCatalogPlugin = () => {
     const queryClient = useQueryClient()

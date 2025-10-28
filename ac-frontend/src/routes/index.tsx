@@ -7,7 +7,7 @@ import {IdentifiersProvider} from "@/features/search/menuSection/components/Iden
 import {SearchFormProvider} from "@/features/search/searchSection/components/SearchFormContext.tsx";
 import {ObjectCoordsProvider} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
 import AladinCutout from "@/features/search/searchSection/components/AladinCutout.tsx";
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
 export const Route = createFileRoute('/')({
     component: App,

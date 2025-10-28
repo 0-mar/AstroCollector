@@ -4,7 +4,7 @@ import BaseApi from "@/features/common/api/baseApi.ts";
 import {Button} from "../../../../components/ui/button.tsx";
 import {Download} from "lucide-react";
 
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
 type DownloadPluginSrcButtonProps = {
     pluginDto: PluginDto

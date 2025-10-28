@@ -1,5 +1,5 @@
 import BaseApi, {axiosInstance} from "@/features/common/api/baseApi.ts";
-import type {Tokens} from "@/features/common/auth/hooks/useAuth.ts";
+import type {Tokens} from "@/features/common/auth/types.ts";
 
 export const setHeaderToken = (token: string) => {
     axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`;
@@ -25,14 +25,11 @@ export const refreshAuth = async (failedRequest: any) => {
     const newToken = await fetchNewToken();
 
     if (newToken) {
+        // refresh was successful, we got new access token
         failedRequest.response.config.headers.Authorization = "Bearer " + newToken;
         setHeaderToken(newToken);
-        // you can set your token in storage too
-        // setToken({ token: newToken });
         return Promise.resolve(newToken);
     } else {
-        // you can redirect to login page here
-        // router.push("/login");
         return Promise.reject();
     }
 };

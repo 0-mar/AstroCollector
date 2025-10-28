@@ -1,11 +1,11 @@
 import {useForm} from "react-hook-form";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "../../../../components/ui/form.tsx";
 import {Input} from "../../../../components/ui/input.tsx";
-import {pluginFormSchema, type PluginFormValues} from "@/features/plugin/schemas.ts";
+import {pluginFormSchema, type PluginFormValues} from "@/features/catalogsOverview/schemas.ts";
 import {Textarea} from "../../../../components/ui/textarea.tsx";
 import {Checkbox} from "../../../../components/ui/checkbox.tsx";
 import React from "react";
-import useCreateCatalogPlugin from "@/features/plugin/hooks/useCreateCatalogPlugin.ts";
+import useCreateCatalogPlugin from "@/features/catalogsOverview/hooks/useCreateCatalogPlugin.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
 

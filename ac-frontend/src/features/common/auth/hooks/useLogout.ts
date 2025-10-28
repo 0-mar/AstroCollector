@@ -18,14 +18,20 @@ export const useLogout = () => {
             return BaseApi.post<LogoutMessage>(`/security/logout`)
         },
         onError: (_error) => {
+            // Even if API call fails, clear local state
+            auth?.setAccessToken(null);
+            auth?.setUser(null);
+            removeHeaderToken();
             toast.error("Logout failed")
         },
         onSuccess: async () => {
             auth?.setAccessToken(null)
+            auth?.setUser(null)
             removeHeaderToken()
             // TODO fixme: bug - login returns back to
+            toast.success("Logged out successfully");
             await navigate({ to: "/login", search: {redirect: "/"} });
-        },
+        }
     });
 
     return logoutMutation

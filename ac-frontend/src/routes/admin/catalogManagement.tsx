@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import {roleGuard} from "@/features/routing/roleGuard.ts";
+import {roleGuard} from "@/features/common/auth/roleGuard.ts";
 import {UserRoleEnum} from "@/features/common/auth/types.ts";
-import useCatalogPluginsQuery from "@/features/plugin/hooks/useCatalogPlugins.ts";
+import useCatalogPluginsQuery from "@/features/catalogsOverview/hooks/useCatalogPlugins.ts";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
 import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
 import {ClientPaginatedDataTable} from "@/features/common/dataTable/ClientPaginatedDataTable.tsx";

@@ -4,14 +4,14 @@ import {Input} from "../../../../components/ui/input.tsx";
 import {
     pluginUpdateFormSchema,
     type PluginUpdateFormValues
-} from "@/features/plugin/schemas.ts";
+} from "@/features/catalogsOverview/schemas.ts";
 import {Textarea} from "../../../../components/ui/textarea.tsx";
 import {Checkbox} from "../../../../components/ui/checkbox.tsx";
 import React from "react";
-import useUpdateCatalogPlugin from "@/features/plugin/hooks/useUpdateCatalogPlugin.ts";
+import useUpdateCatalogPlugin from "@/features/catalogsOverview/hooks/useUpdateCatalogPlugin.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
-import type {PluginDto} from "@/features/plugin/types.ts";
+import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
 type EditPluginFormProps = {
     pluginDto: PluginDto
