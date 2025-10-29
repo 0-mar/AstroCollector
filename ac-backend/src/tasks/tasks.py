@@ -40,8 +40,9 @@ def resolve_name_to_coordinates(name: str, http_client: Client) -> SkyCoord:
     except NameResolveError:
         # try searching in VSX AAVSO
         if name is not None:
+            params = {"format": "json", "view": "api.object", "ident": name}
             query_resp = http_client.get(
-                f"https://vsx.aavso.org/index.php?view=api.object&ident={name}&format=json"
+                "https://vsx.aavso.org/index.php", params=params
             )
             query_data = query_resp.json()
 
