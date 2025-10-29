@@ -51,10 +51,43 @@ type ScatterPlotDeckGLProps = {
 
 type Domain = { xMin:number; xMax:number; yMin:number; yMax:number; errMin:number; errMax:number };
 
+import {OrthographicController} from '@deck.gl/core';
+
+class QZoomWheelController extends OrthographicController {
+    constructor(props) {
+        super(props);
+    }
+
+    handleEvent(event) {
+        if (event.type === 'wheel') {
+            if (!this.props?.allowWheelZoom) return;
+        }
+        super.handleEvent(event);
+    }
+
+}
+
 const ScatterPlotDeckGl = ({data, xTitle, yTitle, colorFn, tooltipFn, xDataFn, filterCategories, filterCategoryFn, zoomToCoords}: ScatterPlotDeckGLProps) => {
     const ref = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({w: 800, h: 480});
     const [viewState, setViewState] = useState<OrthographicViewState>({target: [0,0,0], zoom: [0, 0]});
+
+    const [qDown, setQDown] = useState(false);
+
+    useEffect(() => {
+        const onDown = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() === 'q') setQDown(true);
+        };
+        const onUp = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() === 'q') setQDown(false);
+        };
+        window.addEventListener('keydown', onDown);
+        window.addEventListener('keyup', onUp);
+        return () => {
+            window.removeEventListener('keydown', onDown);
+            window.removeEventListener('keyup', onUp);
+        };
+    }, []);
 
     // get plot canvas size
     useEffect(() => {
@@ -323,7 +356,7 @@ const ScatterPlotDeckGl = ({data, xTitle, yTitle, colorFn, tooltipFn, xDataFn, f
                 <DeckGL
                     views={new OrthographicView({id: 'ortho'})}
                     // disable pan/scroll while holding shift so brush isnt fighting the controller
-                    controller={{dragPan: !shift, scrollZoom: !shift}}
+                    controller={{type: QZoomWheelController, allowWheelZoom: qDown, dragPan: !shift, scrollZoom: !shift}}
                     layers={layers}
                     viewState={viewState}
                     onViewStateChange={({viewState}) => setViewState(viewState as OrthographicViewState)}
@@ -355,7 +388,7 @@ const ScatterPlotDeckGl = ({data, xTitle, yTitle, colorFn, tooltipFn, xDataFn, f
                 <div
                     className="inline-flex items-center rounded-md bg-black/50 text-white text-base px-3 py-1 pointer-events-none"
                 >
-                    {data.length.toLocaleString()} pts · pan (drag) · zoom (wheel) · box-zoom (Shift+drag)
+                    {data.length.toLocaleString()} pts · pan (drag) · zoom (Q+wheel) · box-zoom (Shift+drag)
                 </div>
             </div>
         </div>
