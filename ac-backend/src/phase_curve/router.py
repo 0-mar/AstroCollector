@@ -74,8 +74,9 @@ async def phase_curve_data(
         raise APIException("Provide name or ra_deg and dec_deg in query params.")
 
     if name is not None:
+        params = {"format": "json", "view": "api.object", "ident": name}
         query_resp = await http_client.get(
-            f"https://vsx.aavso.org/index.php?view=api.object&ident={name}&format=json"
+            "https://vsx.aavso.org/index.php", params=params
         )
         query_data = query_resp.json()
 
@@ -95,8 +96,15 @@ async def phase_curve_data(
                 )
 
     if ra_deg is not None and dec_deg is not None:
+        params = {
+            "format": "json",
+            "view": "api.list",
+            "ra": ra_deg,
+            "dec": dec_deg,
+            "radius": 30 / 3600,
+        }
         query_resp = await http_client.get(
-            f"https://vsx.aavso.org/index.php?view=api.list&ra={ra_deg}&dec={dec_deg}&radius={30 / 3600}&format=json"
+            "https://vsx.aavso.org/index.php", params=params
         )
         query_data = query_resp.json()
 
