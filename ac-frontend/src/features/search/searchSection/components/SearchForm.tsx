@@ -19,6 +19,8 @@ import useCatalogPluginsQuery from "@/features/catalogsOverview/hooks/useCatalog
 import {searchFormSchema, type SearchFormValues} from "@/features/search/searchSection/schemas.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import type {PluginDto} from "@/features/catalogsOverview/types.ts";
+import {CircleQuestionMark} from "lucide-react";
+import {Tooltip, TooltipContent, TooltipTrigger} from "../../../../../components/ui/tooltip.tsx";
 
 
 const LabeledInput = ({label, placeholder, ...props}) => {
@@ -81,7 +83,19 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
                     name="objectName"
                     render={({field}) => (
                         <FormItem>
-                            <FormLabel>Stellar object name</FormLabel>
+                            <FormLabel>
+                                Stellar object name
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <CircleQuestionMark />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Resolve stellar object name using CDS. If the object is not found, use VSX for name resolution.
+                                    </TooltipContent>
+                                </Tooltip>
+
+
+                            </FormLabel>
                             <FormControl>
                                 <Input placeholder="V Lep" {...field} />
                             </FormControl>
