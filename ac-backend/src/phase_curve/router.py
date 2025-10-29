@@ -4,7 +4,7 @@ from httpx import AsyncClient
 
 from src.core.exception.exceptions import APIException
 
-from src.deps import get_http_client
+from src.deps import get_async_http_client
 from src.phase_curve.schemas import PhaseCurveDataDto
 
 
@@ -54,7 +54,7 @@ def get_phase_curve_data(query_data, search_coords: SkyCoord):
 
 @router.get("")
 async def phase_curve_data(
-    http_client: AsyncClient = Depends(get_http_client),
+    http_client: AsyncClient = Depends(get_async_http_client),
     name: str | None = None,
     ra_deg: float | None = None,
     dec_deg: float | None = None,

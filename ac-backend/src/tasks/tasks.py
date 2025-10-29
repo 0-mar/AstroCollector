@@ -6,7 +6,9 @@ from uuid import UUID
 
 from astropy import units
 from astropy.coordinates import SkyCoord
+from astropy.coordinates.name_resolve import NameResolveError
 from celery.utils.log import get_task_logger
+from httpx import Client
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -23,18 +25,34 @@ from src.tasks.types import TaskStatus
 logger = get_task_logger("celery_app")
 
 
-def resolve_name_to_coordinates(name: str) -> SkyCoord:
+def resolve_name_to_coordinates(name: str, http_client: Client) -> SkyCoord:
     """
     Resolves the given name to astronomical coordinates.
 
+    :param http_client: http client used to query the VSX AAVSO catalog.
     :param name: The name of the stellar object to resolve.
-    :type name: str
+    :type name: stellar object name to resolve the coordinates for
     :return: An object representing the resolved coordinates of the stellar object.
-    :rtype: SkyCoord
     """
-    # TODO add other coordinate resolving options (e.g. from astroquery etc.)
-    # NameResolveError is raised when we cant resolve the coords
-    return SkyCoord.from_name(name, cache="update")
+    try:
+        # resolve with CDS
+        return SkyCoord.from_name(name, cache="update")
+    except NameResolveError:
+        # try searching in VSX AAVSO
+        if name is not None:
+            query_resp = http_client.get(
+                f"https://vsx.aavso.org/index.php?view=api.object&ident={name}&format=json"
+            )
+            query_data = query_resp.json()
+
+            if query_data["VSXObject"] != []:
+                record = query_data["VSXObject"]
+                if "RA2000" in record and "Declination2000" in record:
+                    return SkyCoord(
+                        ra=record["RA2000"], dec=record["Declination2000"], unit="deg"
+                    )
+
+    raise NameResolveError(f'Object "{name}" was not found in CDS or VSX.')
 
 
 def cone_search(
@@ -90,7 +108,9 @@ def find_stellar_object(self, task_id: str, query_dict: dict[Any, Any]):
     try:
         uuid = UUID(task_id)
         query = FindObjectRequestDto.model_validate(query_dict)
-        coords = resolve_name_to_coordinates(query.name)
+        http_client = Client()
+        coords = resolve_name_to_coordinates(query.name, http_client)
+        http_client.close()
         cone_search(
             plugin_id=query.plugin_id,
             task_service=task_service,

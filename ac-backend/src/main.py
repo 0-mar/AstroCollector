@@ -4,9 +4,10 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from astropy.coordinates.name_resolve import NameResolveError
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from httpx import AsyncClient
+from httpx import AsyncClient, Client
 from starlette import status
 from starlette.responses import JSONResponse
 
@@ -47,9 +48,12 @@ async def lifespan(app: FastAPI):
 
     await init_db()
 
+    sync_http_client = Client()
     async with AsyncClient() as http_client:
-        yield {"http_client": http_client}
-        # The Client closes on shutdown
+        yield {"async_http_client": http_client, "sync_http_client": Client()}
+        # The AsyncClient closes on shutdown
+
+    sync_http_client.close()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -80,6 +84,16 @@ async def validation_exception_handler(request, exc: Exception):
                 "error_message": exc.message,
                 "code": exc.code,
                 "status": exc.http_status,
+            },
+        )
+
+    if isinstance(exc, NameResolveError):
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "error_message": str(exc),
+                "code": "SO_NAME_RESOLVE_ERROR",
+                "status": status.HTTP_404_NOT_FOUND,
             },
         )
 
