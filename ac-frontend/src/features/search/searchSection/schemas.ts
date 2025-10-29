@@ -1,25 +1,34 @@
 import { z } from "zod";
 
-// TODO limit search radius and coordinates
-
-const optionalNumberFromText = (msg: string) =>
-    z.preprocess(
-        (v) => {
-            if (v === "" || v == null) return undefined;           // treat empty as omitted
-            if (typeof v === "string") return Number(v);           // "12.3" -> 12.3
-            return v;                                              // already a number
-        },
-        z
-            .number(msg)
-            .refine((n) => Number.isFinite(n), { message: msg })   // reject NaN/Infinity
-            .optional()
-    );
-
 export const searchFormSchema = z
     .object({
         objectName: z.string().optional(),
-        rightAscension: optionalNumberFromText("Right ascension must be a number"),
-        declination:   optionalNumberFromText("Declination must be a number"),
+        rightAscension: z.preprocess(
+            (v) => {
+                if (v === "" || v == null) return undefined; // treat empty as omitted
+                if (typeof v === "string") return Number(v);
+                return v;
+            },
+            z
+                .number("Right ascension must be a number")
+                .refine((n) => Number.isFinite(n), { message: "Right ascension must be a number" })
+                .gte(0, { message: "Right ascension must be equal or greater than 0°" })
+                .lte(360, { message: "Right ascension must be equal or less than 360°" })
+                .optional()
+        ),
+        declination: z.preprocess(
+            (v) => {
+                if (v === "" || v == null) return undefined; // treat empty as omitted
+                if (typeof v === "string") return Number(v);
+                return v;
+            },
+            z
+                .number("Declination must be a number")
+                .refine((n) => Number.isFinite(n), { message: "Declination must be a number" })
+                .gte(-90, { message: "Declination must be equal or greater than -90°" })
+                .lte(90, { message: "Right ascension must be equal or less than 90°" })
+                .optional()
+        ),
         radius: z.preprocess(
             (v) => {
                 if (v === "" || v == null) return undefined;
