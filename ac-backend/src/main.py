@@ -4,6 +4,7 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from astropy.coordinates.name_resolve import NameResolveError
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from httpx import AsyncClient, Client
@@ -83,6 +84,16 @@ async def validation_exception_handler(request, exc: Exception):
                 "error_message": exc.message,
                 "code": exc.code,
                 "status": exc.http_status,
+            },
+        )
+
+    if isinstance(exc, NameResolveError):
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "error_message": str(exc),
+                "code": "SO_NAME_RESOLVE_ERROR",
+                "status": status.HTTP_404_NOT_FOUND,
             },
         )
 
