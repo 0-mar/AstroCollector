@@ -21,8 +21,8 @@ export type ZoomValues = z.infer<typeof zoomFormSchema>;
 
 export const phaseFormSchema = z
     .object({
-        period: z.number(),
-        epoch: z.number(),
+        period: z.coerce.number("Must be a number"),
+        epoch: z.coerce.number("Must be a number"),
     })
 
 export type PhaseValues = z.infer<typeof phaseFormSchema>;
