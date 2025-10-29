@@ -1,5 +1,7 @@
+import datetime
 import logging
 import os
+from logging.handlers import TimedRotatingFileHandler
 
 from celery import Celery
 from celery.signals import worker_process_init, setup_logging
@@ -16,16 +18,46 @@ celery_app.conf.update(settings.CELERY_CONFIG)
 celery_app.autodiscover_tasks(["src.tasks"])
 
 
-# setup logging for celery worker processes
+def configure_celery_logging():
+    celery_logger = logging.getLogger("celery_app")  # our namespace
+    celery_logger.setLevel(logging.INFO)
+    celery_logger.propagate = False
+    celery_logger.handlers.clear()
+
+    formatter = logging.Formatter(
+        "[%(levelname)s %(asctime)s] %(processName)s %(name)s: %(message)s"
+    )
+
+    file_handler = TimedRotatingFileHandler(
+        filename=settings.LOGGING_DIR / "celery.log",
+        when="W0",
+        atTime=datetime.time(hour=0),
+        backupCount=8,
+        utc=True,
+        encoding="utf-8",
+        interval=1,
+    )
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    celery_logger.addHandler(file_handler)
+    celery_logger.addHandler(console_handler)
+
+    for name in ["celery", "celery.worker", "celery.task"]:
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+        logger.handlers = celery_logger.handlers.copy()
+
+
 @setup_logging.connect
-def config_loggers(*args, **kwargs):
-    from logging.config import dictConfig
-    from src.core.config.config import settings
+def on_celery_setup_logging(**kwargs):
+    configure_celery_logging()
 
-    dictConfig(settings.LOGGING_CONFIG)
-
-
-logger = logging.getLogger(__name__)
 
 # connection pooling when forking processes:
 # https://docs.sqlalchemy.org/en/20/core/pooling.html#using-connection-pools-with-multiprocessing-or-os-fork

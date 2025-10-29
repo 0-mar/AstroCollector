@@ -1,4 +1,3 @@
-import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -7,6 +6,7 @@ from uuid import UUID
 
 from astropy import units
 from astropy.coordinates import SkyCoord
+from celery.utils.log import get_task_logger
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -20,8 +20,7 @@ from src.tasks.schemas import ConeSearchRequestDto, FindObjectRequestDto
 from src.tasks.types import TaskStatus
 
 
-# logger = get_task_logger(__name__)
-logger = logging.getLogger(__name__)
+logger = get_task_logger("celery_app")
 
 
 def resolve_name_to_coordinates(name: str) -> SkyCoord:

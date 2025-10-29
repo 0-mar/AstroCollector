@@ -86,7 +86,6 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def LOGGING_CONFIG(self) -> dict[str, Any]:
-        today = datetime.datetime.today()
         return {
             "version": 1,
             "disable_existing_loggers": False,
@@ -108,18 +107,15 @@ class Settings(BaseSettings):
                     "level": self.LOGGING_LEVEL,
                     "utc": True,
                     "formatter": "base",
-                    "filename": str(
-                        Path.joinpath(
-                            self.LOGGING_DIR,
-                            f"info-{today.day:02}-{today.month:02}-{today.year}.log",
-                        )
-                    ),
+                    "filename": self.LOGGING_DIR / "api.log",
                     # Roll over on the first day of the weekday
                     "when": "W0",
                     # Roll over at midnight
                     "atTime": datetime.time(hour=0),
                     # Number of files to keep.
                     "backupCount": 8,
+                    # every day
+                    "interval": 1,
                 },
             },
             "loggers": {

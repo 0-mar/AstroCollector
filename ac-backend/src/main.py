@@ -35,6 +35,15 @@ async def lifespan(app: FastAPI):
         os.mkdir(settings.TEMP_DIR)
 
     logging.config.dictConfig(settings.LOGGING_CONFIG)
+    for uvicorn_logger_name in (
+        "uvicorn",
+        "uvicorn.error",
+        "uvicorn.access",
+        "fastapi",
+    ):
+        uvicorn_logger = logging.getLogger(uvicorn_logger_name)
+        uvicorn_logger.setLevel(logging.INFO)
+        uvicorn_logger.propagate = True  # send to root
 
     await init_db()
 
