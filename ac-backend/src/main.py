@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from httpx import AsyncClient
+from httpx import AsyncClient, Client
 from starlette import status
 from starlette.responses import JSONResponse
 
@@ -47,9 +47,12 @@ async def lifespan(app: FastAPI):
 
     await init_db()
 
+    sync_http_client = Client()
     async with AsyncClient() as http_client:
-        yield {"http_client": http_client}
-        # The Client closes on shutdown
+        yield {"async_http_client": http_client, "sync_http_client": Client()}
+        # The AsyncClient closes on shutdown
+
+    sync_http_client.close()
 
 
 app = FastAPI(lifespan=lifespan)
