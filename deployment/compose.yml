@@ -66,6 +66,7 @@ services:
     volumes:
       - plugins:/app/plugins:ro
       - temp:/app/temp  # the celery worker needs to access the temp directory
+      - "${SERVER_LOGS_DIRECTORY}:/app/logs"
 
   celery_beat:
     build:
@@ -85,6 +86,7 @@ services:
       - ac
     volumes:
       - temp:/app/temp  # the celery beat needs to access the temp directory
+      - "${SERVER_LOGS_DIRECTORY}:/app/logs"
 
   frontend:
     build:
