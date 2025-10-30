@@ -5,7 +5,7 @@ import StellarObjectsMenu from "@/features/search/menuSection/components/Stellar
 import PhotometricDataSection from "@/features/search/photometricDataSection/components/PhotometricDataSection.tsx";
 import {IdentifiersProvider} from "@/features/search/menuSection/components/IdentifiersContext.tsx";
 import {SearchFormProvider} from "@/features/search/searchSection/components/SearchFormContext.tsx";
-import {ObjectCoordsProvider} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
+import {ResolvedObjectCoordsProvider} from "@/features/search/searchSection/components/ResolvedObjectCoordsProvider.tsx";
 import AladinCutout from "@/features/search/searchSection/components/AladinCutout.tsx";
 import type {PluginDto} from "@/features/catalogsOverview/types.ts";
 
@@ -26,12 +26,20 @@ function App() {
         scriptTag.addEventListener("load", () => {
            setAladinLoaded(true)
         })
+        scriptTag.onload = () => {
+            const A = (globalThis as any).A;
+            // if aladin does not init within 10 seconds, fail
+            const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('aladin-init-timeout')), 10000));
+            Promise.race([A?.init ?? Promise.reject('no A'), timeout])
+                .then(() => setAladinLoaded(true))
+                .catch(() => setAladinLoaded(false)); // don't render Aladin
+        };
         document.body.appendChild(scriptTag)
     }, []);
 
     return (
         <SearchFormProvider>
-            <ObjectCoordsProvider>
+            <ResolvedObjectCoordsProvider>
                 <IdentifiersProvider>
                     <div className="flex flex-wrap bg-blue-100">
                         <div className="p-8 w-full md:w-1/2 min-w-0">
@@ -54,7 +62,7 @@ function App() {
                         </div>
                     </div>}
                 </IdentifiersProvider>
-            </ObjectCoordsProvider>
+            </ResolvedObjectCoordsProvider>
         </SearchFormProvider>
     )
 }

@@ -13,7 +13,7 @@ import SearchFormSubmitButton from "@/features/search/searchSection/components/S
 import React, {useContext, useState} from "react";
 import CoordsPanel from "@/features/search/searchSection/components/CoordsPanel.tsx";
 import {SearchFormContext} from "@/features/search/searchSection/components/SearchFormContext.tsx";
-import {ObjectCoordsContext} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
+import {ResolvedObjectCoordsContext} from "@/features/search/searchSection/components/ResolvedObjectCoordsProvider.tsx";
 import {IdentifiersContext} from "@/features/search/menuSection/components/IdentifiersContext.tsx";
 import useCatalogPluginsQuery from "@/features/catalogsOverview/hooks/useCatalogPlugins.ts";
 import {searchFormSchema, type SearchFormValues} from "@/features/search/searchSection/schemas.ts";
@@ -40,7 +40,7 @@ type SearchFormProps = {
 
 const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}: SearchFormProps) => {
     const searchFormContext = useContext(SearchFormContext)
-    const objectCoordsContext = useContext(ObjectCoordsContext)
+    const resolvedObjectCoordsContext = useContext(ResolvedObjectCoordsContext)
     const identifiersContext = useContext(IdentifiersContext)
 
     const form = useForm<SearchFormValues>({
@@ -62,11 +62,14 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
         setPluginData(pluginQuery.data?.data ?? [])
         identifiersContext?.setSelectedObjectIdentifiers({})
 
+        // show the resolved coordinates panel only when a stellar object was searched by its name
         if (formData.objectName !== "") {
             setCoordsPanelVisible(true)
         } else {
             setCoordsPanelVisible(false)
-            objectCoordsContext?.setObjectCoords({declination: undefined, rightAscension: undefined})
+            // the "resolved" coords will be the ones searched by in this case
+            // the search values will contain rightAscension and declination
+            resolvedObjectCoordsContext?.setResolvedObjectCoords({rightAscension: searchFormContext?.searchValues?.rightAscension ?? -1, declination: searchFormContext?.searchValues?.declination ?? -95})
         }
 
         setMenuVisible(true)
@@ -93,8 +96,6 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
                                         Resolve stellar object name using CDS. If the object is not found, use VSX for name resolution.
                                     </TooltipContent>
                                 </Tooltip>
-
-
                             </FormLabel>
                             <FormControl>
                                 <Input placeholder="V Lep" {...field} />
