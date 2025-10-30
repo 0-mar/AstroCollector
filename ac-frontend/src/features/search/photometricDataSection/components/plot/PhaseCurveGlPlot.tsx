@@ -4,7 +4,7 @@ import type {PhaseCurveDataDto, PhotometricDataDto} from "@/features/search/phot
 import "@/styles/lightcurve.css";
 import { OptionsContext } from "../plotOptions/OptionsContext";
 import { SearchFormContext } from "@/features/search/searchSection/components/SearchFormContext";
-import {ObjectCoordsContext} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
+import {ResolvedObjectCoordsContext} from "@/features/search/searchSection/components/ResolvedObjectCoordsProvider.tsx";
 import { ColorsContext } from "../plotOptions/ColorsContext";
 import {unknownLightFilter} from "@/features/search/photometricDataSection/components/PhotometricDataSection.tsx";
 import {useQuery} from "@tanstack/react-query";
@@ -26,7 +26,7 @@ const PhaseCurveGlPlot = ({data, pluginNames}: PhaseCurveGlPlotProps) => {
     const optionsContext = useContext(OptionsContext);
     const colorContext = useContext(ColorsContext)
     const searchFormContext = useContext(SearchFormContext)
-    const objectCoordsContext = useContext(ObjectCoordsContext)
+    const resolvedObjectCoordsContext = useContext(ResolvedObjectCoordsContext)
 
     const filterByCatalog = useCallback((dto: PhotometricDataDto) => dto.plugin_id, [])
     const filterByLightFilter = useCallback((dto: PhotometricDataDto) => dto.light_filter ?? unknownLightFilter, [])
@@ -61,12 +61,12 @@ const PhaseCurveGlPlot = ({data, pluginNames}: PhaseCurveGlPlotProps) => {
 
 
     const phaseDataQuery = useQuery({
-        queryKey: ['phaseData', searchFormContext?.searchValues.declination, searchFormContext?.searchValues.rightAscension, objectCoordsContext?.objectCoords.rightAscension, objectCoordsContext?.objectCoords.declination],
+        queryKey: ['phaseData', searchFormContext?.searchValues.declination, searchFormContext?.searchValues.rightAscension, resolvedObjectCoordsContext?.resolvedObjectCoords?.rightAscension, resolvedObjectCoordsContext?.resolvedObjectCoords?.declination],
         queryFn: () => BaseApi.get<PhaseCurveDataDto>('/phase-curve', searchFormContext?.searchValues.objectName !== "" ? {
             params: {
                 "name": searchFormContext?.searchValues.objectName,
-                "ra_deg": objectCoordsContext?.objectCoords.rightAscension,
-                "dec_deg": objectCoordsContext?.objectCoords.declination
+                "ra_deg": resolvedObjectCoordsContext?.resolvedObjectCoords?.rightAscension,
+                "dec_deg": resolvedObjectCoordsContext?.resolvedObjectCoords?.declination
             }
         } : {
             params: {

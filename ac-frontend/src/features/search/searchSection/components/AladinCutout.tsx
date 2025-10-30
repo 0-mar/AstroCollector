@@ -1,20 +1,20 @@
 import {useContext, useEffect, useRef, useState} from "react";
-import {SearchFormContext} from "@/features/search/searchSection/components/SearchFormContext.tsx";
 import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
+import {ResolvedObjectCoordsContext} from "@/features/search/searchSection/components/ResolvedObjectCoordsProvider.tsx";
 
 type AladinCutoutProps = {
     loaded: boolean
 }
 
 const AladinCutout = ({loaded}: AladinCutoutProps) => {
-    const searchFormContext = useContext(SearchFormContext)
+    const resolvedObjectCoordsContext = useContext(ResolvedObjectCoordsContext)
     const containerRef = useRef<HTMLDivElement | null>(null);
     const aladinRef = useRef<any>(null);
     const [showError, setShowError] = useState(false);
 
     useEffect(() => {
-        if (!loaded) {
+        if (!loaded || resolvedObjectCoordsContext?.resolvedObjectCoords === null) {
             return;
         }
 
@@ -25,8 +25,7 @@ const AladinCutout = ({loaded}: AladinCutoutProps) => {
         }
         setShowError(false)
 
-        const target = searchFormContext?.searchValues.objectName != "" ? searchFormContext?.searchValues.objectName :
-            `${searchFormContext?.searchValues.rightAscension} ${searchFormContext?.searchValues.declination}`
+        const target = `${resolvedObjectCoordsContext?.resolvedObjectCoords?.rightAscension} ${resolvedObjectCoordsContext?.resolvedObjectCoords?.declination}`
 
         const aladin = aladinGlobal.aladin(containerRef.current,
             { survey: 'P/DSS2/color', fov: 2 / 60, target: target});
@@ -43,25 +42,23 @@ const AladinCutout = ({loaded}: AladinCutoutProps) => {
                 if (containerRef.current) containerRef.current.innerHTML = "";
             } catch {}
         };
-    }, [loaded]);
+    }, [loaded, resolvedObjectCoordsContext?.resolvedObjectCoords]);
 
     useEffect(() => {
         const aladinGlobal = (globalThis as any).A;
         const aladin = aladinRef.current;
-        if (!aladinGlobal || !aladin) {
+        if (!aladinGlobal || !aladin || resolvedObjectCoordsContext?.resolvedObjectCoords === null) {
             return;
         }
 
-        console.log(searchFormContext?.searchValues)
-        const target = searchFormContext?.searchValues.objectName != "" ? searchFormContext?.searchValues.objectName :
-            `${searchFormContext?.searchValues.rightAscension} ${searchFormContext?.searchValues.declination}`
+        const target = `${resolvedObjectCoordsContext?.resolvedObjectCoords?.rightAscension} ${resolvedObjectCoordsContext?.resolvedObjectCoords?.declination}`
 
         aladin.gotoObject(target);
         aladin.setFov(2/60);
 
         aladin.addCatalog(aladinGlobal.catalogFromSimbad(target, 2 / 60, {onClick: 'showPopup'}));
         aladin.addCatalog(aladinGlobal.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
-    }, [searchFormContext?.searchValues])
+    }, [resolvedObjectCoordsContext?.resolvedObjectCoords])
 
     if (showError) {
         return <ErrorAlert title={"Failed to load Aladin Lite"} description={"Aladin Lite is not available."} />

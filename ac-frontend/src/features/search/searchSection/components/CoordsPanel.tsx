@@ -5,12 +5,12 @@ import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
 import SuccessAlert from "@/features/common/alerts/SuccessAlert.tsx";
 import type {ResolvedCoordsDto} from "@/features/search/searchSection/types.ts";
 import {useContext, useEffect} from "react";
-import {ObjectCoordsContext} from "@/features/search/searchSection/components/ObjectCoordsProvider.tsx";
+import {ResolvedObjectCoordsContext} from "@/features/search/searchSection/components/ResolvedObjectCoordsProvider.tsx";
 import {SearchFormContext} from "@/features/search/searchSection/components/SearchFormContext.tsx";
 
 
 const CoordsPanel = () => {
-    const objectCoordsContext = useContext(ObjectCoordsContext)
+    const objectCoordsContext = useContext(ResolvedObjectCoordsContext)
     const searchFormContext = useContext(SearchFormContext)
 
     const coordsQuery = useQuery({
@@ -21,7 +21,7 @@ const CoordsPanel = () => {
     useEffect(() => {
         if (coordsQuery.isSuccess) {
             const next = { rightAscension: coordsQuery.data.ra_deg, declination: coordsQuery.data.dec_deg };
-            objectCoordsContext?.setObjectCoords(prev =>
+            objectCoordsContext?.setResolvedObjectCoords(prev =>
                 (prev?.rightAscension === next.rightAscension && prev?.declination === next.declination)
                     ? prev
                     : next
