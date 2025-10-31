@@ -39,6 +39,7 @@ POSTGRES_PASSWORD=postgres \
 POSTGRES_PORT=5432 \
 POSTGRES_DB=astrocollectordb \
 POSTGRES_HOST=localhost \
+REDIS_HOST=localhost \
 REDIS_PORT=6379 \
 python -m uvicorn src.main:app --reload --reload-dir src
 ```
@@ -51,6 +52,7 @@ POSTGRES_PASSWORD=postgres \
 POSTGRES_PORT=5432 \
 POSTGRES_DB=astrocollectordb \
 POSTGRES_HOST=localhost \
+REDIS_HOST=localhost \
 REDIS_PORT=6379 \
 alembic revision --autogenerate -m "your message"
 ```
