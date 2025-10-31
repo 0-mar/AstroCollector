@@ -13,3 +13,9 @@ export type PhaseCurveDataDto = {
     dec_deg: number | null
     vsx_object_name: string | null
 }
+
+export enum ExportOptions {
+    SINGLE_FILE = "SINGLE_FILE",
+    BY_SOURCES = "BY_SOURCES",
+    RAW_DATA = "RAW_DATA"
+}

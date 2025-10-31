@@ -3,11 +3,12 @@ from uuid import UUID
 
 import sqlalchemy
 from sqlalchemy import Double, func, DateTime, String, ForeignKey
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database.database import DbEntity
-from src.tasks.types import TaskStatus
+from src.tasks.types import TaskStatus, TaskType
 
 
 class Task(DbEntity):
@@ -16,6 +17,9 @@ class Task(DbEntity):
     status: Mapped[TaskStatus] = mapped_column(default=TaskStatus.in_progress)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
+    )
+    task_type: Mapped[TaskType] = mapped_column(
+        SAEnum(TaskType, name="task_type"), nullable=False
     )
 
     # By default, all related objects are lazy-loaded
