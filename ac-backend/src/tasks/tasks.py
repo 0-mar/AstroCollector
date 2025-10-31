@@ -12,6 +12,7 @@ from httpx import Client
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from src.export.model import ExportFile
 from src.tasks.service import SyncTaskService
 from src.core.celery.worker import celery_app, TaskWithSession
 from src.core.config.config import settings
@@ -181,13 +182,10 @@ def clear_task_data(self):
 
         for task_id in task_ids:
             csv_path = Path.joinpath(settings.TEMP_DIR, f"{task_id}.csv")
-            zip_path = Path.joinpath(settings.TEMP_DIR, f"{task_id}.zip")
 
             if Path.exists(csv_path):
+                logger.info(f"Removing {csv_path}")
                 os.remove(csv_path)
-
-            if Path.exists(zip_path):
-                os.remove(zip_path)
 
     except Exception:
         logger.error(
@@ -203,6 +201,7 @@ def clear_task_data(self):
     )
     try:
         session.execute(stmt)
+        logger.info("Deleted expired Tasks")
     except Exception:
         logger.error(
             f"Clear task data task has failed (PID {os.getpid()})",
@@ -212,3 +211,29 @@ def clear_task_data(self):
 
     else:
         logger.info(f"Clear task data completed (PID {os.getpid()})")
+
+    stmt = (
+        select(ExportFile.file_name)
+        .select_from(ExportFile)
+        .where(
+            ExportFile.created_at
+            < (datetime.now() - timedelta(hours=settings.TASK_DATA_DELETE_INTERVAL))
+        )
+    )
+    try:
+        result = session.execute(stmt)
+        filenames = result.scalars().all()
+
+        for filename in filenames:
+            zip_path = settings.TEMP_DIR / filename
+
+            if Path.exists(zip_path):
+                logger.info(f"Removing {zip_path}")
+                os.remove(zip_path)
+
+    except Exception:
+        logger.error(
+            f"Clear task data task has failed (PID {os.getpid()})",
+            exc_info=True,
+        )
+        raise
