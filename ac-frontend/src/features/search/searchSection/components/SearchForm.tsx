@@ -93,7 +93,7 @@ const SearchForm = ({setMenuVisible, setLightcurveSectionVisible, setPluginData}
                                         <CircleQuestionMark />
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        Resolve stellar object name using CDS. If the object is not found, use VSX for name resolution.
+                                        Resolve stellar object name using CDS. If the object is not found, try VSX.
                                     </TooltipContent>
                                 </Tooltip>
                             </FormLabel>

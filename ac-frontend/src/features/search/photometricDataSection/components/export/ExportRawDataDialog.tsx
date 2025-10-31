@@ -14,6 +14,7 @@ import InfoAlert from "@/features/common/alerts/InfoAlert.tsx";
 import { toast } from "sonner"
 import type {StellarObjectIdentifierDto} from "@/features/search/menuSection/types.ts";
 import {Download} from "lucide-react";
+import {ExportOptions} from "@/features/search/photometricDataSection/types.ts";
 
 type ExportDialogProps = {
     readyData: Array<[StellarObjectIdentifierDto, string]>,
@@ -23,7 +24,7 @@ type ExportDialogProps = {
 const ExportRawDataDialog = ({readyData, pluginNames}: ExportDialogProps) => {
 
     const exportMutation = useMutation({
-        mutationFn: () => BaseApi.post<Blob>(`/export/raw`, {filters: {"task_id__in": readyData.map(([_ident, taskId]) => taskId)}}, { responseType: "blob" }),
+        mutationFn: () => BaseApi.post<Blob>(`/export`, {filters: {"task_id__in": readyData.map(([_ident, taskId]) => taskId)}}, { params: {"export_option": ExportOptions.RAW_DATA}, responseType: "blob" }),
         onError: (_error) => {
             toast.error("Failed to export raw data")
         },
