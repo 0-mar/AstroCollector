@@ -1,4 +1,3 @@
-import datetime
 import logging
 from pathlib import Path
 from typing import Any, Literal
@@ -108,10 +107,8 @@ class Settings(BaseSettings):
                     "utc": True,
                     "formatter": "base",
                     "filename": self.LOGGING_DIR / "api.log",
-                    # Roll over on the first day of the weekday
-                    "when": "W0",
-                    # Roll over at midnight
-                    "atTime": datetime.time(hour=0),
+                    # Rotate daily
+                    "when": "midnight",
                     # Number of files to keep.
                     "backupCount": 8,
                     # every day

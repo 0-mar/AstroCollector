@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -30,8 +29,7 @@ def configure_celery_logging():
 
     file_handler = TimedRotatingFileHandler(
         filename=settings.LOGGING_DIR / "celery.log",
-        when="W0",
-        atTime=datetime.time(hour=0),
+        when="midnight",
         backupCount=8,
         utc=True,
         encoding="utf-8",
