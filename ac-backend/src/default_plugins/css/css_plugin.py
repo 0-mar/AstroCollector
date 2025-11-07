@@ -30,7 +30,11 @@ class CatalinaPlugin(CatalogPlugin[CatalinaIdentificatorDto]):
         self._url = "http://nunuku.caltech.edu/cgi-bin/getcssconedb_release_img.cgi"
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[CatalinaIdentificatorDto]]:
         form_data = {
             "RADec": f"{coords.ra.deg} {coords.dec.deg}",
@@ -69,7 +73,10 @@ class CatalinaPlugin(CatalogPlugin[CatalinaIdentificatorDto]):
         ]
 
     def get_photometric_data(
-        self, identificator: CatalinaIdentificatorDto, csv_path: Path
+        self,
+        identificator: CatalinaIdentificatorDto,
+        csv_path: Path,
+        resources_dir: Path,
     ) -> Iterator[list[PhotometricDataDto]]:
         self.__write_to_csv(identificator.csv_link, csv_path)
 

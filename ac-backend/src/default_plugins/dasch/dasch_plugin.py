@@ -35,7 +35,11 @@ class DaschPlugin(CatalogPlugin[DaschIdentificatorDto]):
         self._http_client = httpx.Client()
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[DaschIdentificatorDto]]:
         query_body = {
             "dec_deg": coords.dec.deg,
@@ -94,7 +98,7 @@ class DaschPlugin(CatalogPlugin[DaschIdentificatorDto]):
             yield chunk
 
     def get_photometric_data(
-        self, identificator: DaschIdentificatorDto, csv_path: Path
+        self, identificator: DaschIdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         lc_body = {
             "gsc_bin_index": identificator.gsc_bin_index,

@@ -30,7 +30,11 @@ class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
         self._http_client = httpx.Client(timeout=30.0)
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[Mmt9IdentificatorDto]]:
         query_params = {
             "coords": f"{coords.ra.deg} {coords.dec.deg} ",
@@ -61,7 +65,7 @@ class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
         ]
 
     def get_photometric_data(
-        self, identificator: Mmt9IdentificatorDto, csv_path: Path
+        self, identificator: Mmt9IdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         query_params = {
             "coords": f"{identificator.ra_deg} {identificator.dec_deg} ",

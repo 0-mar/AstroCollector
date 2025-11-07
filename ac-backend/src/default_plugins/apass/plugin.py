@@ -30,7 +30,11 @@ class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
         self._http_client = httpx.Client(timeout=10.0)
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[ApassIdentificatorDto]]:
         query_params = {
             "radeg": f"{coords.ra.deg}",
@@ -59,7 +63,7 @@ class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
             ]
 
     def get_photometric_data(
-        self, identificator: ApassIdentificatorDto, csv_path: Path
+        self, identificator: ApassIdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         query_params = {
             "radeg": f"{identificator.ra_deg}",

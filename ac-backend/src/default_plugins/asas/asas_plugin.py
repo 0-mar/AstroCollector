@@ -33,7 +33,11 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
         return f"https://www.astrouw.edu.pl/cgi-asas/asas_cgi_get_data?{asas_id},asas3"
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[AsasIdentificatorDto]]:
         # valid identifiers are in format:
         # RA[h] DEC[deg]
@@ -88,7 +92,7 @@ class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
         yield targets
 
     def get_photometric_data(
-        self, identificator: AsasIdentificatorDto, csv_path: Path
+        self, identificator: AsasIdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         resp = self._http_client.get(self._data_url(identificator.asas_id))
         resp.raise_for_status()

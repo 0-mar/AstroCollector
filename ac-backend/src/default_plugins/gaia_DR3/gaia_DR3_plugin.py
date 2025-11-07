@@ -28,7 +28,11 @@ class GaiaDR3Plugin(CatalogPlugin[GaiaDR3IdentificatorDto]):
         )
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[GaiaDR3IdentificatorDto]]:
         adql = f"""
         SELECT source_id, ra, dec, phot_g_mean_mag
@@ -65,7 +69,10 @@ class GaiaDR3Plugin(CatalogPlugin[GaiaDR3IdentificatorDto]):
             yield chunk
 
     def get_photometric_data(
-        self, identificator: GaiaDR3IdentificatorDto, csv_path: Path
+        self,
+        identificator: GaiaDR3IdentificatorDto,
+        csv_path: Path,
+        resources_dir: Path,
     ) -> Iterator[list[PhotometricDataDto]]:
         # for DB columns, see:
         # https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_photometry/ssec_dm_epoch_photometry.html

@@ -34,7 +34,11 @@ class AsassnPlugin(CatalogPlugin[AsassnIdentificatorDto]):
         return f"https://asas-sn.osu.edu/variables?ra={coords.ra.deg}&dec={coords.dec.deg}&radius={radius_arcsec / 60}&vmag_min=&vmag_max=&amplitude_min=&amplitude_max=&period_min=&period_max=&lksl_min=&lksl_max=&class_prob_min=&class_prob_max=&parallax_over_err_min=&parallax_over_err_max=&name=&references[]=I&references[]=II&references[]=III&references[]=IV&references[]=V&references[]=IX&sort_by=raj2000&sort_order=asc&show_non_periodic=true&show_without_class=true&asassn_discov_only=false&"
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[AsassnIdentificatorDto]]:
         response = self._http_client.get(self._search_url(coords, radius_arcsec))
         response.raise_for_status()
@@ -85,7 +89,7 @@ class AsassnPlugin(CatalogPlugin[AsassnIdentificatorDto]):
             yield chunk
 
     def get_photometric_data(
-        self, identificator: AsassnIdentificatorDto, csv_path: Path
+        self, identificator: AsassnIdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         data_url = f"{self._base_url}/variables/{identificator.asasn_uuid}.json"
 

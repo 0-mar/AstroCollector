@@ -35,7 +35,11 @@ class MachoPlugin(CatalogPlugin[MachoIdentificatorDto]):
         return f"https://cdsarc.cds.unistra.fr/viz-bin/nph-Plot/Vgraph/txt?J/AJ/134/1963/./L/{ident.macho_id}/{ident.perr}/{ident.perv}&LC=Instrumental&P=0"
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[MachoIdentificatorDto]]:
         result = self._vizier.query_region(
             coords, radius=radius_arcsec * u.arcsec, catalog="J/AJ/134/1963"
@@ -74,7 +78,7 @@ class MachoPlugin(CatalogPlugin[MachoIdentificatorDto]):
             yield targets
 
     def get_photometric_data(
-        self, identificator: MachoIdentificatorDto, csv_path: Path
+        self, identificator: MachoIdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         # data format:
         # JD-2400000	[mag]	(error)

@@ -32,7 +32,11 @@ class SwaspPlugin(CatalogPlugin[SwaspIdentificatorDto]):
         self._data_url = "https://wasp.cerit-sc.cz/csv"
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[SwaspIdentificatorDto]]:
         params = {
             "objid": "",
@@ -76,7 +80,7 @@ class SwaspPlugin(CatalogPlugin[SwaspIdentificatorDto]):
         yield targets
 
     def get_photometric_data(
-        self, identificator: SwaspIdentificatorDto, csv_path: Path
+        self, identificator: SwaspIdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         self.__write_to_csv(self._data_url, identificator.swasp_id, csv_path)
 
