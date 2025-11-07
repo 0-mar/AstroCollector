@@ -2,9 +2,10 @@
 Built with *Python 3.13.5*, using the UV package manager
 
 ## DEV - Running the app
-Start services, such as the DB
+Start services - DB, redis, task queue:
 ```shell
 cd ../dev
+podman-compose down -v
 podman-compose up -d
 cd ../ac-backend
 ```
@@ -19,7 +20,7 @@ REDIS_PORT=6379 \
 celery -A src.core.celery.worker worker
 ```
 
-Then apply migrations
+Then apply migrations:
 ```shell
 POSTGRES_USER=postgres \
 POSTGRES_PASSWORD=postgres \

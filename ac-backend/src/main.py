@@ -35,6 +35,10 @@ async def lifespan(app: FastAPI):
     if not Path.exists(settings.TEMP_DIR):
         os.mkdir(settings.TEMP_DIR)
 
+    # create resources directory if not present
+    if not Path.exists(settings.RESOURCES_DIR):
+        os.mkdir(settings.RESOURCES_DIR)
+
     logging.config.dictConfig(settings.LOGGING_CONFIG)
     for uvicorn_logger_name in (
         "uvicorn",
