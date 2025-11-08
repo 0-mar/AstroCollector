@@ -65,7 +65,7 @@ def cone_search(
     task_id: UUID,
 ) -> None:
     plugin = task_service.get_plugin_instance(plugin_id)
-    resources_dir = settings.resources_dir / str(plugin_id)
+    resources_dir = settings.RESOURCES_DIR / str(plugin_id)
 
     for data in plugin.list_objects(coords, radius_arcsec, plugin_id, resources_dir):
         values = [{"identifier": dto.model_dump(), "task_id": task_id} for dto in data]
@@ -143,7 +143,7 @@ def get_photometric_data(
     try:
         identificator = StellarObjectIdentificatorDto.model_validate(identificator_dict)
         plugin = task_service.get_plugin_instance(identificator.plugin_id)
-        resources_dir = settings.resources_dir / str(identificator.plugin_id)
+        resources_dir = settings.RESOURCES_DIR / str(identificator.plugin_id)
 
         for data in plugin.get_photometric_data(identificator, csv_path, resources_dir):
             values = [{**dto.model_dump(), "task_id": task_id} for dto in data]
