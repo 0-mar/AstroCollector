@@ -74,7 +74,15 @@ class PluginService:
     ) -> PluginDto:
         plugin_entity: Plugin = await self._repository.get(plugin_id)  # check if exists
 
+        # delete old file if exists
+        if plugin_entity.file_name is not None:
+            old_file_path = Path.joinpath(
+                settings.PLUGIN_DIR, plugin_entity.file_name
+            ).resolve()
+            await run_in_threadpool(old_file_path.unlink)
+
         new_file_name = str(uuid.uuid4()) + ".py"
+
         plugin_file_path = Path.joinpath(settings.PLUGIN_DIR, new_file_name).resolve()
         async with aiofiles.open(plugin_file_path, "wb") as out_file:
             while content := await plugin_file.read(1024):  # async read chunk
@@ -110,6 +118,13 @@ class PluginService:
         return PaginationResponseDto[PluginDto](
             data=data, count=len(data), total_items=total_count
         )
+
+    async def list_resources(self, plugin_id: UUID) -> list[str]:
+        # check if exists
+        await self._repository.get(plugin_id)
+        plugin_resources_dir = settings.RESOURCES_DIR / str(plugin_id)
+
+        return os.listdir(plugin_resources_dir)
 
     async def create_default_plugins(self):
         # https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures
