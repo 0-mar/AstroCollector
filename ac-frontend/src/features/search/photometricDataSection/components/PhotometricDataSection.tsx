@@ -238,7 +238,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
             <div className="flex flex-col gap-y-4">
                 {Object.values(currentObjectIdentifiers).map((identifier, idx) => {
                     console.log(Object.values(currentObjectIdentifiers).length)
-                    const targetName = identifier.name !== '' ? ` (${identifier.name})` : ''
+                    const targetName = identifier.name !== null ? ` (${identifier.name})` : ''
                     const dataTarget = `${identifier.ra_deg} ${identifier.dec_deg}` + targetName + ` [${pluginNames[identifier.plugin_id]}]`
                     if (photometricDataTaskQueries[idx].isError) {
                         return (
