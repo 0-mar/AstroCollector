@@ -32,6 +32,7 @@ const DeletePluginDialog = ({pluginDto}: DeletePluginButtonProps) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['plugins'] })
+            toast.success("Successfully deleted plugin.")
         },
         retry: (failureCount) => {
             return failureCount < 3;

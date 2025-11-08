@@ -9,6 +9,21 @@ export const pluginFormSchema = z.object({
         .instanceof(File, { message: "You need to provide a file" })
         .refine((f) => f.size > 0, "You need to provide a file")
         .refine((f) => /\.py$/i.test(f.name), "Only .py files are allowed"),
+    resourcesFile: z.preprocess((val) => {
+            if (val == null || val === "") return null;
+            if (val instanceof File) return val;
+            // FileList
+            if (typeof (val as any)?.length === "number") {
+                const fl = val as FileList;
+                return fl.length ? fl[0] : null;
+            }
+            return null;
+        },
+        z.instanceof(File)
+            .refine(f => f.size > 0, "ZIP is empty")
+            .refine(f => /\.zip$/i.test(f.name), "Only .zip files are allowed")
+            .nullable()
+    ),
 });
 
 export type PluginFormValues = z.infer<typeof pluginFormSchema>;
