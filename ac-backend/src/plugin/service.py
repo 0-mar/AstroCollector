@@ -25,7 +25,6 @@ from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository, Filters
 from src.core.schemas import PaginationResponseDto
 
-# from src.default_plugins.mast.mast_plugin import MastPlugin
 from src.plugin.model import Plugin
 from src.plugin.schemas import (
     PluginDto,
