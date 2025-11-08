@@ -131,19 +131,6 @@ class PluginService:
         # https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/
         # https://www.guidodiepen.nl/2019/02/implementing-a-simple-plugin-framework-in-python/
 
-        # iterate over all .py files
-        # for plugin_file_path in self.plugin_path_dir.rglob('*.py'):
-        #     # because path is object not string
-        #     path_in_str = str(plugin_file_path)
-        #
-        #     self.import_from_path(path_in_str)
-
-        # self.discovered_plugins = {
-        #     name: importlib.import_module(name)
-        #     for finder, name, ispkg
-        #     in self.iter_namespace(plugins)
-        # }
-
         for finder, name, ispkg in self.__iter_namespace(default_plugins):
             plugin_module: ModuleType = importlib.import_module(name)
             if ispkg:
