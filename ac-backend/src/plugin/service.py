@@ -147,11 +147,18 @@ class PluginService:
         for finder, name, ispkg in self.__iter_namespace(default_plugins):
             plugin_module: ModuleType = importlib.import_module(name)
             if ispkg:
-                for _, plugin_name, _ in self.__iter_namespace(plugin_module):
+                for file_finder, plugin_name, _ in self.__iter_namespace(plugin_module):
                     plugin_mod: ModuleType = importlib.import_module(plugin_name)
-                    await self.__register_plugin(plugin_mod)
+                    plugin = await self.__register_plugin(plugin_mod)
 
-    async def __register_plugin(self, plugin_module: ModuleType) -> None:
+                    plugin_resources_path = Path(file_finder.path) / "resources"
+                    if Path.exists(plugin_resources_path):
+                        shutil.copytree(
+                            plugin_resources_path,
+                            settings.RESOURCES_DIR / str(plugin.id) / "resources",
+                        )
+
+    async def __register_plugin(self, plugin_module: ModuleType) -> PluginDto:
         clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
         for _, cls in clsmembers:
             # Only add classes that are a sub class of PhotometricCataloguePlugin,
@@ -187,6 +194,10 @@ class PluginService:
 
                 update_data = UpdatePluginFileDto(id=dto.id, file_name=new_file_name)
                 await self._repository.update(dto.id, update_data.model_dump())
+
+                return dto
+
+        raise NotImplementedError("No plugin class found")
 
     def __iter_namespace(self, ns_pkg: ModuleType) -> Iterator[pkgutil.ModuleInfo]:
         # Specifying the second argument (prefix) to iter_modules makes the
