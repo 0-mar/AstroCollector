@@ -136,13 +136,14 @@ async def upload_resources(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/list-resources/{plugin_id}")
-def list_resources(
+@router.get("/resources/{plugin_id}")
+async def list_resources(
     _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
     plugin_id: UUID,
+    service: PluginServiceDep,
 ):
-    plugin_resources_dir = settings.RESOURCES_DIR / str(plugin_id)
-    return {"resources": os.listdir(plugin_resources_dir)}
+    resources = await service.list_resources(plugin_id)
+    return {"resources": resources}
 
 
 @router.delete("/{plugin_id}")
