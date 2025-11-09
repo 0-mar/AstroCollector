@@ -47,7 +47,7 @@ cp ".env" "${DEPLOYMENT_TARGET_DIR}/.env"
 sed -i -E 's/^\s*PRODUCTION\s*=\s*false\s*$/PRODUCTION=true/' "${DEPLOYMENT_TARGET_DIR}/.env"
 
 echo "Deleting old files on the server..."
-ssh xmarek9@phoenix 'cd ~/astrocollector-src/deployment && podman-compose down -v; cd ~; rm -rf astrocollector-src'
+ssh xmarek9@phoenix 'cd ~/astrocollector-src/deployment && podman-compose down -v; cd ~; rm -rf astrocollector-src; rm -rf ac-resources/*'
 
 echo "Sending source files to the server..."
 scp -r astrocollector-src xmarek9@phoenix:~

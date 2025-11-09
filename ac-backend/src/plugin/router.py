@@ -1,10 +1,14 @@
+import os
 from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, UploadFile, HTTPException
+import aiofiles
+from fastapi import APIRouter, Depends, UploadFile, HTTPException, Request
 from starlette import status
+from starlette.concurrency import run_in_threadpool
 from starlette.responses import Response, FileResponse
+from datetime import datetime
 
 from src.core.config.config import settings
 from src.core.repository.repository import Filters
@@ -14,6 +18,7 @@ from src.core.security.models import User
 from src.core.security.schemas import UserRoleEnum
 from src.plugin.schemas import PluginDto, CreatePluginDto, UpdatePluginDto
 from src.plugin.service import PluginService
+from src.plugin.utils import unzip_archive
 
 PluginServiceDep = Annotated[PluginService, Depends(PluginService)]
 
@@ -101,6 +106,44 @@ async def upload_plugin(
 ) -> PluginDto:
     """Upload plugin source code file"""
     return await service.upload_plugin(plugin_id, plugin_file)
+
+
+@router.put("/upload-resources/{plugin_id}")
+async def upload_resources(
+    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    plugin_id: UUID,
+    service: PluginServiceDep,
+    request: Request,
+):
+    """
+    Upload resources as a zip archive for the corresponding plugin.
+    """
+    # check if plugin exists
+    await service.get_plugin(plugin_id)
+
+    filename = f"data_{datetime.now().strftime('%d_%m_%Y_%H_%M')}.zip"
+    plugin_resources_dir = settings.RESOURCES_DIR / str(plugin_id)
+    archive_path = plugin_resources_dir / filename
+    async with aiofiles.open(archive_path, "wb") as f:
+        async for chunk in request.stream():
+            await f.write(chunk)
+
+    # unzip archive
+    await run_in_threadpool(unzip_archive, archive_path, plugin_resources_dir)
+    # delete archive file
+    os.unlink(archive_path)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/resources/{plugin_id}")
+async def list_resources(
+    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    plugin_id: UUID,
+    service: PluginServiceDep,
+):
+    resources = await service.list_resources(plugin_id)
+    return {"resources": resources}
 
 
 @router.delete("/{plugin_id}")

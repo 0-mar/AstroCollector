@@ -11,12 +11,16 @@ import {
 } from "../../../../components/ui/dialog.tsx";
 import {useState} from "react";
 import AddPluginForm from "@/features/admin/components/AddPluginForm.tsx";
+import useCreateCatalogPlugin from "@/features/catalogsOverview/hooks/useCreateCatalogPlugin.ts";
 
 
 
 const AddPluginDialog = () => {
     const [open, setOpen] = useState(false);
     const formId = `add-plugin-form`;
+
+    const create = useCreateCatalogPlugin();
+    const { mutation } = create;
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -28,14 +32,20 @@ const AddPluginDialog = () => {
                     <DialogTitle>Add catalog plugin</DialogTitle>
                 </DialogHeader>
 
-                <AddPluginForm formId={formId} setOpen={setOpen} />
+                <AddPluginForm
+                    formId={formId}
+                    setOpen={setOpen}
+                    mutation={mutation}
+                    phase={create.phase}
+                    overallProgress={create.overallProgress}
+                />
 
                 <DialogFooter className="sm:justify-start">
-                    <Button type="submit" form={formId}>
+                    <Button type="submit" form={formId} disabled={mutation.isPending}>
                         <Save /> Save plugin
                     </Button>
                     <DialogClose asChild>
-                        <Button type="button" variant="secondary">
+                        <Button type="button" variant="secondary" disabled={mutation.isPending}>
                             <X /> Close and discard plugin
                         </Button>
                     </DialogClose>

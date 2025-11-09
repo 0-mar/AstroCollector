@@ -40,7 +40,11 @@ class AidPlugin(CatalogPlugin[AidIdentificatorDto]):
         )
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[AidIdentificatorDto]]:
         response = self._http_client.get(
             self.__list_url(coords.ra.deg, coords.dec.deg, radius_arcsec / 3600.0)
@@ -75,7 +79,7 @@ class AidPlugin(CatalogPlugin[AidIdentificatorDto]):
         return results
 
     def get_photometric_data(
-        self, identificator: AidIdentificatorDto, csv_path: Path
+        self, identificator: AidIdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         self.__write_to_csv(self.__data_url(identificator.auid), csv_path)
 

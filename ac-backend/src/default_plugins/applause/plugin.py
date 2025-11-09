@@ -63,7 +63,11 @@ class ApplausePlugin(CatalogPlugin[ApplauseIdentificatorDto]):
         return results.to_table()
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[ApplauseIdentificatorDto]]:
         cone_search_query = f"""
         SELECT DISTINCT ON(ucac4_id) ucac4_id, raj2000, dej2000,
@@ -119,7 +123,10 @@ class ApplausePlugin(CatalogPlugin[ApplauseIdentificatorDto]):
         return results
 
     def get_photometric_data(
-        self, identificator: ApplauseIdentificatorDto, csv_path: Path
+        self,
+        identificator: ApplauseIdentificatorDto,
+        csv_path: Path,
+        resources_dir: Path,
     ) -> Iterator[list[PhotometricDataDto]]:
         lc_query = f"""SELECT ucac4_id, jd_mid, bmag, bmagerr, vmag, vmagerr FROM applause_dr3.lightcurve
         WHERE ucac4_id='{identificator.ucac4_id}' ORDER BY jd_mid"""

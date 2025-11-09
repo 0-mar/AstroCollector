@@ -46,6 +46,7 @@ services:
       - plugins:/app/plugins  # the celery worker needs to access the plugin scripts directory
       - temp:/app/temp  # the celery worker needs to access the temp directory
       - "${SERVER_LOGS_DIRECTORY}:/app/logs"
+      - "${RESOURCES_DIRECTORY}:/app/resources"
 
   celery_worker:
     build:
@@ -67,6 +68,7 @@ services:
       - plugins:/app/plugins:ro
       - temp:/app/temp  # the celery worker needs to access the temp directory
       - "${SERVER_LOGS_DIRECTORY}:/app/logs"
+      - "${RESOURCES_DIRECTORY}:/app/resources"
 
   celery_beat:
     build:

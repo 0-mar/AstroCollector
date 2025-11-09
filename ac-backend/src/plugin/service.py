@@ -1,7 +1,8 @@
 # https://docs.python.org/3/library/importlib.html
 import importlib.util
 import inspect
-import sys
+import os
+import shutil
 import uuid
 from uuid import UUID
 from collections.abc import Iterator
@@ -11,7 +12,7 @@ import logging
 import importlib
 import pkgutil
 from types import ModuleType
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import Depends, UploadFile
 import aiofiles
@@ -24,8 +25,6 @@ from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository, Filters
 from src.core.schemas import PaginationResponseDto
 
-# from src.default_plugins.mast.mast_plugin import MastPlugin
-from src.plugin.exceptions import NoPluginClassException
 from src.plugin.model import Plugin
 from src.plugin.schemas import (
     PluginDto,
@@ -47,31 +46,6 @@ class PluginService:
         self._repository = repository
         self.plugins: dict[str, CatalogPlugin[StellarObjectIdentificatorDto]] = dict()
 
-    def _load_plugin(
-        self, module_name: str, file_path: Path
-    ) -> Optional[CatalogPlugin[StellarObjectIdentificatorDto]]:
-        spec = importlib.util.spec_from_file_location(module_name, file_path)
-        if spec is None:
-            raise ImportError(f"Could not load spec from {file_path}")
-        plugin_module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = plugin_module
-        if spec.loader is None:
-            raise ImportError(f"Could not load loader from {file_path}")
-        spec.loader.exec_module(plugin_module)
-
-        clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
-        for _, cls in clsmembers:
-            # Only add classes that are a sub class of PhotometricCataloguePlugin,
-            # but NOT PhotometricCataloguePlugin itself
-            if (
-                issubclass(cls, CatalogPlugin) and cls is not CatalogPlugin
-                #                and cls is not MastPlugin
-            ):
-                logger.info(f"Found plugin class: {cls.__module__}.{cls.__name__}")
-                return cls()
-
-        return None
-
     async def get_plugin(self, plugin_id: UUID) -> PluginDto:
         plugin = await self._repository.get(plugin_id)
         return PluginDto.model_validate(plugin)
@@ -81,6 +55,9 @@ class PluginService:
         plugin = Plugin(**dto_data, file_name=None)
 
         plugin = await self._repository.save(plugin)
+        # make resources directory for the plugin
+        await run_in_threadpool(os.mkdir, settings.RESOURCES_DIR / str(plugin.id))
+
         return PluginDto.model_validate(plugin)
 
     async def update_plugin(self, update_dto: UpdatePluginDto) -> PluginDto:
@@ -96,7 +73,15 @@ class PluginService:
     ) -> PluginDto:
         plugin_entity: Plugin = await self._repository.get(plugin_id)  # check if exists
 
+        # delete old file if exists
+        if plugin_entity.file_name is not None:
+            old_file_path = Path.joinpath(
+                settings.PLUGIN_DIR, plugin_entity.file_name
+            ).resolve()
+            await run_in_threadpool(old_file_path.unlink)
+
         new_file_name = str(uuid.uuid4()) + ".py"
+
         plugin_file_path = Path.joinpath(settings.PLUGIN_DIR, new_file_name).resolve()
         async with aiofiles.open(plugin_file_path, "wb") as out_file:
             while content := await plugin_file.read(1024):  # async read chunk
@@ -114,6 +99,9 @@ class PluginService:
             ).resolve()
             await run_in_threadpool(plugin_file_path.unlink)
 
+        # delete resources directory of the plugin
+        await run_in_threadpool(shutil.rmtree, settings.RESOURCES_DIR / str(plugin.id))
+
         await self._repository.delete(plugin_id)
 
     async def list_plugins(
@@ -130,21 +118,12 @@ class PluginService:
             data=data, count=len(data), total_items=total_count
         )
 
-    async def get_plugin_instance(
-        self, plugin_id: UUID
-    ) -> CatalogPlugin[StellarObjectIdentificatorDto]:
-        db_plugin = await self._repository.get(plugin_id)
-        plugin_file_path = Path.joinpath(
-            settings.PLUGIN_DIR, db_plugin.file_name
-        ).resolve()
+    async def list_resources(self, plugin_id: UUID) -> list[str]:
+        # check if exists
+        await self._repository.get(plugin_id)
+        plugin_resources_dir = settings.RESOURCES_DIR / str(plugin_id)
 
-        plugin = await run_in_threadpool(
-            self._load_plugin, db_plugin.file_name, plugin_file_path
-        )
-        if plugin is None:
-            raise NoPluginClassException()
-
-        return plugin
+        return os.listdir(plugin_resources_dir)
 
     async def create_default_plugins(self):
         # https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures
@@ -152,27 +131,21 @@ class PluginService:
         # https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/
         # https://www.guidodiepen.nl/2019/02/implementing-a-simple-plugin-framework-in-python/
 
-        # iterate over all .py files
-        # for plugin_file_path in self.plugin_path_dir.rglob('*.py'):
-        #     # because path is object not string
-        #     path_in_str = str(plugin_file_path)
-        #
-        #     self.import_from_path(path_in_str)
-
-        # self.discovered_plugins = {
-        #     name: importlib.import_module(name)
-        #     for finder, name, ispkg
-        #     in self.iter_namespace(plugins)
-        # }
-
         for finder, name, ispkg in self.__iter_namespace(default_plugins):
             plugin_module: ModuleType = importlib.import_module(name)
             if ispkg:
-                for _, plugin_name, _ in self.__iter_namespace(plugin_module):
+                for file_finder, plugin_name, _ in self.__iter_namespace(plugin_module):
                     plugin_mod: ModuleType = importlib.import_module(plugin_name)
-                    await self.__register_plugin(plugin_mod)
+                    plugin = await self.__register_plugin(plugin_mod)
 
-    async def __register_plugin(self, plugin_module: ModuleType) -> None:
+                    plugin_resources_path = Path(file_finder.path) / "resources"
+                    if Path.exists(plugin_resources_path):
+                        shutil.copytree(
+                            plugin_resources_path,
+                            settings.RESOURCES_DIR / str(plugin.id) / "resources",
+                        )
+
+    async def __register_plugin(self, plugin_module: ModuleType) -> PluginDto:
         clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
         for _, cls in clsmembers:
             # Only add classes that are a sub class of PhotometricCataloguePlugin,
@@ -208,6 +181,10 @@ class PluginService:
 
                 update_data = UpdatePluginFileDto(id=dto.id, file_name=new_file_name)
                 await self._repository.update(dto.id, update_data.model_dump())
+
+                return dto
+
+        raise NotImplementedError("No plugin class found")
 
     def __iter_namespace(self, ns_pkg: ModuleType) -> Iterator[pkgutil.ModuleInfo]:
         # Specifying the second argument (prefix) to iter_modules makes the

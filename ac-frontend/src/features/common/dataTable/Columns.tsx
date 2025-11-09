@@ -95,4 +95,8 @@ export const catalogPluginsColumns: ColumnDef<PluginDto>[] = [
         },
         enableSorting: false
     },
+    {
+        accessorKey: "id",
+        header: "Plugin ID",
+    },
 ]

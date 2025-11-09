@@ -36,7 +36,11 @@ class AsassnPlugin(CatalogPlugin[AsassnIdentificatorDto]):
         return f"http://asassn-lb01.ifa.hawaii.edu:9006/get_lightcurve/{asas_sn_id}"
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[AsassnIdentificatorDto]]:
         request_body = {
             "catalog": "master_list",
@@ -80,7 +84,7 @@ class AsassnPlugin(CatalogPlugin[AsassnIdentificatorDto]):
             yield chunk
 
     def get_photometric_data(
-        self, identificator: AsassnIdentificatorDto, csv_path: Path
+        self, identificator: AsassnIdentificatorDto, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         response = self._http_client.get(self._data_url(identificator.asas_sn_id))
         response.raise_for_status()

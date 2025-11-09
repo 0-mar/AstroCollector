@@ -11,16 +11,22 @@ import React from "react";
 import useUpdateCatalogPlugin from "@/features/catalogsOverview/hooks/useUpdateCatalogPlugin.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
-import type {PluginDto} from "@/features/catalogsOverview/types.ts";
+import type {Phase, PluginDto} from "@/features/catalogsOverview/types.ts";
+import useCreateCatalogPlugin from "@/features/catalogsOverview/hooks/useCreateCatalogPlugin.ts";
+import useCatalogPluginResources from "@/features/catalogsOverview/hooks/useCatalogPluginResources.ts";
+import ErrorAlert from "@/features/common/alerts/ErrorAlert.tsx";
+import {Progress} from "../../../../components/ui/progress.tsx";
 
 type EditPluginFormProps = {
     pluginDto: PluginDto
     formId: string
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
+    mutation: ReturnType<typeof useUpdateCatalogPlugin>["mutation"];
+    phase: Phase;
+    overallProgress: number;
 }
 
-const EditPluginForm = ({pluginDto, formId, setOpen}: EditPluginFormProps) => {
-    const updatePluginMutation = useUpdateCatalogPlugin(pluginDto.id)
+const EditPluginForm = ({pluginDto, formId, setOpen, mutation, phase, overallProgress}: EditPluginFormProps) => {
 
     const form = useForm<PluginUpdateFormValues>({
         resolver: zodResolver(pluginUpdateFormSchema),
@@ -32,8 +38,12 @@ const EditPluginForm = ({pluginDto, formId, setOpen}: EditPluginFormProps) => {
         },
     })
 
+    const resources = useCatalogPluginResources(pluginDto.id)
+
+    const isPending = mutation.isPending;
+
     const onSubmit = async (formData: PluginUpdateFormValues) => {
-        await updatePluginMutation.mutateAsync({
+        await mutation.mutateAsync({
             updateData: {
                 id: pluginDto.id,
                 name: formData.name ?? null,
@@ -41,7 +51,8 @@ const EditPluginForm = ({pluginDto, formId, setOpen}: EditPluginFormProps) => {
                 catalog_url: formData.catalogUrl ?? null,
                 directly_identifies_objects: formData.directlyIdentifiesObjects ?? null
             },
-            file: formData.pluginFile ?? null
+            file: formData.pluginFile ?? null,
+            resourcesFile: formData.resourcesFile ?? null
         })
         setOpen(false)
     }
@@ -139,7 +150,52 @@ const EditPluginForm = ({pluginDto, formId, setOpen}: EditPluginFormProps) => {
                         </FormItem>
                     )}
                 />
-                {updatePluginMutation.isPending && <LoadingSkeleton text={"Updating plugin..."} />}
+                <FormField
+                    control={form.control}
+                    name="resourcesFile"
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    render={({ field: { value, onChange, ...fieldProps } }) => (
+                        <FormItem>
+                            <FormLabel>
+                                Add resources ZIP file
+                            </FormLabel>
+
+                            <FormControl>
+                                <Input
+                                    {...fieldProps}
+                                    type="file"
+                                    accept=".zip"
+                                    onChange={(event) =>
+                                        onChange(event.target.files && event.target.files[0])
+                                    }
+                                />
+                            </FormControl>
+                            {
+                                resources.isLoading ? <LoadingSkeleton text={"Loading resources"} /> : resources.isError ? <ErrorAlert description={resources.error.message} title={"Failed to load resources"} /> : (
+                                    <div>
+                                        <p>Current resources:</p>
+                                        <ul className="max-w-md space-y-1 list-disc list-inside">
+                                            {resources.data?.resources.map((resource) => <li key={resource}>{resource}</li>)}
+                                        </ul>
+                                    </div>
+                                )
+                            }
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {isPending && (
+                    <div className={"flex flex-col items-center gap-2"}>
+                        <LoadingSkeleton text={
+                            phase === "creating" ? "Creating plugin..." :
+                                phase === "uploading_source" ? "Uploading source file..." :
+                                    phase === "uploading_resources" ? "Uploading resources..." :
+                                        "Working..."
+                        } />
+                        <Progress value={overallProgress} className="w-full" />
+                    </div>
+                )}
             </form>
         </Form>
     )

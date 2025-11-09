@@ -26,6 +26,10 @@ cd "plugins"
 # remove every file except for __init__.py
 ls | grep -P "^(?!__init__\.py).*$" | xargs -d"\n" rm -rf
 
+cd ../resources
+# remove all previous resource files
+rm -rf *
+
 cd ..
 celery -A src.core.celery.worker worker &
 celery -A src.core.celery.worker beat &

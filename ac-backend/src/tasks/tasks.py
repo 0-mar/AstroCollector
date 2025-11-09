@@ -65,8 +65,9 @@ def cone_search(
     task_id: UUID,
 ) -> None:
     plugin = task_service.get_plugin_instance(plugin_id)
+    resources_dir = settings.RESOURCES_DIR / str(plugin_id)
 
-    for data in plugin.list_objects(coords, radius_arcsec, plugin_id):
+    for data in plugin.list_objects(coords, radius_arcsec, plugin_id, resources_dir):
         values = [{"identifier": dto.model_dump(), "task_id": task_id} for dto in data]
         task_service.bulk_insert(values)
 
@@ -96,7 +97,6 @@ def catalog_cone_search(self, task_id: str, query_dict: dict[Any, Any]):
             f"Find stellar object task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nQuery: {query_dict}",
             exc_info=True,
         )
-        # self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
     else:
@@ -125,7 +125,6 @@ def find_stellar_object(self, task_id: str, query_dict: dict[Any, Any]):
             f"Find stellar object task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nQuery: {query_dict}",
             exc_info=True,
         )
-        # self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
     else:
@@ -144,8 +143,9 @@ def get_photometric_data(
     try:
         identificator = StellarObjectIdentificatorDto.model_validate(identificator_dict)
         plugin = task_service.get_plugin_instance(identificator.plugin_id)
+        resources_dir = settings.RESOURCES_DIR / str(identificator.plugin_id)
 
-        for data in plugin.get_photometric_data(identificator, csv_path):
+        for data in plugin.get_photometric_data(identificator, csv_path, resources_dir):
             values = [{**dto.model_dump(), "task_id": task_id} for dto in data]
             task_service.bulk_insert(values)
     except Exception:
@@ -153,7 +153,6 @@ def get_photometric_data(
             f"Get photometric data task with has failed (PID {os.getpid()})\nTask ID: {task_id}\nIdentificator: {identificator_dict}",
             exc_info=True,
         )
-        # self.session.rollback()
         task_service.set_task_status(task_id, TaskStatus.failed)
         raise
 

@@ -4,18 +4,25 @@ import {Input} from "../../../../components/ui/input.tsx";
 import {pluginFormSchema, type PluginFormValues} from "@/features/catalogsOverview/schemas.ts";
 import {Textarea} from "../../../../components/ui/textarea.tsx";
 import {Checkbox} from "../../../../components/ui/checkbox.tsx";
+import {Progress} from "@/../components/ui/progress.tsx";
 import React from "react";
 import useCreateCatalogPlugin from "@/features/catalogsOverview/hooks/useCreateCatalogPlugin.ts";
 import {zodResolver} from "@hookform/resolvers/zod";
 import LoadingSkeleton from "@/features/common/loading/LoadingSkeleton.tsx";
+import type {Phase} from "@/features/catalogsOverview/types.ts";
+
 
 type AddPluginFormProps = {
-    formId: string
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>
-}
+    formId: string;
+    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    mutation: ReturnType<typeof useCreateCatalogPlugin>["mutation"];
+    phase: Phase;
+    overallProgress: number;
+};
 
-const AddPluginForm = ({formId, setOpen}: AddPluginFormProps) => {
-    const createPluginMutation = useCreateCatalogPlugin()
+
+const AddPluginForm = ({formId, setOpen, mutation, phase, overallProgress}: AddPluginFormProps) => {
+    const isPending = mutation.isPending;
 
     const form = useForm<PluginFormValues>({
         resolver: zodResolver(pluginFormSchema),
@@ -28,7 +35,7 @@ const AddPluginForm = ({formId, setOpen}: AddPluginFormProps) => {
     })
 
     const onSubmit = async (formData: PluginFormValues) => {
-        await createPluginMutation.mutateAsync({
+        await mutation.mutateAsync({
             createData: {
                 name: formData.name,
                 description: formData.description,
@@ -36,7 +43,8 @@ const AddPluginForm = ({formId, setOpen}: AddPluginFormProps) => {
                 directly_identifies_objects: formData.directlyIdentifiesObjects,
                 created_by: "admin"
             },
-            file: formData.pluginFile
+            file: formData.pluginFile,
+            resourcesFile: formData.resourcesFile
         })
 
         setOpen(false)
@@ -135,7 +143,42 @@ const AddPluginForm = ({formId, setOpen}: AddPluginFormProps) => {
                         </FormItem>
                     )}
                 />
-                {createPluginMutation.isPending && <LoadingSkeleton text={"Creating plugin..."} />}
+                <FormField
+                    control={form.control}
+                    name="resourcesFile"
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    render={({ field: { value, onChange, ...fieldProps } }) => (
+                        <FormItem>
+                            <FormLabel>
+                                Resources ZIP file
+                            </FormLabel>
+
+                            <FormControl>
+                                <Input
+                                    {...fieldProps}
+                                    type="file"
+                                    accept=".zip"
+                                    onChange={(event) =>
+                                        onChange(event.target.files && event.target.files[0])
+                                    }
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {isPending && (
+                    <div className={"flex flex-col items-center gap-2"}>
+                        <LoadingSkeleton text={
+                            phase === "creating" ? "Creating plugin..." :
+                                phase === "uploading_source" ? "Uploading source file..." :
+                                    phase === "uploading_resources" ? "Uploading resources..." :
+                                        "Working..."
+                        } />
+                        <Progress value={overallProgress} className="w-full" />
+                    </div>
+                )}
             </form>
         </Form>
     )

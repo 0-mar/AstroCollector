@@ -62,6 +62,11 @@ class Settings(BaseSettings):
     def TEMP_DIR(self) -> Path:
         return Path.joinpath(self.ROOT_DIR, "temp").resolve()
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def RESOURCES_DIR(self) -> Path:
+        return Path.joinpath(self.ROOT_DIR, "resources").resolve()
+
     LOGGING_LEVEL: int = logging.INFO
 
     @computed_field  # type: ignore[prop-decorator]

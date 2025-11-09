@@ -29,7 +29,11 @@ class TessPlugin(CatalogPlugin[TessStellarObjectIdentificatorDto]):
         )
 
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[list[TessStellarObjectIdentificatorDto]]:
         search_results: SearchResult = search_lightcurve(
             coords, radius=radius_arcsec, mission="TESS", author="SPOC"
@@ -61,7 +65,10 @@ class TessPlugin(CatalogPlugin[TessStellarObjectIdentificatorDto]):
             ]
 
     def get_photometric_data(
-        self, identificator: TessStellarObjectIdentificatorDto, csv_path: Path
+        self,
+        identificator: TessStellarObjectIdentificatorDto,
+        csv_path: Path,
+        resources_dir: Path,
     ) -> Iterator[list[PhotometricDataDto]]:
         target = f"TIC {identificator.tic}"
 

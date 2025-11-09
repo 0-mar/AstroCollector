@@ -13,7 +13,7 @@ from src.core.security.models import User
 from src.core.security.schemas import UserRoleEnum, UserDto
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/security/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/security/login")
 
 
 async def get_current_user(

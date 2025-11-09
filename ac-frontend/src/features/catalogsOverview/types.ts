@@ -23,3 +23,14 @@ export type PluginDto = BaseDto & {
     description: string
     file_name: string | null
 }
+
+export type Phase =
+    | "idle"
+    | "creating"
+    | "uploading_source"
+    | "uploading_resources"
+    | "done";
+
+export type Resources = {
+    resources: string[]
+}
