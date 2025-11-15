@@ -23,7 +23,7 @@ from src.core.config.config import settings
 from src.core.integration.catalog_plugin import CatalogPlugin
 from src.core.integration.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository, Filters
-from src.core.schemas import PaginationResponseDto
+from src.core.service.schemas import PaginationResponseDto
 
 from src.plugin.model import Plugin
 from src.plugin.schemas import (
