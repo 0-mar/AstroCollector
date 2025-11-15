@@ -1,7 +1,4 @@
 export default function Footer() {
-    const date = new Date()
-    const dateString = new Intl.DateTimeFormat("cs-CZ").format(date).toString()
-
     return (
         <footer className="footer footer-horizontal footer-center bg-secondary text-primary-content p-10">
             <div className="flex flex-row items-center gap-y-2">
@@ -20,7 +17,7 @@ export default function Footer() {
                 Developed for the <a className={"text-blue-600 hover:underline"} href={"https://physics.muni.cz/en"} target={"_blank"}>Department of Physics, Faculty of Science, Masaryk University</a>
             </p>
             <p>Copyright © {new Date().getFullYear()} Ondřej Marek</p>
-            <p>Last update: {dateString}</p>
+            <p>Last update: 8. 11. 2025</p>
         </footer>
     )
 }

@@ -12,7 +12,7 @@ from datetime import datetime
 
 from src.core.config.config import settings
 from src.core.repository.repository import Filters
-from src.core.schemas import PaginationResponseDto
+from src.core.service.schemas import PaginationResponseDto
 from src.core.security.auth import required_roles
 from src.core.security.models import User
 from src.core.security.schemas import UserRoleEnum

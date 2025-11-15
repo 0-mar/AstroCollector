@@ -5,7 +5,7 @@ from fastapi import Depends
 from src.core.config.config import settings
 from src.core.integration.schemas import PhotometricDataDto
 from src.core.repository.repository import Repository, get_repository, Filters
-from src.core.schemas import PaginationResponseDto
+from src.core.service.schemas import PaginationResponseDto
 from src.data_retrieval.schemas import StellarObjectIdentifierDto
 from src.tasks.model import StellarObjectIdentifier, PhotometricData
 
