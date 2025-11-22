@@ -6,8 +6,8 @@ import httpx
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -18,7 +18,7 @@ class AsasIdentificatorDto(StellarObjectIdentificatorDto):
     asas_id: str
 
 
-class AsasPlugin(CatalogPlugin[AsasIdentificatorDto]):
+class AsasPlugin(DefaultCatalogPlugin[AsasIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__(
             "ASAS",

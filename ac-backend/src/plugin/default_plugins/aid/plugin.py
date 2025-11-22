@@ -5,8 +5,8 @@ from uuid import UUID
 from astropy.coordinates import SkyCoord
 import pandas as pd
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -17,7 +17,7 @@ class AidIdentificatorDto(StellarObjectIdentificatorDto):
     auid: str
 
 
-class AidPlugin(CatalogPlugin[AidIdentificatorDto]):
+class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
     """
     Integration of the AID plugin
     """

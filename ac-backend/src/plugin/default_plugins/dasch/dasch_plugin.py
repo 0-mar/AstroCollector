@@ -6,8 +6,8 @@ from uuid import UUID
 import httpx
 from astropy.coordinates import SkyCoord
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -20,7 +20,7 @@ class DaschIdentificatorDto(StellarObjectIdentificatorDto):
     ref_number: int
 
 
-class DaschPlugin(CatalogPlugin[DaschIdentificatorDto]):
+class DaschPlugin(DefaultCatalogPlugin[DaschIdentificatorDto]):
     # https://dasch.cfa.harvard.edu/dr7/web-apis/
     def __init__(self) -> None:
         super().__init__(

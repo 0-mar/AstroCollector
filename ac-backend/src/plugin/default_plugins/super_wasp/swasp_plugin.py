@@ -7,8 +7,8 @@ import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -19,7 +19,7 @@ class SwaspIdentificatorDto(StellarObjectIdentificatorDto):
     swasp_id: str
 
 
-class SwaspPlugin(CatalogPlugin[SwaspIdentificatorDto]):
+class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__(
             "Super WASP",

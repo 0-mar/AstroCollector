@@ -16,7 +16,7 @@ from src.export.model import ExportFile
 from src.tasks.service import SyncTaskService
 from src.core.celery.worker import celery_app, TaskWithSession
 from src.core.config.config import settings
-from src.core.integration.schemas import StellarObjectIdentificatorDto
+from src.plugin.interface.schemas import StellarObjectIdentificatorDto
 from src.tasks.model import StellarObjectIdentifier, PhotometricData, Task
 from src.tasks.schemas import ConeSearchRequestDto, FindObjectRequestDto
 

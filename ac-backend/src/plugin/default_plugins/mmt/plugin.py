@@ -6,8 +6,8 @@ from uuid import UUID
 import httpx
 from astropy.coordinates import SkyCoord
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -17,7 +17,7 @@ class Mmt9IdentificatorDto(StellarObjectIdentificatorDto):
     radius_arcsec: float
 
 
-class Mmt9Plugin(CatalogPlugin[Mmt9IdentificatorDto]):
+class Mmt9Plugin(DefaultCatalogPlugin[Mmt9IdentificatorDto]):
     # http://survey.favor2.info/favor2/
     def __init__(self) -> None:
         super().__init__(

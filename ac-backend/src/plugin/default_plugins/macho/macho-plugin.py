@@ -7,8 +7,8 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astroquery.vizier import Vizier
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -20,7 +20,7 @@ class MachoIdentificatorDto(StellarObjectIdentificatorDto):
     perr: float
 
 
-class MachoPlugin(CatalogPlugin[MachoIdentificatorDto]):
+class MachoPlugin(DefaultCatalogPlugin[MachoIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__(
             "MACHO",

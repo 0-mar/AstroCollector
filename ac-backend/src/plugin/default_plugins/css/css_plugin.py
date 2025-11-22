@@ -6,8 +6,8 @@ import httpx
 import pandas as pd
 from astropy.coordinates import SkyCoord
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -18,7 +18,7 @@ class CatalinaIdentificatorDto(StellarObjectIdentificatorDto):
     csv_link: str
 
 
-class CatalinaPlugin(CatalogPlugin[CatalinaIdentificatorDto]):
+class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__(
             "Catalina",
