@@ -134,7 +134,7 @@ class CatalogPlugin(Generic[T], ABC):
         )
 
 
-class DefaultCatalogPlugin(Generic[T], ABC, CatalogPlugin):
+class DefaultCatalogPlugin(CatalogPlugin[T]):
     def __init__(
         self, name: str, description: str, url: str, directly_identifies_objects: bool
     ) -> None:
@@ -158,3 +158,19 @@ class DefaultCatalogPlugin(Generic[T], ABC, CatalogPlugin):
 
     def batch_limit(self):
         return self.__batch_limit
+
+    @property
+    def directly_identifies_objects(self) -> bool:
+        return self._directly_identifies_objects
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def catalog_name(self) -> str:
+        return self._catalog_name
+
+    @property
+    def catalog_url(self) -> str:
+        return self._catalog_url
