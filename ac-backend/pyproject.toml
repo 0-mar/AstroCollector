@@ -22,6 +22,7 @@ dependencies = [
     "psycopg[binary]>=3.2.10",
     "pydantic-settings>=2.9.1",
     "pyjwt>=2.10.1",
+    "pytest>=9.0.1",
     "pyvo>=1.7",
     "requests>=2.32.4",
     "sqlalchemy>=2.0.41",
@@ -36,3 +37,7 @@ dev = [
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
