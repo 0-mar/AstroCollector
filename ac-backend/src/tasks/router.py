@@ -37,11 +37,6 @@ router = APIRouter(
 )
 
 
-async def create_task(task_repository: Repository[Task], task_type: TaskType) -> UUID:
-    task = await task_repository.save(Task(task_type=task_type))
-    return task.id
-
-
 @router.post("/submit-task/{plugin_id}/cone-search")
 async def cone_search(
     task_repository: TaskRepositoryDep,
@@ -49,11 +44,10 @@ async def cone_search(
     plugin_id: UUID,
 ) -> TaskIdDto:
     search_query_dto.plugin_id = plugin_id
-    task_id = await create_task(task_repository, TaskType.object_search)
+    task = await task_repository.save(Task(task_type=TaskType.object_search))
+    catalog_cone_search.delay(str(task.id), search_query_dto.model_dump())
 
-    catalog_cone_search.delay(str(task_id), search_query_dto.model_dump())
-
-    return TaskIdDto(task_id=task_id)
+    return TaskIdDto(task_id=task.id)
 
 
 @router.post("/submit-task/{plugin_id}/find-object")
@@ -63,11 +57,11 @@ async def find_object(
     plugin_id: UUID,
 ) -> TaskIdDto:
     query_dto.plugin_id = plugin_id
-    task_id = await create_task(task_repository, TaskType.object_search)
+    task = await task_repository.save(Task(task_type=TaskType.object_search))
 
-    find_stellar_object.delay(str(task_id), query_dto.model_dump())
+    find_stellar_object.delay(str(task.id), query_dto.model_dump())
 
-    return TaskIdDto(task_id=task_id)
+    return TaskIdDto(task_id=task.id)
 
 
 @router.post("/submit-task/{plugin_id}/photometric-data")
@@ -77,9 +71,9 @@ async def submit_retrieve_data(
     identificator_model: StellarObjectIdentificatorDto,
 ) -> TaskIdDto:
     identificator_model.plugin_id = plugin_id
-    task_id = await create_task(task_repository, TaskType.photometric_data)
+    task = await task_repository.save(Task(task_type=TaskType.photometric_data))
+    task_id = task.id
 
-    # filename =f"{plugin_dict[plugin_id]}-{str(identificator_model.ra_deg).replace(".", ",")}-{str(identificator_model.dec_deg).replace(".", ",")}.csv"
     filename = f"{task_id}.csv"
     csv_path = Path.joinpath(settings.TEMP_DIR, filename)
 

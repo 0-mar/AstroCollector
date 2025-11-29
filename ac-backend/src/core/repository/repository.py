@@ -108,7 +108,7 @@ class Repository(Generic[Entity]):
 
                 expressions.append(OPERATORS[op](col, value))
 
-        return and_(*expressions)
+        return and_(True, *expressions)
 
     async def find_first(
         self,
