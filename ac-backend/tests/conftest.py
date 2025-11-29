@@ -1,12 +1,13 @@
-from typing import AsyncGenerator
+import shutil
+from pathlib import Path
 
 import pytest
-from fastapi.testclient import TestClient
+import pytest_asyncio
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
-    AsyncConnection,
-    AsyncTransaction,
-    AsyncSession,
     create_async_engine,
+    async_sessionmaker,
 )
 
 from src.core.config.config import settings
@@ -64,45 +65,99 @@ from src.main import app
 # https://gist.github.com/e-kondr01/969ae24f2e2f31bd52a81fa5a1fe0f96
 # https://www.core27.co/post/transactional-unit-tests-with-pytest-and-async-sqlalchemy
 
-engine = create_async_engine(settings.ASYNC_DATABASE_URL)
+# async_engine = create_async_engine(settings.ASYNC_DATABASE_URL, pool_size=10, echo=True, max_overflow=10)
+
+# TestingAsyncSessionLocal = async_sessionmaker(
+#     async_engine,
+#     expire_on_commit=False,
+#     autoflush=False,
+#     autocommit=False,
+# )
 
 
-@pytest.fixture(scope="session")
-def anyio_backend():
-    return "asyncio"
+@pytest.fixture
+def override_directories(monkeypatch):
+    """
+    Runs once before all tests and once after all tests.
+    """
+    # ---------- setup (before all tests) ----------
+    base_dir = Path("..")
+
+    plugins_dir = base_dir / "plugins"
+    resources_dir = base_dir / "resources"
+    temp_dir = base_dir / "temp"
+    logs_dir = base_dir / "logs"
+
+    if not plugins_dir.exists():
+        plugins_dir.mkdir()
+    if not resources_dir.exists():
+        resources_dir.mkdir()
+    if not temp_dir.exists():
+        temp_dir.mkdir()
+    if not logs_dir.exists():
+        logs_dir.mkdir()
+
+    monkeypatch.setattr(type(settings), "ROOT_DIR", base_dir, raising=True)
+
+    yield  # run all tests
+
+    # teardown (after all tests) ----------
+    shutil.rmtree(plugins_dir)
+    shutil.rmtree(resources_dir)
+    shutil.rmtree(temp_dir)
+    shutil.rmtree(logs_dir)
 
 
-@pytest.fixture(scope="session")
-async def connection(anyio_backend) -> AsyncGenerator[AsyncConnection, None]:
-    async with engine.connect() as connection:
-        yield connection
-
-
-@pytest.fixture()
-async def transaction(
-    connection: AsyncConnection,
-) -> AsyncGenerator[AsyncTransaction, None]:
-    async with connection.begin() as transaction:
-        yield transaction
-
-
-# Use this fixture to get SQLAlchemy's AsyncSession.
-# All changes that occur in a test function are rolled back
-# after function exits, even if session.commit() is called
-# in inner functions
-@pytest.fixture()
-async def db_session(
-    connection: AsyncConnection, transaction: AsyncTransaction
-) -> AsyncGenerator[AsyncSession, None]:
-    async_session = AsyncSession(
-        bind=connection,
-        join_transaction_mode="create_savepoint",
-        expire_on_commit=False,
+@pytest_asyncio.fixture(scope="function")
+async def async_engine():
+    """One async engine for all tests."""
+    engine = create_async_engine(
+        settings.ASYNC_DATABASE_URL, pool_size=10, echo=True, max_overflow=10
     )
+    try:
+        yield engine
+    finally:
+        await engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def async_session_maker(async_engine):
+    TestingAsyncSessionLocal = async_sessionmaker(
+        async_engine,
+        expire_on_commit=False,
+        autoflush=False,
+        autocommit=False,
+    )
+
+    yield TestingAsyncSessionLocal
+
+
+@pytest_asyncio.fixture(scope="function")
+async def db_session(async_engine, async_session_maker):
+    """The expectation with async_sessions is that the
+    transactions be called on the connection object instead of the
+    session object.
+    Detailed explanation of async transactional tests
+    <https://github.com/sqlalchemy/sqlalchemy/issues/5811>
+    """
+
+    connection = await async_engine.connect()
+    trans = await connection.begin()
+    async_session = async_session_maker(bind=connection)
+    nested = await connection.begin_nested()
+
+    @event.listens_for(async_session.sync_session, "after_transaction_end")
+    def end_savepoint(session, transaction):
+        nonlocal nested
+
+        if not nested.is_active:
+            nested = connection.sync_connection.begin_nested()
 
     yield async_session
 
-    await transaction.rollback()
+    await trans.rollback()
+    await async_session.close()
+    await connection.close()
 
 
 # # ---------------------------------------------------------------------------
@@ -119,9 +174,9 @@ async def db_session(
 # ---------------------------------------------------------------------------
 # FastAPI TestClient fixture
 # ---------------------------------------------------------------------------
-@pytest.fixture()
-def client() -> TestClient:
-    """
-    Synchronous TestClient that internally runs the async app.
-    """
-    return TestClient(app)
+@pytest.mark.anyio
+async def test_client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://localhost:8000/api/"
+    ) as ac:
+        yield ac

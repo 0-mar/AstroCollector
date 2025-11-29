@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -9,9 +10,9 @@ from src.tasks.model import Task, PhotometricData, StellarObjectIdentifier
 from src.tasks.types import TaskStatus, TaskType
 
 
+@pytest.mark.asyncio
 class TestTaskModel:
     async def test_task_creation(self, db_session: AsyncSession):
-        """Test basic task creation."""
         task = Task(task_type=TaskType.object_search)
         db_session.add(task)
         await db_session.commit()
@@ -44,7 +45,6 @@ class TestTaskModel:
         db_session.add(identifier)
         await db_session.flush()
 
-        # Reload task with relationships eagerly loaded
         result = await db_session.execute(
             select(Task)
             .options(
@@ -76,9 +76,8 @@ class TestTaskModel:
         db_session.add(photo_data)
         await db_session.flush()
 
-        # Delete task
         await db_session.delete(task)
-        await db_session.flush()  # send DELETE to DB
+        await db_session.flush()
 
         # Verify photometric data is also deleted
         result = await db_session.execute(
@@ -88,6 +87,7 @@ class TestTaskModel:
         assert remaining_data == []
 
 
+@pytest.mark.asyncio
 class TestPhotometricDataModel:
     async def test_photometric_data_creation(self, db_session: AsyncSession):
         task = Task(task_type=TaskType.photometric_data)
@@ -105,7 +105,6 @@ class TestPhotometricDataModel:
         db_session.add(photo_data)
         await db_session.flush()
 
-        # Reload from DB to avoid lazy-load issues
         result = await db_session.execute(
             select(PhotometricData).where(PhotometricData.id == photo_data.id)
         )
@@ -141,6 +140,7 @@ class TestPhotometricDataModel:
         assert db_photo.light_filter is None
 
 
+@pytest.mark.asyncio
 class TestStellarObjectIdentifierModel:
     async def test_identifier_creation(self, db_session: AsyncSession):
         task = Task(task_type=TaskType.object_search)
