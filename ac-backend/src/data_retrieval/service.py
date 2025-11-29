@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from src.core.config.config import settings
-from src.core.integration.schemas import PhotometricDataDto
+from src.plugin.interface.schemas import PhotometricDataDto
 from src.core.repository.repository import Repository, get_repository, Filters
 from src.core.service.schemas import PaginationResponseDto
 from src.data_retrieval.schemas import StellarObjectIdentifierDto

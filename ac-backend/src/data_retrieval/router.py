@@ -5,7 +5,7 @@ from fastapi import Depends, APIRouter
 
 from src.core.config.config import settings
 from src.core.exception.exceptions import APIException
-from src.core.integration.schemas import PhotometricDataDto
+from src.plugin.interface.schemas import PhotometricDataDto
 from src.core.repository.repository import Filters
 from src.core.service.schemas import PaginationResponseDto
 from src.data_retrieval.schemas import StellarObjectIdentifierDto

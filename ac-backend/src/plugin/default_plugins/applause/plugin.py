@@ -8,8 +8,8 @@ from astropy.table import Table
 from pyvo.dal import AsyncTAPJob
 
 from src.core.config.config import settings
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -24,7 +24,7 @@ class ApplauseIdentificatorDto(StellarObjectIdentificatorDto):
     ucac4_id: str
 
 
-class ApplausePlugin(CatalogPlugin[ApplauseIdentificatorDto]):
+class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__(
             "APPLAUSE",

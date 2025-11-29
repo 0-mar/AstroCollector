@@ -18,10 +18,10 @@ from fastapi import Depends, UploadFile
 import aiofiles
 from fastapi.concurrency import run_in_threadpool
 
-from src import default_plugins
+from src.plugin import default_plugins
 from src.core.config.config import settings
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import StellarObjectIdentificatorDto
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository, Filters
 from src.core.service.schemas import PaginationResponseDto
 
@@ -44,7 +44,9 @@ logger = logging.getLogger(__name__)
 class PluginService:
     def __init__(self, repository: PluginRepositoryDep):
         self._repository = repository
-        self.plugins: dict[str, CatalogPlugin[StellarObjectIdentificatorDto]] = dict()
+        self.plugins: dict[str, DefaultCatalogPlugin[StellarObjectIdentificatorDto]] = (
+            dict()
+        )
 
     async def get_plugin(self, plugin_id: UUID) -> PluginDto:
         plugin = await self._repository.get(plugin_id)
@@ -138,9 +140,11 @@ class PluginService:
                     plugin_mod: ModuleType = importlib.import_module(plugin_name)
                     plugin = await self.__register_plugin(plugin_mod)
 
+                    # copy resources to corresponding resource directory
                     plugin_resources_path = Path(file_finder.path) / "resources"
                     if Path.exists(plugin_resources_path):
-                        shutil.copytree(
+                        run_in_threadpool(
+                            shutil.copytree,
                             plugin_resources_path,
                             settings.RESOURCES_DIR / str(plugin.id) / "resources",
                         )
@@ -148,17 +152,18 @@ class PluginService:
     async def __register_plugin(self, plugin_module: ModuleType) -> PluginDto:
         clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
         for _, cls in clsmembers:
-            # Only add classes that are a sub class of PhotometricCataloguePlugin,
-            # but NOT PhotometricCataloguePlugin itself
+            # Only add classes that are a subclass of DefaultCatalogPlugin,
+            # but NOT DefaultCatalogPlugin itself
             if (
-                issubclass(cls, CatalogPlugin) and cls is not CatalogPlugin
+                issubclass(cls, DefaultCatalogPlugin)
+                and cls is not DefaultCatalogPlugin
                 #                and cls is not MastPlugin
             ):
                 logger.info(
                     f"Found default plugin class: {cls.__module__}.{cls.__name__}"
                 )
 
-                plugin_instance: CatalogPlugin = cls()
+                plugin_instance: DefaultCatalogPlugin = cls()
 
                 dto = await self.create_plugin(
                     CreatePluginDto(

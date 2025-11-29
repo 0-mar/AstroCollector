@@ -5,8 +5,8 @@ from uuid import UUID
 
 from astropy.coordinates import SkyCoord
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -18,7 +18,7 @@ class GaiaDR3IdentificatorDto(StellarObjectIdentificatorDto):
     source_id: str
 
 
-class GaiaDR3Plugin(CatalogPlugin[GaiaDR3IdentificatorDto]):
+class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3IdentificatorDto]):
     def __init__(self) -> None:
         super().__init__(
             "Gaia DR3",

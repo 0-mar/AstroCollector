@@ -8,8 +8,8 @@ from astropy.table import Table
 
 from lightkurve import SearchResult, LightkurveError, search_lightcurve, LightCurve
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -19,7 +19,7 @@ class TessStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
     tic: str
 
 
-class TessPlugin(CatalogPlugin[TessStellarObjectIdentificatorDto]):
+class TessPlugin(DefaultCatalogPlugin[TessStellarObjectIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__(
             "TESS",

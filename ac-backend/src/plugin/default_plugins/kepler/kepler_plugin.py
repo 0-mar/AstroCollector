@@ -8,8 +8,8 @@ from astropy.table import Table
 
 from lightkurve import SearchResult, LightkurveError, search_lightcurve, LightCurve
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -19,7 +19,7 @@ class KeplerStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
     kic: str
 
 
-class KeplerPlugin(CatalogPlugin[KeplerStellarObjectIdentificatorDto]):
+class KeplerPlugin(DefaultCatalogPlugin[KeplerStellarObjectIdentificatorDto]):
     def __init__(self) -> None:
         super().__init__(
             "Kepler",

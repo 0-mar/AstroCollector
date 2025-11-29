@@ -7,7 +7,7 @@ from astropy import units
 from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.time import Time
 
-from src.core.integration.schemas import (
+from src.plugin.interface.schemas import (
     StellarObjectIdentificatorDto,
     PhotometricDataDto,
 )
@@ -21,43 +21,15 @@ class CatalogPlugin(Generic[T], ABC):
     """
 
     def __init__(
-        self, name: str, description: str, url: str, directly_identifies_objects: bool
+        self,
     ) -> None:
-        """
-        Create new catalog plugin.
-        :param name: name of the catalog
-        :param description: catalog description
-        :param url: catalog website url
-        :param directly_identifies_objects: whether the catalog directly identifies objects or not.
-        That is, is each photometry record linked to an object with ID, or does the catalog just provide a list of measurements for given position?
-        """
         self.__batch_limit = 20000
         self._geocenter = EarthLocation.from_geocentric(
             0 * units.m, 0 * units.m, 0 * units.m
         )
-        self._directly_identifies_objects = directly_identifies_objects
-        self._description = description
-        self._catalog_url = url
-        self._catalog_name = name
 
     def batch_limit(self):
         return self.__batch_limit
-
-    @property
-    def directly_identifies_objects(self) -> bool:
-        return self._directly_identifies_objects
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @property
-    def catalog_name(self) -> str:
-        return self._catalog_name
-
-    @property
-    def catalog_url(self) -> str:
-        return self._catalog_url
 
     @abstractmethod
     def list_objects(
@@ -160,3 +132,45 @@ class CatalogPlugin(Generic[T], ABC):
         raise ValueError(
             f"Invalid reference frame {reference_frame}. Valid values are: geocentric, heliocentric, barycentric."
         )
+
+
+class DefaultCatalogPlugin(CatalogPlugin[T]):
+    def __init__(
+        self, name: str, description: str, url: str, directly_identifies_objects: bool
+    ) -> None:
+        """
+        Create new default catalog plugin.
+        :param name: name of the catalog
+        :param description: catalog description
+        :param url: catalog website url
+        :param directly_identifies_objects: whether the catalog directly identifies objects or not.
+        That is, is each photometry record linked to an object with ID, or does the catalog just provide a list of measurements for given position?
+        """
+        super().__init__()
+        self.__batch_limit = 20000
+        self._geocenter = EarthLocation.from_geocentric(
+            0 * units.m, 0 * units.m, 0 * units.m
+        )
+        self._directly_identifies_objects = directly_identifies_objects
+        self._description = description
+        self._catalog_url = url
+        self._catalog_name = name
+
+    def batch_limit(self):
+        return self.__batch_limit
+
+    @property
+    def directly_identifies_objects(self) -> bool:
+        return self._directly_identifies_objects
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def catalog_name(self) -> str:
+        return self._catalog_name
+
+    @property
+    def catalog_url(self) -> str:
+        return self._catalog_url

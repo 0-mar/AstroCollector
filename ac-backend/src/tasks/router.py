@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 
 from src.core.config.config import settings
-from src.core.integration.schemas import (
+from src.plugin.interface.schemas import (
     StellarObjectIdentificatorDto,
 )
 from src.core.repository.repository import Repository, get_repository

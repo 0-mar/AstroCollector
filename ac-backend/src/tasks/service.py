@@ -11,8 +11,8 @@ from sqlalchemy import insert, update
 from sqlalchemy.orm import Session
 
 from src.core.config.config import settings
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import StellarObjectIdentificatorDto
+from src.plugin.interface.catalog_plugin import CatalogPlugin, DefaultCatalogPlugin
+from src.plugin.interface.schemas import StellarObjectIdentificatorDto
 from src.core.repository.exception import RepositoryException
 
 from src.plugin.exceptions import NoPluginClassException
@@ -52,8 +52,9 @@ class SyncTaskService:
             # Only add classes that are a sub class of PhotometricCataloguePlugin,
             # but NOT PhotometricCataloguePlugin itself
             if (
-                issubclass(cls, CatalogPlugin) and cls is not CatalogPlugin
-                # and cls is not MastPlugin
+                issubclass(cls, CatalogPlugin)
+                and cls is not CatalogPlugin
+                and cls is not DefaultCatalogPlugin
             ):
                 logger.info(f"Found plugin class: {cls.__module__}.{cls.__name__}")
                 return cls()

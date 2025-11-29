@@ -5,8 +5,8 @@ from uuid import UUID
 import httpx
 from astropy.coordinates import SkyCoord
 
-from src.core.integration.catalog_plugin import CatalogPlugin
-from src.core.integration.schemas import (
+from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
+from src.plugin.interface.schemas import (
     PhotometricDataDto,
     StellarObjectIdentificatorDto,
 )
@@ -17,7 +17,7 @@ class ApassIdentificatorDto(StellarObjectIdentificatorDto):
     raddeg: float
 
 
-class ApassPlugin(CatalogPlugin[ApassIdentificatorDto]):
+class ApassPlugin(DefaultCatalogPlugin[ApassIdentificatorDto]):
     # https://tombstone.physics.mcmaster.ca/APASS/conesearch_offset.php
     def __init__(self) -> None:
         super().__init__(
