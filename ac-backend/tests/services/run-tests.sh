@@ -33,9 +33,6 @@ cd ../logs
 rm -fr *
 
 cd ..
-uv run pytest -q
-#celery -A src.core.celery.worker worker &
-#celery -A src.core.celery.worker beat &
-#uv run pytest -q &
-#
-#wait
+
+cd tests/services
+uv run pytest -q ..

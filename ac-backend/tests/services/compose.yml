@@ -13,11 +13,6 @@ services:
     volumes:
       # mounts a named volume so that data survives restart
       - test-database:/var/lib/postgresql/data/
-  test-redis:
-    container_name: ac-test-redis
-    image: docker.io/redis:8
-    ports:
-      - "${REDIS_PORT}:6379"
 
 networks:
   ac-test:
