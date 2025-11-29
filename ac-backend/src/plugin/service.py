@@ -143,7 +143,7 @@ class PluginService:
                     # copy resources to corresponding resource directory
                     plugin_resources_path = Path(file_finder.path) / "resources"
                     if Path.exists(plugin_resources_path):
-                        run_in_threadpool(
+                        await run_in_threadpool(
                             shutil.copytree,
                             plugin_resources_path,
                             settings.RESOURCES_DIR / str(plugin.id) / "resources",
