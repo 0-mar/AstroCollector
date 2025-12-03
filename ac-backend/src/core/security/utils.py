@@ -32,11 +32,11 @@ def create_token(data: dict, expires_delta: datetime.timedelta):
 
 def create_user_tokens(user_id: UUID):
     access_token = create_token(
-        {"sub": str(user_id), "type": TokenType.ACCESS},
+        {"sub": str(user_id), "type": TokenType.ACCESS.value},
         datetime.timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS),
     )
     refresh_token = create_token(
-        {"sub": str(user_id), "type": str(TokenType.REFRESH)},
+        {"sub": str(user_id), "type": str(TokenType.REFRESH.value)},
         datetime.timedelta(seconds=settings.REFRESH_TOKEN_EXPIRE_SECONDS),
     )
     return access_token, refresh_token
@@ -54,7 +54,7 @@ def get_user_id_from_refresh_token(refresh_token: str):
         )
 
         token_type: TokenType = payload.get("type")
-        if token_type != TokenType.REFRESH:
+        if token_type != TokenType.REFRESH.value:
             raise credentials_exception
 
         user_id: UUID = payload.get("sub")
