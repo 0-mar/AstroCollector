@@ -9,7 +9,6 @@ from starlette import status
 from src.core.config.config import settings
 from src.core.security.dependencies import UserServiceDep
 from src.core.security.enums import TokenType
-from src.core.security.models import User
 from src.core.security.schemas import UserRoleEnum, UserDto
 
 
@@ -33,7 +32,7 @@ async def get_current_user(
         )
 
         token_type: TokenType = payload.get("type")
-        if token_type != TokenType.ACCESS:
+        if token_type != TokenType.ACCESS.value:
             raise credentials_exception
 
         user_id = payload.get("sub")
@@ -50,15 +49,15 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
+    current_user: Annotated[UserDto, Depends(get_current_user)],
+) -> UserDto:
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 
 def required_roles(*roles: UserRoleEnum):
-    async def check_roles(current_user: User = Depends(get_current_active_user)):
+    async def check_roles(current_user: UserDto = Depends(get_current_active_user)):
         if current_user.role.name in roles:
             return current_user
         raise HTTPException(
