@@ -10,7 +10,6 @@ import type {User} from "@/features/common/auth/types.ts";
 export type RouterCtx = {
     auth: {
         isAuthenticated: boolean;
-        accessToken: string | null;
         user: User | null;
     };
 };
