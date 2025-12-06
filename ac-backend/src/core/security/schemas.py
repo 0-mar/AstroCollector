@@ -1,5 +1,8 @@
 import datetime
 from enum import Enum
+from typing import Annotated
+
+from fastapi import Form
 
 from src.core.repository.schemas import BaseDto, BaseIdDto
 
@@ -39,7 +42,9 @@ class UserCreateDto(BaseDto):
     role: UserRoleEnum
 
 
-class Tokens(BaseDto):
-    access_token: str
-    refresh_token: str
-    token_type: str
+class LoginFormData:
+    def __init__(
+        self, username: Annotated[str, Form()], password: Annotated[str, Form()]
+    ):
+        self.username = username
+        self.password = password

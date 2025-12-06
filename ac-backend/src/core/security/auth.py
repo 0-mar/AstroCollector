@@ -1,63 +1,51 @@
 from typing import Annotated
 
-import jwt
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from jwt import InvalidTokenError
+from redis.asyncio import Redis
 from starlette import status
+from starlette.requests import Request
 
 from src.core.config.config import settings
 from src.core.security.dependencies import UserServiceDep
-from src.core.security.enums import TokenType
 from src.core.security.schemas import UserRoleEnum, UserDto
+from src.deps import get_redis_client
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/security/login")
-
-
-async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)], service: UserServiceDep
+async def get_user(
+    request: Request,
+    redis_client: Annotated[Redis, Depends(get_redis_client)],
+    service: UserServiceDep,
 ) -> UserDto:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid access token",
-        headers={"WWW-Authenticate": "Bearer"},
+        detail="Unauthorized",
     )
 
     try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY.get_secret_value(),
-            algorithms=[settings.ALGORITHM],
-        )
+        session_id = request.cookies.get(settings.SESSION_COOKIE_NAME)
+    except KeyError:
+        raise credentials_exception
 
-        token_type: TokenType = payload.get("type")
-        if token_type != TokenType.ACCESS.value:
-            raise credentials_exception
-
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
-
-    except InvalidTokenError:
+    user_id = await redis_client.get(f"session:{session_id}")
+    if user_id is None:
         raise credentials_exception
 
     user = await service.get_user(user_id)
     if user is None:
         raise credentials_exception
+    if user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+
+    # refresh session expiration time
+    await redis_client.set(
+        f"session:{session_id}", user_id, ex=settings.SESSION_EXPIRE_SECONDS
+    )
+
     return user
 
 
-async def get_current_active_user(
-    current_user: Annotated[UserDto, Depends(get_current_user)],
-) -> UserDto:
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
-
 def required_roles(*roles: UserRoleEnum):
-    async def check_roles(current_user: UserDto = Depends(get_current_active_user)):
+    async def check_roles(current_user: Annotated[UserDto, Depends(get_user)]):
         if current_user.role.name in roles:
             return current_user
         raise HTTPException(
