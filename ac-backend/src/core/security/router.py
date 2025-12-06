@@ -42,7 +42,7 @@ async def login(
     logger.info(f"User {user.email} logged in (ID: {user.id})")
 
     # create and save session id to the Redis DB
-    session_id = await create_session(user.id, request.state.redis_client)
+    session_id, csrf_token = await create_session(user.id, request.state.redis_client)
 
     response.set_cookie(
         settings.SESSION_COOKIE_NAME,
@@ -53,13 +53,15 @@ async def login(
         expires=settings.SESSION_EXPIRE_SECONDS,
         domain=settings.SESSION_COOKIE_DOMAIN,
     )
-    return {"message": "Successfully logged in!"}
+    return {"csrf_token": csrf_token}
 
 
 @router.post("/logout")
 async def logout(user: Annotated[UserDto, Depends(get_user)], response: Response):
     """Logout user by deleting the session cookie"""
-    response.delete_cookie(settings.SESSION_COOKIE_NAME, domain=settings.COOKIE_DOMAIN)
+    response.delete_cookie(
+        settings.SESSION_COOKIE_NAME, domain=settings.SESSION_COOKIE_DOMAIN
+    )
 
     logger.info(f"User {user.email} logged out (ID: {user.id})")
 
