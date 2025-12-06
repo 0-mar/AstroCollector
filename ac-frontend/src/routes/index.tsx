@@ -17,28 +17,10 @@ export const Route = createFileRoute('/')({
 function App() {
     const [menuVisible, setMenuVisible] = useState(false)
     const [pluginData, setPluginData] = useState<PluginDto[]>([])
-    //const [aladinLoaded, setAladinLoaded] = useState(false)
 
     const [photometricSectionVisible, setPhotometricSectionVisible] = useState(false)
 
     const isAladinLoaded = useLoadAladin();
-
-    /*useEffect(() => {
-        const scriptTag = document.createElement('script')
-        scriptTag.src = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"
-        scriptTag.addEventListener("load", () => {
-           setAladinLoaded(true)
-        })
-        scriptTag.onload = () => {
-            const A = (globalThis as any).A;
-            // if aladin does not init within 10 seconds, fail
-            const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('aladin-init-timeout')), 10000));
-            Promise.race([A?.init ?? Promise.reject('no A'), timeout])
-                .then(() => setAladinLoaded(true))
-                .catch(() => setAladinLoaded(false)); // don't render Aladin
-        };
-        document.body.appendChild(scriptTag)
-    }, []);*/
 
     return (
         <SearchFormProvider>
