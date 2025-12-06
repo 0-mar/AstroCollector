@@ -9,8 +9,7 @@ type ProtectedContentProps = {
 
 const ProtectedContent = ({permittedRoles, children}: ProtectedContentProps) => {
     const auth = useAuth();
-
-    if (auth?.isAuthenticated && permittedRoles.includes(auth.user?.role?.name)) {
+    if (auth?.isAuthenticated && permittedRoles.includes(auth?.user?.role.name)) {
         return (
             <>
                 {children}

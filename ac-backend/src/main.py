@@ -8,6 +8,7 @@ from astropy.coordinates.name_resolve import NameResolveError
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from httpx import AsyncClient, Client
+from redis.asyncio import Redis
 from starlette import status
 from starlette.responses import JSONResponse
 
@@ -52,12 +53,23 @@ async def lifespan(app: FastAPI):
 
     await init_db()
 
+    redis_client = Redis(
+        host=settings.REDIS_DB_HOST,
+        port=settings.REDIS_DB_PORT,
+        decode_responses=True,
+    )
+
     sync_http_client = Client()
     async with AsyncClient() as http_client:
-        yield {"async_http_client": http_client, "sync_http_client": Client()}
+        yield {
+            "async_http_client": http_client,
+            "sync_http_client": Client(),
+            "redis_client": redis_client,
+        }
         # The AsyncClient closes on shutdown
 
     sync_http_client.close()
+    await redis_client.close()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -104,7 +116,9 @@ async def validation_exception_handler(request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "error_message": str(exc) if settings.DEBUG else "Internal server error",
+            "error_message": "Internal server error"
+            if settings.PRODUCTION
+            else str(exc),
             "code": "NO_CODE",
             "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
         },

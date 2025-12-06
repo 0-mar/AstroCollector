@@ -14,67 +14,6 @@ from src.core.config.config import settings
 from src.main import app
 
 
-# TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
-#
-# test_engine = create_async_engine(
-#     TEST_DATABASE_URL,
-#     echo=False,
-#     future=True,
-#     connect_args={"check_same_thread": False},  # needed for SQLite
-# )
-#
-# AsyncTestingSessionLocal = async_sessionmaker(
-#     bind=test_engine,
-#     expire_on_commit=False,
-# )
-#
-# # ---------------------------------------------------------------------------
-# # Override the FastAPI dependency: get_async_db_session
-# # ---------------------------------------------------------------------------
-# async def override_get_async_db_session() -> AsyncGenerator[AsyncSession, None]:
-#     async with AsyncTestingSessionLocal() as session:
-#         yield session
-#
-#
-# app.dependency_overrides[get_async_db_session] = override_get_async_db_session
-#
-# @pytest.fixture(scope="session", autouse=True)
-# def prepare_database() -> None:
-#     """
-#     Create all tables before running tests, and drop them afterwards.
-#     Uses DbEntity.metadata, which should include all models inheriting DbEntity.
-#     """
-#
-#     async def init_models() -> None:
-#         async with test_engine.begin() as conn:
-#             await conn.run_sync(DbEntity.metadata.create_all)
-#
-#     async def drop_models() -> None:
-#         async with test_engine.begin() as conn:
-#             await conn.run_sync(DbEntity.metadata.drop_all)
-#
-#     asyncio.run(init_models())
-#     yield
-#     asyncio.run(drop_models())
-#
-#     # remove SQLite file
-#     if os.path.exists("test.db"):
-#         os.remove("test.db")
-
-# pytest + sqlalchemy async tests
-# https://gist.github.com/e-kondr01/969ae24f2e2f31bd52a81fa5a1fe0f96
-# https://www.core27.co/post/transactional-unit-tests-with-pytest-and-async-sqlalchemy
-
-# async_engine = create_async_engine(settings.ASYNC_DATABASE_URL, pool_size=10, echo=True, max_overflow=10)
-
-# TestingAsyncSessionLocal = async_sessionmaker(
-#     async_engine,
-#     expire_on_commit=False,
-#     autoflush=False,
-#     autocommit=False,
-# )
-
-
 @pytest.fixture
 def override_directories(monkeypatch):
     """
@@ -158,17 +97,6 @@ async def db_session(async_engine, async_session_maker):
     await trans.rollback()
     await async_session.close()
     await connection.close()
-
-
-# # ---------------------------------------------------------------------------
-# # Override the FastAPI dependency: get_async_db_session
-# # ---------------------------------------------------------------------------
-# async def override_get_async_db_session() -> AsyncGenerator[AsyncSession, None]:
-#     async with AsyncTestingSessionLocal() as session:
-#         yield session
-#
-#
-# app.dependency_overrides[get_async_db_session] = override_get_async_db_session
 
 
 # ---------------------------------------------------------------------------

@@ -1,33 +1,3 @@
-# from sqlalchemy import Column, String
-# from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-# from sqlalchemy.orm import declarative_base, sessionmaker
-#
-# from src.core.config.config import settings
-#
-# # Create async engine
-# engine = create_async_engine(settings.DATABASE_URL, echo=True, future=True)
-#
-# # Create async session factory
-# async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-#
-# # Create declarative base for models
-# Base = declarative_base()
-# class DbEntity(Base):
-#     id = Column(String, primary_key=True, index=True)
-#
-# async def get_session() -> AsyncSession:
-#     """Dependency for getting async database session.
-#
-#     Yields:
-#         AsyncSession: Async database session
-#     """
-#     async with async_session() as session:
-#         try:
-#             yield session
-#         finally:
-#             await session.close()
-
-
 import contextlib
 import logging
 from typing import Any, AsyncIterator, Optional, AsyncGenerator
@@ -81,18 +51,15 @@ class AsyncDatabaseSessionManager:
         self._sessionmaker = None
 
     @contextlib.asynccontextmanager
-    async def connect(self) -> AsyncIterator[AsyncConnection]:
+    async def transaction_connection(self) -> AsyncIterator[AsyncConnection]:
         if self._engine is None:
             raise DatabaseSessionManagerException(
                 "DatabaseSessionManager is not initialized"
             )
 
         async with self._engine.begin() as connection:
-            try:
-                yield connection
-            except Exception:
-                await connection.rollback()
-                raise
+            # engine.begin() handles commit/rollback on exit
+            yield connection
 
     @contextlib.asynccontextmanager
     async def session(self) -> AsyncIterator[AsyncSession]:
@@ -119,6 +86,7 @@ async_sessionmanager = AsyncDatabaseSessionManager(
 # Dependencies with yield - extra steps after finishing (session is automatically closed after the request finishes)
 # https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield
 async def get_async_db_session() -> AsyncGenerator[AsyncSession, Any]:
+    """Function to provide a FastAPI dependency for a request-scoped AsyncSession."""
     async with async_sessionmanager.session() as session:
         yield session
 

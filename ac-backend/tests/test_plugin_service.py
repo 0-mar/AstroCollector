@@ -23,9 +23,9 @@ class TestPluginService:
     def plugin_entity(self) -> Plugin:
         return Plugin(
             id=uuid.UUID("abb15bc1-4926-497d-b337-0a7d529b62f1"),
-            catalog_url="mock",
-            description="hey",
-            created_by="test",
+            catalog_url="https://google.com",
+            description="Test plugin",
+            created_by="system",
             directly_identifies_objects=True,
             file_name="mock.py",
             name="Test",
@@ -123,7 +123,8 @@ class TestPluginService:
     async def test_register_plugins(self, override_directories, plugin_service):
         dto: PluginDto = await plugin_service._PluginService__register_plugin(plugin)
         test_plugin = PluginTest()
-
+        print(dto.catalog_url)
+        print(test_plugin.catalog_url)
         # plugin dir contains the plugin file
         assert len([file for file in settings.PLUGIN_DIR.iterdir()]) == 1
 

@@ -1,17 +1,20 @@
 import axios, {type AxiosRequestConfig} from 'axios';
-import createAuthRefreshInterceptor from "axios-auth-refresh";
-import {refreshAuth} from "@/features/common/api/refresh.ts";
 
 export const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
-    withCredentials: true
+    withCredentials: true,
 });
 
-createAuthRefreshInterceptor(axiosInstance, refreshAuth, {
-    statusCodes: [401], // default: [ 401 ]
-    pauseInstanceWhileRefreshing: true,
-});
+axiosInstance.interceptors.request.use((config) => {
+    const token = localStorage.getItem("ac_csrf_token");
 
+    if (token) {
+        config.headers = config.headers ?? {};
+        (config.headers as any)["X-CSRF-Token"] = token;
+    }
+
+    return config;
+});
 
 async function get<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await axiosInstance.get<T>(path, config);

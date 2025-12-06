@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from passlib.context import CryptContext
-from pydantic import Field, computed_field, SecretStr
+from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     def ROOT_DIR(self) -> Path:
         return Path.joinpath(Path(__file__).parent.parent.parent.parent).resolve()
 
-    DEBUG: bool = False
+    PRODUCTION: bool
     APPLAUSE_TOKEN: str
 
     DB_USER: str = Field(..., alias="POSTGRES_USER")
@@ -26,8 +26,11 @@ class Settings(BaseSettings):
     DB_NAME: str = Field(..., alias="POSTGRES_DB")
     DB_HOST: str = Field(..., alias="POSTGRES_HOST")
 
-    REDIS_HOST: str = Field(..., alias="REDIS_HOST")
-    REDIS_PORT: str = Field(..., alias="REDIS_PORT")
+    REDIS_BROKER_HOST: str
+    REDIS_BROKER_PORT: str
+
+    REDIS_DB_HOST: str
+    REDIS_DB_PORT: str
 
     OBJECT_SEARCH_RADIUS: float = 30
 
@@ -35,9 +38,8 @@ class Settings(BaseSettings):
     @property
     def CELERY_CONFIG(self) -> dict[str, Any]:
         return {
-            "broker_url": f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0",
+            "broker_url": f"redis://{self.REDIS_BROKER_HOST}:{self.REDIS_BROKER_PORT}/0",
             "task_ignore_result": True,
-            # "result_backend": f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/1",
             "result_expires": self.TASK_DATA_DELETE_INTERVAL
             * 3600,  # Task results expire in 1 hour (cleanup)
             "task_track_started": True,  # Enable tracking the STARTED state of tasks
@@ -131,23 +133,20 @@ class Settings(BaseSettings):
     # -----------------------
     # Auth settings
     # -----------------------
-    REFRESH_TOKEN_EXPIRE_SECONDS: int = 24 * 60 * 60
-    ACCESS_TOKEN_EXPIRE_SECONDS: int = 10 * 60
-    SECRET_KEY: SecretStr = Field(
-        default=SecretStr(""),
-        description="Secret key for JWT. If not provided, a random one will be generated.",
-        frozen=False,
-    )
-    ALGORITHM: str = "HS256"
-    REFRESH_SAME_SITE: Literal["lax", "strict", "none"] = "lax"
-    """The SameSite attribute of the refresh token cookie."""
-    REFRESH_SECURE: bool = True
-    """The Secure attribute of the refresh token cookie."""
-    REFRESH_HTTPONLY: bool = True
-    """The HttpOnly attribute of the refresh token cookie."""
+    SESSION_COOKIE_NAME: str = "ac_session"
+    SESSION_EXPIRE_SECONDS: int = 24 * 60 * 60
+    SESSION_SAME_SITE: Literal["lax", "strict", "none"] = "strict"
+    """The SameSite attribute of the session cookie."""
+    SESSION_SECURE: bool = True
+    """The Secure attribute of the session cookie."""
+    SESSION_HTTPONLY: bool = True
+    """The HttpOnly attribute of the session cookie."""
 
-    COOKIE_DOMAIN: str | None = None
-    """The domain attribute of the cookies. If None, the domain is not set."""
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def SESSION_COOKIE_DOMAIN(self) -> str | None:
+        """The domain attribute of the cookies. None in development"""
+        return "physics.muni.cz" if self.PRODUCTION else None
 
     pwd_context: CryptContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

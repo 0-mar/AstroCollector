@@ -1,5 +1,5 @@
 import {createFileRoute} from '@tanstack/react-router'
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import SearchForm from "@/features/search/searchSection/components/SearchForm.tsx";
 import StellarObjectsMenu from "@/features/search/menuSection/components/StellarObjectsMenu.tsx";
 import PhotometricDataSection from "@/features/search/photometricDataSection/components/PhotometricDataSection.tsx";
@@ -8,6 +8,7 @@ import {SearchFormProvider} from "@/features/search/searchSection/components/Sea
 import {ResolvedObjectCoordsProvider} from "@/features/search/searchSection/components/ResolvedObjectCoordsProvider.tsx";
 import AladinCutout from "@/features/search/searchSection/components/AladinCutout.tsx";
 import type {PluginDto} from "@/features/catalogsOverview/types.ts";
+import {useLoadAladin} from "@/features/search/searchSection/hooks/useLoadAladin.ts";
 
 export const Route = createFileRoute('/')({
     component: App,
@@ -16,11 +17,13 @@ export const Route = createFileRoute('/')({
 function App() {
     const [menuVisible, setMenuVisible] = useState(false)
     const [pluginData, setPluginData] = useState<PluginDto[]>([])
-    const [aladinLoaded, setAladinLoaded] = useState(false)
+    //const [aladinLoaded, setAladinLoaded] = useState(false)
 
     const [photometricSectionVisible, setPhotometricSectionVisible] = useState(false)
 
-    useEffect(() => {
+    const isAladinLoaded = useLoadAladin();
+
+    /*useEffect(() => {
         const scriptTag = document.createElement('script')
         scriptTag.src = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"
         scriptTag.addEventListener("load", () => {
@@ -35,7 +38,7 @@ function App() {
                 .catch(() => setAladinLoaded(false)); // don't render Aladin
         };
         document.body.appendChild(scriptTag)
-    }, []);
+    }, []);*/
 
     return (
         <SearchFormProvider>
@@ -48,7 +51,7 @@ function App() {
                                         setPluginData={setPluginData}/>
                         </div>
                         {menuVisible && <div className="p-8 w-full md:w-1/2 min-w-0">
-                            <AladinCutout loaded={aladinLoaded} />
+                            <AladinCutout loaded={isAladinLoaded} />
                         </div>}
                     </div>
                     {menuVisible && <div className="p-8 my-4">

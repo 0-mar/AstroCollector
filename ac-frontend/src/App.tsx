@@ -12,7 +12,6 @@ export const router = createRouter({
         auth: {
             isAuthenticated: false,
             user: null,
-            accessToken: null
         }
     },
     defaultNotFoundComponent: () => NotFound(),
@@ -30,9 +29,8 @@ const queryClient = new QueryClient()
 
 const AppRouter = () => {
     const auth = useAuth()
-    // CRITICAL: Don't render router until auth is initialized
-    if (auth?.isLoading) {
-        console.log("Loading auth...")
+    // do not render router until auth is initialized
+    if (auth?.isPending) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSkeleton text={"Loading..."} />
@@ -46,7 +44,6 @@ const AppRouter = () => {
             context={{
                 auth: {
                     isAuthenticated: auth?.isAuthenticated ?? false,
-                    accessToken: auth?.accessToken ?? null,
                     user: auth?.user ?? null,
                 },
             }}
