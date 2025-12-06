@@ -10,83 +10,47 @@ export const Route = createFileRoute('/admin/catalogHelp')({
 
 
 function CatalogHelpComponent() {
-    const codeString = `from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import TypeVar, List, Generic, Iterator, Literal
-from uuid import UUID
-
-from astropy import units
-from astropy.coordinates import SkyCoord, EarthLocation
-from astropy.time import Time
-
-from src.core.integration.schemas import (
-    StellarObjectIdentificatorDto,
-    PhotometricDataDto,
-)
-
-T = TypeVar("T", bound=StellarObjectIdentificatorDto)
+    const codeString = `T = TypeVar("T", bound=StellarObjectIdentificatorDto)
 
 
 class CatalogPlugin(Generic[T], ABC):
     """
     Base class for all catalog plugins.
     """
+
     def __init__(
-        self, name: str, description: str, url: str, directly_identifies_objects: bool
+        self,
     ) -> None:
-        """
-        Create new catalog plugin.
-        :param name: name of the catalog
-        :param description: catalog description
-        :param url: catalog website url
-        :param directly_identifies_objects: whether the catalog directly identifies objects or not.
-        That is, is each photometry record linked to an object with ID, or does the catalog just provide a list of measurements for given position?
-        """
         self.__batch_limit = 20000
         self._geocenter = EarthLocation.from_geocentric(
             0 * units.m, 0 * units.m, 0 * units.m
         )
-        self._directly_identifies_objects = directly_identifies_objects
-        self._description = description
-        self._catalog_url = url
-        self._catalog_name = name
 
     def batch_limit(self):
         return self.__batch_limit
 
-    @property
-    def directly_identifies_objects(self) -> bool:
-        return self._directly_identifies_objects
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @property
-    def catalog_name(self) -> str:
-        return self._catalog_name
-
-    @property
-    def catalog_url(self) -> str:
-        return self._catalog_url
-
     @abstractmethod
     def list_objects(
-        self, coords: SkyCoord, radius_arcsec: float, plugin_id: UUID
+        self,
+        coords: SkyCoord,
+        radius_arcsec: float,
+        plugin_id: UUID,
+        resources_dir: Path,
     ) -> Iterator[List[T]]:
         """
         Generator method that yields found stellar objects. Returns plugins corresponding stellar object identificators
-        found in the radius around the given coordinates.
+        found in the radius around the given coordinates. If the catalog is locally stored, it is stored in the resources directory.
         :param coords: the coordinates which to search for objects around
         :param radius_arcsec: search radius around the given coordinates in arcseconds
         :param plugin_id: the plugin id of the used plugin database entity. Used to identify the plugin in the database.
+        :param resources_dir: resource directory of the plugin
         :return: list of stellar object identificators.
         """
         pass
 
     @abstractmethod
     def get_photometric_data(
-        self, identificator: T, csv_path: Path
+        self, identificator: T, csv_path: Path, resources_dir: Path
     ) -> Iterator[list[PhotometricDataDto]]:
         """
         Generator method that yields photometric data for a given stellar object. Writes the original fetched data to the provided csv file.
@@ -96,6 +60,9 @@ class CatalogPlugin(Generic[T], ABC):
         If the remote source returns large amounts of data, please split the data into chunks and yield each chunk. This is because the data is saved to the database,
         so that we avoid inserting too much at once. The recommended chunk size is defined in batch_limit.
 
+        If the catalog is locally stored, it is stored in the resources directory.
+
+        :param resources_dir: resource directory of the plugin
         :param csv_path: path to store the original data
         :param identificator: the stellar object to get photometric data for
         :return: list of photometric data for the given stellar object.
