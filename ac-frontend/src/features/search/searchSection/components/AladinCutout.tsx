@@ -8,63 +8,48 @@ type AladinCutoutProps = {
 }
 
 const AladinCutout = ({loaded}: AladinCutoutProps) => {
-    const resolvedObjectCoordsContext = useContext(ResolvedObjectCoordsContext)
+    const resolvedObjectCoordsContext = useContext(ResolvedObjectCoordsContext);
+    // the container, where aladin lives
     const containerRef = useRef<HTMLDivElement | null>(null);
+    // reference to aladin instance. We do not want to rerender each time a star is search, so it is as a ref
     const aladinRef = useRef<any>(null);
     const [showError, setShowError] = useState(false);
 
     useEffect(() => {
-        if (!loaded || resolvedObjectCoordsContext?.resolvedObjectCoords === null) {
+        if (!loaded || !resolvedObjectCoordsContext?.resolvedObjectCoords || !containerRef.current) {
             return;
         }
 
         const aladinGlobal = (globalThis as any).A;
-        if (!containerRef.current || !aladinGlobal) {
+        if (!aladinGlobal) {
             setShowError(true);
             return;
         }
-        setShowError(false)
 
+        let aladin;
         const target = `${resolvedObjectCoordsContext?.resolvedObjectCoords?.rightAscension} ${resolvedObjectCoordsContext?.resolvedObjectCoords?.declination}`
 
-        const aladin = aladinGlobal.aladin(containerRef.current,
-            { survey: 'P/DSS2/color', fov: 2 / 60, target: target});
-        aladinRef.current = aladin;
-
-        aladin.addCatalog(aladinGlobal.catalogFromSimbad(target, 2 / 60, {onClick: 'showPopup'}));
-        aladin.addCatalog(aladinGlobal.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
-        aladin.setFov(2/60)
-
-        // cleanup
-        return () => {
-            try {
-                aladinRef.current = null;
-                if (containerRef.current) containerRef.current.innerHTML = "";
-            } catch {}
-        };
-    }, [loaded, resolvedObjectCoordsContext?.resolvedObjectCoords]);
-
-    useEffect(() => {
-        const aladinGlobal = (globalThis as any).A;
-        const aladin = aladinRef.current;
-        if (!aladinGlobal || !aladin || resolvedObjectCoordsContext?.resolvedObjectCoords === null) {
-            return;
+        if (!aladinRef.current) {
+            // create aladin for the first time
+            aladin = aladinGlobal.aladin(containerRef.current,
+                { survey: 'P/DSS2/color', fov: 2 / 60, target: target});
+            aladin.addCatalog(aladinGlobal.catalogFromSimbad(target, 2 / 60, {onClick: 'showPopup'}));
+            aladin.addCatalog(aladinGlobal.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
+            aladinRef.current = aladin;
+        } else {
+            // change target
+            aladin = aladinRef.current;
+            aladin.gotoObject(target);
         }
 
-        const target = `${resolvedObjectCoordsContext?.resolvedObjectCoords?.rightAscension} ${resolvedObjectCoordsContext?.resolvedObjectCoords?.declination}`
-
-        aladin.gotoObject(target);
         aladin.setFov(2/60);
-
-        aladin.addCatalog(aladinGlobal.catalogFromSimbad(target, 2 / 60, {onClick: 'showPopup'}));
-        aladin.addCatalog(aladinGlobal.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
-    }, [resolvedObjectCoordsContext?.resolvedObjectCoords])
+    }, [loaded, resolvedObjectCoordsContext?.resolvedObjectCoords]);
 
     if (showError) {
         return <ErrorAlert title={"Failed to load Aladin Lite"} description={"Aladin Lite is not available."} />
     }
 
-    if (!loaded) {
+    if (!loaded || !resolvedObjectCoordsContext?.resolvedObjectCoords) {
         return <LoadingSkeleton text={"Loading Aladin..."} />
     }
 
