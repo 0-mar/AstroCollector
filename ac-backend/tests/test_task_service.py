@@ -22,7 +22,7 @@ class TestTaskService:
     def plugin_entity(self) -> Plugin:
         return Plugin(
             id=uuid.UUID("abb15bc1-4926-497d-b337-0a7d529b62f1"),
-            catalog_url="mock",
+            catalog_url="https://google.com",
             description="hey",
             created_by="test",
             directly_identifies_objects=True,
