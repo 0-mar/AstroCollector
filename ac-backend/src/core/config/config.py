@@ -135,12 +135,12 @@ class Settings(BaseSettings):
     # -----------------------
     SESSION_COOKIE_NAME: str = "ac_session"
     SESSION_EXPIRE_SECONDS: int = 24 * 60 * 60
-    SESSION_SAME_SITE: Literal["lax", "strict", "none"] = "lax"
-    """The SameSite attribute of the refresh token cookie."""
+    SESSION_SAME_SITE: Literal["lax", "strict", "none"] = "strict"
+    """The SameSite attribute of the session cookie."""
     SESSION_SECURE: bool = True
-    """The Secure attribute of the refresh token cookie."""
+    """The Secure attribute of the session cookie."""
     SESSION_HTTPONLY: bool = True
-    """The HttpOnly attribute of the refresh token cookie."""
+    """The HttpOnly attribute of the session cookie."""
 
     @computed_field  # type: ignore[prop-decorator]
     @property
