@@ -12,7 +12,7 @@ export const useLogout = () => {
     const auth = useAuth()
     const navigate = useNavigate()
 
-    const logoutMutation = useMutation({
+    return useMutation({
         mutationFn: () => {
             return BaseApi.post<LogoutMessage>(`/security/logout`)
         },
@@ -24,9 +24,7 @@ export const useLogout = () => {
         onSuccess: async () => {
             auth?.clearUser()
             toast.success("Logged out successfully");
-            await navigate({ to: "/login", search: {redirect: "/"} });
+            await navigate({to: "/login", search: {redirect: "/"}});
         }
-    });
-
-    return logoutMutation
+    })
 }

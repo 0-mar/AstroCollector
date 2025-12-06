@@ -1,5 +1,5 @@
 import {createFileRoute} from '@tanstack/react-router'
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import SearchForm from "@/features/search/searchSection/components/SearchForm.tsx";
 import StellarObjectsMenu from "@/features/search/menuSection/components/StellarObjectsMenu.tsx";
 import PhotometricDataSection from "@/features/search/photometricDataSection/components/PhotometricDataSection.tsx";

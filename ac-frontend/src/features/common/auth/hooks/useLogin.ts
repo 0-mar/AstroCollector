@@ -9,12 +9,12 @@ const useLogin = () => {
     const navigate = useNavigate()
     const redirect = useSearch({from: "/login/"}) as { redirect?: string };
 
-    const loginMutation = useMutation({
-        mutationFn: ({email, password}: {email: string, password: string}) => {
+    return useMutation({
+        mutationFn: ({email, password}: { email: string, password: string }) => {
             const params = new URLSearchParams();
             params.append("username", email);
             params.append("password", password);
-            return BaseApi.post(`/security/login`, params, { headers: { "Content-Type": "application/x-www-form-urlencoded" } })
+            return BaseApi.post(`/security/login`, params, {headers: {"Content-Type": "application/x-www-form-urlencoded"}})
         },
         onError: (_error) => {
             toast.error("Login failed")
@@ -24,11 +24,9 @@ const useLogin = () => {
             // refresh current user
             await auth?.refetchUser();
             const redirectPath = redirect?.redirect;
-            await navigate({ to: redirectPath ?? "/", replace: true });
+            await navigate({to: redirectPath ?? "/", replace: true});
         },
-    });
-
-    return loginMutation
+    })
 }
 
 export default useLogin
