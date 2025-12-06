@@ -6,6 +6,7 @@ import Header from '../features/common/components/Header.tsx'
 import Footer from "@/features/common/components/Footer.tsx";
 import { Toaster } from "@/../components/ui/sonner"
 import type {User} from "@/features/common/auth/types.ts";
+import ErrorComponent from "@/features/common/components/ErrorComponent.tsx";
 
 export type RouterCtx = {
     auth: {
@@ -35,4 +36,5 @@ export const Route = createRootRouteWithContext<RouterCtx>()({
         </div>
     )
     },
+    errorComponent: ErrorComponent
 })
