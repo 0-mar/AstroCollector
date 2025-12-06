@@ -215,20 +215,20 @@ class CatalogPlugin(Generic[T], ABC):
             <h2 className="text-xl font-bold">Plugin superclass</h2>
             <p>
                 Here is the code of the <code>CatalogPlugin</code> abstract class:
-
-                <pre className="
-                max-h-[50rem]
-                bg-slate-900
-                text-slate-50
-                p-4
-                rounded-lg
-                text-[0.9rem]
-                leading-[1.5]
-                overflow-x-auto
-                ">
-                    <code>{codeString}</code>
-                </pre>
-
+            </p>
+            <pre className="
+            max-h-[50rem]
+            bg-slate-900
+            text-slate-50
+            p-4
+            rounded-lg
+            text-[0.9rem]
+            leading-[1.5]
+            overflow-x-auto
+            ">
+                <code>{codeString}</code>
+            </pre>
+            <p>
                 The class defines two important methods: <code>list_objects</code> and <code>get_photometric_data</code>.
             </p>
             <h3 className="text-lg font-bold">list_objects</h3>
@@ -279,21 +279,22 @@ class CatalogPlugin(Generic[T], ABC):
             <h2 className="text-xl font-bold">Available useful packages</h2>
             <p>
                 For plugin implementation, one can use the following packages:
-                <ul>
-                    <li>
-                        <a href="https://docs.astropy.org/en/stable/index.html" target="_blank" className="text-blue-600 hover:underline">Astropy</a> - process and manipulate coordinates, time, and units. VOTable support.
-                    </li>
-                    <li>
-                        <a href="https://astroquery.readthedocs.io/en/latest/" target="_blank" className="text-blue-600 hover:underline">Astroquery</a> - search for and retrieve photometric data from various sources
-                    </li>
-                    <li>
-                        <a href="https://pyvo.readthedocs.io/en/latest/" target="_blank" className="text-blue-600 hover:underline">PyVO</a> - retrieve astronomical data available from archives that support standard <a href="https://www.ivoa.net/">IVOA</a> virtual observatory service protocols
-                    </li>
-                    <li>
-                        <a href="https://www.python-httpx.org/" target="_blank" className="text-blue-600 hover:underline">httpx</a> - http client
-                    </li>
-                </ul>
             </p>
+            <ul>
+                <li>
+                    <a href="https://docs.astropy.org/en/stable/index.html" target="_blank" className="text-blue-600 hover:underline">Astropy</a> - process and manipulate coordinates, time, and units. VOTable support.
+                </li>
+                <li>
+                    <a href="https://astroquery.readthedocs.io/en/latest/" target="_blank" className="text-blue-600 hover:underline">Astroquery</a> - search for and retrieve photometric data from various sources
+                </li>
+                <li>
+                    <a href="https://pyvo.readthedocs.io/en/latest/" target="_blank" className="text-blue-600 hover:underline">PyVO</a> - retrieve astronomical data available from archives that support standard <a href="https://www.ivoa.net/">IVOA</a> virtual observatory service protocols
+                </li>
+                <li>
+                    <a href="https://www.python-httpx.org/" target="_blank" className="text-blue-600 hover:underline">httpx</a> - http client
+                </li>
+            </ul>
+
         </div>
     )
 }

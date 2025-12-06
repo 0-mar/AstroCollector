@@ -1,9 +1,3 @@
-export type Tokens = {
-    access_token: string,
-    refresh_token: string
-    type: string
-}
-
 export enum UserRoleEnum {
     SUPER_ADMIN = "ROLE_SUPER_ADMIN",
     ADMIN = "ROLE_ADMIN",
@@ -21,4 +15,8 @@ export type User = {
     disabled: boolean,
     created_at: string,
     role: UserRole
+}
+
+export type CsrfToken = {
+    csrf_token: string
 }

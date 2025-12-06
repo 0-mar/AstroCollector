@@ -2,7 +2,18 @@ import axios, {type AxiosRequestConfig} from 'axios';
 
 export const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
-    withCredentials: true
+    withCredentials: true,
+});
+
+axiosInstance.interceptors.request.use((config) => {
+    const token = localStorage.getItem("ac_csrf_token");
+
+    if (token) {
+        config.headers = config.headers ?? {};
+        (config.headers as any)["X-CSRF-Token"] = token;
+    }
+
+    return config;
 });
 
 async function get<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
