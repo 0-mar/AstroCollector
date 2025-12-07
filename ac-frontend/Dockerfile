@@ -17,7 +17,7 @@ COPY --from=build /app/nginx.prod.conf /tmp/nginx.prod.conf
 
 # Choose based on ARG
 RUN if [ "$PRODUCTION" = "true" ]; then \
-      cp /tmp/nginx.prod.conf /etc/nginx/nginx.conf; \
+      cp /tmp/nginx.deploy.conf /etc/nginx/nginx.conf; \
     else \
       cp /tmp/nginx.local.conf /etc/nginx/nginx.conf; \
     fi
