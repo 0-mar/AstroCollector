@@ -29,13 +29,16 @@ services:
     build:
       context: ../ac-backend
     environment:
+      PRODUCTION: ${PRODUCTION}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      REDIS_BROKER_HOST: ${REDIS_BROKER_HOST}
+      REDIS_BROKER_PORT: ${REDIS_BROKER_PORT}
+      REDIS_DB_HOST: ${REDIS_DB_HOST}
+      REDIS_DB_PORT: ${REDIS_DB_PORT}
     container_name: ac-api
     command: ["/app/entrypoint.sh"]
     ports:
@@ -56,13 +59,16 @@ services:
     build:
       context: ../ac-backend
     environment:
+      PRODUCTION: ${PRODUCTION}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      REDIS_BROKER_HOST: ${REDIS_BROKER_HOST}
+      REDIS_BROKER_PORT: ${REDIS_BROKER_PORT}
+      REDIS_DB_HOST: ${REDIS_DB_HOST}
+      REDIS_DB_PORT: ${REDIS_DB_PORT}
     command: [ "celery", "-A", "src.core.celery.worker", "worker" ]
     depends_on:
       - redis
@@ -78,13 +84,16 @@ services:
     build:
       context: ../ac-backend
     environment:
+      PRODUCTION: ${PRODUCTION}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      REDIS_BROKER_HOST: ${REDIS_BROKER_HOST}
+      REDIS_BROKER_PORT: ${REDIS_BROKER_PORT}
+      REDIS_DB_HOST: ${REDIS_DB_HOST}
+      REDIS_DB_PORT: ${REDIS_DB_PORT}
     command: [ "celery", "-A", "src.core.celery.worker", "beat" ]
     depends_on:
       - redis
