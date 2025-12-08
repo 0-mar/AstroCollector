@@ -1,4 +1,5 @@
-Welcome to your new TanStack app!
+# Frontend module
+This directory contains the frontend module of AstroCollector.
 
 # Getting Started
 
