@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     PRODUCTION: bool
     APPLAUSE_TOKEN: str
+    ATLAS_TOKEN: str
 
     DB_USER: str = Field(..., alias="POSTGRES_USER")
     DB_PASSWORD: str = Field(..., alias="POSTGRES_PASSWORD")
