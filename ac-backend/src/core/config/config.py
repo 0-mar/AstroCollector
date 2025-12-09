@@ -15,9 +15,11 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def ROOT_DIR(self) -> Path:
+        """Path to the root directory of the project. Used for relative paths."""
         return Path.joinpath(Path(__file__).parent.parent.parent.parent).resolve()
 
     PRODUCTION: bool
+    """Flag to determine whether the app is running in production or not."""
     APPLAUSE_TOKEN: str
     ATLAS_TOKEN: str
 
@@ -34,6 +36,7 @@ class Settings(BaseSettings):
     REDIS_DB_PORT: str
 
     OBJECT_SEARCH_RADIUS: float = 30
+    """Stellar object search radius used when searching by name in arcsec."""
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -79,6 +82,7 @@ class Settings(BaseSettings):
 
     TASK_DATA_DELETE_INTERVAL: int = 2  # in hours
     MAX_PAGINATION_BATCH_COUNT: int = 5000
+    """Maximum number of objects (records) returned in a single pagination request."""
 
     @computed_field  # type: ignore[prop-decorator]
     @property

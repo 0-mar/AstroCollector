@@ -19,5 +19,6 @@ def resolve_name(
     requested_name: StellarObjectNameDto,
     http_client: Client = Depends(get_sync_http_client),
 ) -> ResolvedCoordsDto:
+    """Resolve a stellar object name to coordinates."""
     coords = resolve_name_to_coordinates(requested_name.name, http_client)
     return ResolvedCoordsDto(ra_deg=coords.ra.deg, dec_deg=coords.dec.deg)

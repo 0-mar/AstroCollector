@@ -43,6 +43,15 @@ async def cone_search(
     search_query_dto: ConeSearchRequestDto,
     plugin_id: UUID,
 ) -> TaskIdDto:
+    """
+    Handles the submission of a cone search task. This endpoint also initiates
+    an asynchronous Celery task for the cone search operation.
+
+    :param task_repository: Task repository dependency.
+    :param search_query_dto: Data transfer object containing cone search query parameters.
+    :param plugin_id: The identifier for the plugin associated with the task.
+    :return: A DTO containing the generated ID of the created task.
+    """
     search_query_dto.plugin_id = plugin_id
     task = await task_repository.save(Task(task_type=TaskType.object_search))
     catalog_cone_search.delay(str(task.id), search_query_dto.model_dump())
@@ -56,6 +65,16 @@ async def find_object(
     query_dto: FindObjectRequestDto,
     plugin_id: UUID,
 ) -> TaskIdDto:
+    """
+    Handles the endpoint to submit a task for finding a stallar object based on a given name in a star survey (catalog).
+    This endpoint also initiates an asynchronous Celery task for the find object search operation.
+
+    :param task_repository: Task repository dependency.
+    :param query_dto: The name of the stellar object to be searched for.
+    :param plugin_id: The identifier for the plugin associated with the task.
+    :return: A DTO containing the generated ID of the created task.
+    :rtype: TaskIdDto
+    """
     query_dto.plugin_id = plugin_id
     task = await task_repository.save(Task(task_type=TaskType.object_search))
 
@@ -70,6 +89,16 @@ async def submit_retrieve_data(
     plugin_id: UUID,
     identificator_model: StellarObjectIdentificatorDto,
 ) -> TaskIdDto:
+    """
+    Endpoint to submit a task for retrieval of photometric data corresponding to a plugin.
+    Triggers an asynchronous Celery task to retrieve the photometric data and save it as a CSV file in
+    a temporary storage and in DB.
+
+    :param task_repository: Task repository dependency.
+    :param plugin_id: The identifier for the plugin associated with the task.
+    :param identificator_model: Identificator containing the information about the stellar object
+    :return: A DTO containing the generated ID of the created task.
+    """
     identificator_model.plugin_id = plugin_id
     task = await task_repository.save(Task(task_type=TaskType.photometric_data))
     task_id = task.id

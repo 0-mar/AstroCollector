@@ -27,7 +27,7 @@ async def retrieve_objects_identifiers(
     offset: int = 0,
     count: int = settings.MAX_PAGINATION_BATCH_COUNT,
 ) -> PaginationResponseDto[StellarObjectIdentifierDto]:
-    """List identifiers."""
+    """List identifiers from the database"""
     if filters is None or (
         "task_id__eq" not in filters.filters and "task_id__in" not in filters.filters
     ):
@@ -43,6 +43,9 @@ async def retrieve_data(
     offset: int = 0,
     count: int = settings.MAX_PAGINATION_BATCH_COUNT,
 ) -> PaginationResponseDto[PhotometricDataDto]:
+    """
+    Retrieve photometric data from the database.
+    """
     if filters is None or (
         "task_id__eq" not in filters.filters and "task_id__in" not in filters.filters
     ):
@@ -57,6 +60,7 @@ async def retrieve_data(
 async def retrieve_light_filters_by_task_id(
     pdr: PhotometricDataRepositoryDep, task_id: UUID
 ) -> list[str | None]:
+    """Retrieve unique light filters for a given task ID."""
     return await pdr.distinct_entity_attribute_values(
         "light_filter", filters={"task_id__eq": str(task_id)}
     )

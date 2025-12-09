@@ -21,7 +21,6 @@ from fastapi.concurrency import run_in_threadpool
 from src.plugin import default_plugins
 from src.core.config.config import settings
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
-from src.plugin.interface.schemas import StellarObjectIdentificatorDto
 from src.core.repository.repository import Repository, get_repository, Filters
 from src.core.service.schemas import PaginationResponseDto
 
@@ -35,18 +34,20 @@ from src.plugin.schemas import (
 
 PluginRepositoryDep = Annotated[Repository[Plugin], Depends(get_repository(Plugin))]
 
-# What about plugin cache?
-# https://stackoverflow.com/questions/65041691/is-python-dictionary-async-safe
-
 logger = logging.getLogger(__name__)
 
 
 class PluginService:
+    """
+    Provides services for managing plugins in the system.
+
+    This class provides functionalities for creating, updating, retrieving, deleting,
+    and listing plugins. Additionally, it supports uploading plugin files, managing
+    plugin resources directories, and registering default plugins.
+    """
+
     def __init__(self, repository: PluginRepositoryDep):
         self._repository = repository
-        self.plugins: dict[str, DefaultCatalogPlugin[StellarObjectIdentificatorDto]] = (
-            dict()
-        )
 
     async def get_plugin(self, plugin_id: UUID) -> PluginDto:
         plugin = await self._repository.get(plugin_id)
@@ -128,6 +129,15 @@ class PluginService:
         return os.listdir(plugin_resources_dir)
 
     async def create_default_plugins(self):
+        """
+        Creates and registers default plugins by scanning a defined namespace for plugin
+        modules. This function dynamically imports plugin modules and registers them to
+        the system. Additionally, it handles plugin-specific resources by copying
+        resources associated with a plugin to the designated resource directory.
+
+        :return: None
+        """
+
         # https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures
         # https://mwax911.medium.com/building-a-plugin-architecture-with-python-7b4ab39ad4fc
         # https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/
@@ -150,6 +160,19 @@ class PluginService:
                         )
 
     async def __register_plugin(self, plugin_module: ModuleType) -> PluginDto:
+        """
+        Registers a plugin by identifying a specific class within the provided plugin module,
+        initializing it, creating, and storing corresponding plugin metadata, saving the plugin file, and
+        updating the repository record.
+
+        :param plugin_module: The module containing the plugin class that needs to be registered.
+                              The module is expected to define a class inheriting from
+                              `DefaultCatalogPlugin`.
+        :type plugin_module: ModuleType
+        :return: An instance of `PluginDto` representing the metadata of the registered plugin.
+        :rtype: PluginDto
+        :raises NotImplementedError: If no valid plugin class is found in the provided module.
+        """
         clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
         for _, cls in clsmembers:
             # Only add classes that are a subclass of DefaultCatalogPlugin,
@@ -157,7 +180,6 @@ class PluginService:
             if (
                 issubclass(cls, DefaultCatalogPlugin)
                 and cls is not DefaultCatalogPlugin
-                #                and cls is not MastPlugin
             ):
                 logger.info(
                     f"Found default plugin class: {cls.__module__}.{cls.__name__}"

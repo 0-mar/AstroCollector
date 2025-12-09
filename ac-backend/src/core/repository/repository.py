@@ -134,6 +134,26 @@ class Repository(Generic[Entity]):
         count: int = settings.MAX_PAGINATION_BATCH_COUNT,
         filters: Filters | None = None,
     ) -> tuple[int, list[Entity]]:
+        """
+        Fetches a subset of entities from the repository based on the given filters
+        and constraints. This method supports features such as filtering, sorting,
+        pagination, and distinct field constraints.
+
+        :param offset: Offset indicating the starting position for fetching entities.
+            Defaults to 0.
+        :type offset: int
+        :param count: Maximum number of entities to retrieve. The value will be
+            capped at `settings.MAX_PAGINATION_BATCH_COUNT` if it exceeds that limit.
+            Defaults to `settings.MAX_PAGINATION_BATCH_COUNT`.
+        :type count: int
+        :param filters: Optional set of filters to apply while querying the repository.
+            This includes filtering options, ordering, and distinct field constraints.
+        :type filters: Filters | None
+        :return: A tuple where the first element is the total count of entities that
+            match the filters, and the second element is the list of entities retrieved
+            within the range defined by `offset` and `count`.
+        :rtype: tuple[int, list[Entity]]
+        """
         count = (
             count
             if count <= settings.MAX_PAGINATION_BATCH_COUNT
@@ -258,6 +278,10 @@ class Repository(Generic[Entity]):
 def get_repository(
     entity_type: type[Entity],
 ) -> Callable[[DBSessionDep], Repository[Entity]]:
+    """
+    Returns a dependency function that can be used to inject a repository instance .
+    """
+
     def _get_repository(session: DBSessionDep) -> Repository[Entity]:
         return Repository(entity_type, session)
 

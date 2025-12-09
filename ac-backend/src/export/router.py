@@ -26,6 +26,25 @@ async def export_data(
     filters: Filters,
     delimiter: str = ",",
 ):
+    """
+    Handles the export functionality of data based on provided parameters (export option and delimiter).
+    Streams the resulting exported data back to the client as a ZIP file.
+
+    :param export_service: The service responsible for handling
+        data export operations.
+    :type export_service: ExportServiceDep
+    :param export_option: The export option
+    :type export_option: ExportOption
+    :param filters: The criteria and constraints to filter data for the export operation.
+        Requires `task_id__in` to be included in the filters.
+    :type filters: Filters
+    :param delimiter: The delimiter used for splitting the exported data columns. Defaults to a comma.
+    :type delimiter: str
+    :return: A streaming response consisting of the exported ZIP file
+    :rtype: StreamingResponse
+    :raises APIException: If the required 'task_id__in' is not provided in the filter criteria.
+
+    """
     if filters.filters is None or ("task_id__in" not in filters.filters):
         raise APIException("task_id__in required in filters")
 

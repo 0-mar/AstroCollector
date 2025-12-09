@@ -9,6 +9,7 @@ from src.plugin.service import PluginService
 
 
 async def init_db():
+    """Initialize database by adding default users, roles and plugins."""
     # load plugins on startup
     async with async_sessionmanager.session() as session:
         plugin_repository = Repository(Plugin, session)
