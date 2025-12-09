@@ -19,6 +19,10 @@ PhotometricDataRepositoryDep = Annotated[
 
 
 class DataService:
+    """
+    Service to retrieve identifiers and photometric data from the database.
+    """
+
     def __init__(
         self,
         soi_repository: StellarObjectIdentifierRepositoryDep,

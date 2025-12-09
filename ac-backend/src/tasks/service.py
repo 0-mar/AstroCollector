@@ -24,6 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 class SyncTaskService:
+    """
+    Service for managing task operations. The methods are sync, because the service is used within the celery tasks,
+    which are synchronous functions.
+    """
+
     def __init__(self, session: Session, model) -> None:
         self._session = session
         self._model = model
@@ -38,6 +43,19 @@ class SyncTaskService:
     def _load_plugin(
         self, module_name: str, file_path: Path
     ) -> Optional[CatalogPlugin[StellarObjectIdentificatorDto]]:
+        """
+        Loads a plugin dynamically by its module name and file path, and returns an instance
+        of a class that subclasses `CatalogPlugin`, if available.
+
+        :param module_name: Name of the module to be loaded.
+        :type module_name: str
+        :param file_path: Path to the module file to be loaded.
+        :type file_path: Path
+        :return: An instance of a class that subclasses `CatalogPlugin`, or None if no
+            valid plugin class is found.
+        :rtype: Optional[CatalogPlugin[StellarObjectIdentificatorDto]]
+        :raises ImportError: If the module spec or loader cannot be loaded from `file_path`.
+        """
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None:
             raise ImportError(f"Could not load spec from {file_path}")
@@ -64,6 +82,16 @@ class SyncTaskService:
     def get_plugin_instance(
         self, plugin_id: UUID
     ) -> CatalogPlugin[StellarObjectIdentificatorDto]:
+        """
+        Retrieves an instance of the catalog plugin identified by the plugin UUID.
+        If no corresponding plugin class is found, an exception is raised.
+
+        :param plugin_id: Unique identifier of the plugin to retrieve.
+        :type plugin_id: UUID
+        :return: An instance of the catalog plugin corresponding to the provided ID.
+        :rtype: CatalogPlugin[StellarObjectIdentificatorDto]
+        :raises NoPluginClassException: If no plugin class is found for the given plugin ID.
+        """
         db_plugin = self._get_plugin_entity(plugin_id)
         plugin_file_path = Path.joinpath(
             settings.PLUGIN_DIR, db_plugin.file_name

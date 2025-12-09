@@ -15,12 +15,12 @@ router = APIRouter(
 )
 
 
-def get_phase_curve_data(query_data, search_coords: SkyCoord):
+def get_phase_curve_data(query_data, search_coords: SkyCoord) -> PhaseCurveDataDto:
     """
     Return the period and epoch of a star closest to the search coordinates.
     :param query_data:
-    :param search_coords:
-    :return:
+    :param search_coords: The searched coordinates.
+    :return: PhaseCurveDataDto
     """
     if query_data["VSXObjects"] == []:
         return PhaseCurveDataDto(
@@ -63,11 +63,11 @@ async def phase_curve_data(
     Get the period and epoch of a star given by its name, or coordinates.
     If both are provided, the name is used as first and if the search fails, the coordinates are used.
     VSX catalog (https://vsx.aavso.org/) is used to get the data.
-    :param http_client:
-    :param name:
-    :param ra_deg:
-    :param dec_deg:
-    :return:
+    :param http_client: http client used to query the VSX AAVSO catalog.
+    :param name: The name of the stellar object to resolve.
+    :param ra_deg: The right ascension of the stellar object in degrees.
+    :param dec_deg: The declination of the stellar object in degrees.
+    :return: PhaseCurveDataDto
     """
 
     if name is None and (ra_deg is None or dec_deg is None):

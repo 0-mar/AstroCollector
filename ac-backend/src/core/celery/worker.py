@@ -53,7 +53,12 @@ def configure_celery_logging():
 
 
 @setup_logging.connect
-def on_celery_setup_logging(**kwargs):
+def on_celery_setup_logging(**kwargs) -> None:
+    """
+    Setup logging for Celery workers.
+    :param kwargs:
+    :return:
+    """
     configure_celery_logging()
 
 

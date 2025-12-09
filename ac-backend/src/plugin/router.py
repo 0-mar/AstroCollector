@@ -47,6 +47,16 @@ async def download_plugin(
     service: PluginServiceDep,
     plugin_id: UUID,
 ):
+    """
+    Handles the downloading of a plugin file by its plugin UUID.
+
+    :param _: The authenticated user with the necessary role (`super_admin`). This
+              parameter ensures the user has access permissions for the operation.
+    :param service: Plugin service dependency.
+    :param plugin_id: UUID of the plugin to be downloaded. Used to fetch the plugin's
+                      details and verify its file presence.
+    :return: A `FileResponse` object containing the plugin file
+    """
     plugin = await service.get_plugin(plugin_id)
     if plugin.file_name is None:
         raise HTTPException(status_code=404, detail="Plugin file does not exist")
@@ -142,6 +152,9 @@ async def list_resources(
     plugin_id: UUID,
     service: PluginServiceDep,
 ):
+    """
+    Fetch a list of resources associated with a specific plugin.
+    """
     resources = await service.list_resources(plugin_id)
     return {"resources": resources}
 

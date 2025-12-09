@@ -31,6 +31,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
     const identifiersContext = useContext(IdentifiersContext);
     const currentObjectIdentifiers = identifiersContext?.selectedObjectIdentifiers ?? {};
 
+    // query the photometric data retrieval tasks for all selected identifiers
     const photometricDataTaskQueries = useQueries({
         queries: Object.values(currentObjectIdentifiers).map((identifier) => {
             return {
@@ -63,6 +64,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
         }),
     })
 
+    // build a plugin ID-name dict
     const pluginNames: Record<string, string> = useMemo(() => {
         const names: Record<string, string> = {};
         pluginData.forEach((plugin) => {
@@ -84,6 +86,7 @@ const PhotometricDataSection = ({pluginData}: PhotometricDataSectionProps) => {
     }, [taskStatusQueries.map(q => q.data?.status).join(','),
         photometricDataTaskQueries.map(q => q.data?.task_id).join(',')]);
 
+    // unique light filters in a task queries
     const taskUniqueLightFiltersQueries = useQueries({
         queries: Object.values(currentObjectIdentifiers).map((identifier, idx) => {
             return {

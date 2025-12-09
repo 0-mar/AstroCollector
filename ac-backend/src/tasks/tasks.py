@@ -64,6 +64,17 @@ def cone_search(
     radius_arcsec: float,
     task_id: UUID,
 ) -> None:
+    """
+    Performs a cone search operation by querying a plug-in instance based on the provided
+    coordinates and radius. Stores the found stellar objects in the DB.
+
+    :param plugin_id: Unique identifier for the plugin instance.
+    :param task_service: service used to store the results of the cone search operation.
+    :param coords: Sky coordinates for the center of the cone search.
+    :param radius_arcsec: Radius of the cone search in arcseconds.
+    :param task_id: Unique identifier for the task associated with the cone search.
+    :return: None
+    """
     plugin = task_service.get_plugin_instance(plugin_id)
     resources_dir = settings.RESOURCES_DIR / str(plugin_id)
 
@@ -74,6 +85,14 @@ def cone_search(
 
 @celery_app.task(bind=True, base=TaskWithSession)
 def catalog_cone_search(self, task_id: str, query_dict: dict[Any, Any]):
+    """
+    Celery task for performing a cone search operation based on the provided query parameters.
+
+    :param self: Current task instance (bound task).
+    :param task_id: Unique identifier for the task.
+    :param query_dict: Query parameters
+    :return: None
+    """
     task_service = SyncTaskService(self.session, StellarObjectIdentifier)
 
     try:
@@ -106,6 +125,17 @@ def catalog_cone_search(self, task_id: str, query_dict: dict[Any, Any]):
 
 @celery_app.task(bind=True, base=TaskWithSession)
 def find_stellar_object(self, task_id: str, query_dict: dict[Any, Any]):
+    """
+    Celery task to find the stellar object based on the provided name.
+
+    This task searches for stellar objects by resolving the given name to coordinates and
+    performing a cone search around them.
+
+    :param self: Current task instance (bound task).
+    :param task_id: Unique identifier for the task.
+    :param query_dict: Query parameters
+    :return: None
+    """
     task_service = SyncTaskService(self.session, StellarObjectIdentifier)
     try:
         uuid = UUID(task_id)
@@ -136,6 +166,17 @@ def find_stellar_object(self, task_id: str, query_dict: dict[Any, Any]):
 def get_photometric_data(
     self, task_id: str, identificator_dict: dict[str, Any], csv_path_str: str
 ):
+    """
+    Celery task to retrieve photometric data from a plugin based on a provided stellar object
+    identificator. The resulting data is stored into a database.
+
+    :param self: The Celery task instance, automatically passed when executed.
+    :param task_id: The unique identifier of the task being processed.
+    :param identificator_dict: A dictionary representing the stellar object identificator corresponding to the plugin.
+    :param csv_path_str: The string path of the CSV file to which the data are saved.
+    :type csv_path_str: str
+    :return: None
+    """
     csv_path = Path(csv_path_str)
 
     task_service = SyncTaskService(self.session, PhotometricData)
@@ -163,6 +204,13 @@ def get_photometric_data(
 
 @celery_app.task(bind=True, base=TaskWithSession)
 def clear_task_data(self):
+    """
+    Clear old task data, including associated export files stored on the disk and database entries for
+    photometric data and identifiers that are older than a specified interval. The interval
+    is defined by the TASK_DATA_DELETE_INTERVAL setting.
+
+    :return: None
+    """
     logger.info("Clearing old task data")
     session: Session = self.session
 

@@ -13,10 +13,22 @@ import type { PhotometricDataDto } from "../../types";
 import {Button} from "@/../components/ui/button.tsx";
 import AxesGridLayer from "@/features/search/photometricDataSection/components/scatterPlot/AxesGridLayer.ts";
 import type {ZoomCords} from "@/features/search/photometricDataSection/components/plotOptions/OptionsContext.tsx";
+import {OrthographicController} from '@deck.gl/core';
 
 
 const PADDING = { left: 80, bottom: 44, right: 12, top: 8 };
 
+/**
+ * Adjusts the view to fit within specified dimensions while maintaining the aspect ratio.
+ *
+ * @param {number} innerW - The width of the inner view in pixels.
+ * @param {number} innerH - The height of the inner view in pixels.
+ * @param {number} xMin - The minimum x-coordinate of the bounding box.
+ * @param {number} xMax - The maximum x-coordinate of the bounding box.
+ * @param {number} yMin - The minimum y-coordinate of the bounding box.
+ * @param {number} yMax - The maximum y-coordinate of the bounding box.
+ * @return {OrthographicViewState} The computed view state with target coordinates and zoom levels.
+ */
 function fitViewXY(innerW: number, innerH: number,
                    xMin: number, xMax: number, yMin: number, yMax: number
 ): OrthographicViewState {
@@ -32,8 +44,6 @@ function fitViewXY(innerW: number, innerH: number,
     return {
         target: [(xMin + xMax) / 2, (yMin + yMax) / 2, 0],
         zoom: [zoomX, zoomY],
-        //minZoom: -20,
-        //maxZoom: 12
     };
 }
 
@@ -49,10 +59,13 @@ type ScatterPlotDeckGLProps = {
     zoomToCoords: ZoomCords | null,
 }
 
+// the plot domain
 type Domain = { xMin:number; xMax:number; yMin:number; yMax:number; errMin:number; errMax:number };
 
-import {OrthographicController} from '@deck.gl/core';
 
+/**
+ * QZoomWheelController is an extension of the OrthographicController which allows mouse zoom only when the Q key is pressed.
+ */
 class QZoomWheelController extends OrthographicController {
     constructor(props) {
         super(props);
@@ -67,6 +80,9 @@ class QZoomWheelController extends OrthographicController {
 
 }
 
+/**
+ * Functional React component that renders a scatterplot visualization using Deck.gl.
+ */
 const ScatterPlotDeckGl = ({data, xTitle, yTitle, colorFn, tooltipFn, xDataFn, filterCategories, filterCategoryFn, zoomToCoords}: ScatterPlotDeckGLProps) => {
     const ref = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({w: 800, h: 480});
@@ -240,7 +256,7 @@ const ScatterPlotDeckGl = ({data, xTitle, yTitle, colorFn, tooltipFn, xDataFn, f
                 }
             })
         ];
-    }, [data, dom, filterCategories, /*filterCategoryFn, colorFn*/]);
+    }, [data, dom, filterCategories]);
 
     // =====================================================
     // Shift + Drag box zoom

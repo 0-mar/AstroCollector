@@ -19,6 +19,16 @@ UserRoleRepositoryDep = Annotated[
 
 
 class UserService:
+    """
+    Provides operations for managing user data including retrieval, creation,
+    and validation of users.
+
+    :ivar _user_repository: Repository interface for user data access.
+    :type _user_repository: UserRepositoryDep
+    :ivar _user_role_repository: Repository interface for user role data access.
+    :type _user_role_repository: UserRoleRepositoryDep
+    """
+
     def __init__(
         self,
         user_repository: UserRepositoryDep,

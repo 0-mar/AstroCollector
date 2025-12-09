@@ -1,5 +1,8 @@
 import axios, {type AxiosRequestConfig} from 'axios';
 
+/**
+ * An instance of Axios HTTP client configured for making HTTP requests to the AstroCollector API.
+ */
 export const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     withCredentials: true,

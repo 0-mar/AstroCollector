@@ -13,7 +13,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # choose config file based on use
 ARG PRODUCTION
 COPY --from=build /app/nginx.local.conf /tmp/nginx.local.conf
-COPY --from=build /app/nginx.prod.conf /tmp/nginx.prod.conf
+COPY --from=build /app/nginx.deploy.conf /tmp/nginx.deploy.conf
 
 # Choose based on ARG
 RUN if [ "$PRODUCTION" = "true" ]; then \
