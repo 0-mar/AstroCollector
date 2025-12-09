@@ -8,6 +8,7 @@ COPY . /app
 
 # Install the application dependencies.
 WORKDIR /app
+ENV UV_HTTP_TIMEOUT=120
 RUN uv sync --frozen --no-cache
 ENV PATH="/app/.venv/bin:$PATH"
 
