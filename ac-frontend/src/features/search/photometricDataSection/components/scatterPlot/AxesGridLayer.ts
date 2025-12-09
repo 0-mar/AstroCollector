@@ -1,4 +1,3 @@
-// AxesGridLayer.ts
 import {CompositeLayer, type LayerContext, type DefaultProps, COORDINATE_SYSTEM} from '@deck.gl/core';
 import {PathLayer, TextLayer} from '@deck.gl/layers';
 import {scaleLinear} from 'd3-scale';
@@ -22,18 +21,24 @@ const defaultProps: DefaultProps<AxesGridLayerProps> = {
     xFormat: {type: 'function', value: (x: number) => x.toString()},
     yFormat: {type: 'function', value: (y: number) => y.toString()},
     tickCount: {type: 'number', value: 8},
-    axisColor: {type: 'array', value: [156, 163, 175, 255]}, // gray-400
-    gridColor: {type: 'array', value: [229, 231, 235, 255]}, // gray-200
-    labelColor: {type: 'array', value: [55, 65, 81, 255]},   // gray-700
+    axisColor: {type: 'array', value: [156, 163, 175, 255]},
+    gridColor: {type: 'array', value: [229, 231, 235, 255]},
+    labelColor: {type: 'array', value: [55, 65, 81, 255]},
     xTitle: {type: 'string', value: ''},
     yTitle: {type: 'string', value: ''},
     paddingPx: {
         type: 'object',
-        value: { left: 40, right: 12, top: 8, bottom: 24 }      // <- sensible defaults
+        value: { left: 40, right: 12, top: 8, bottom: 24 }
     },
     labelOffsetPx: { type: 'number', value: 6 },
 };
 
+/**
+ * AxesGridLayer is a rendering layer that provides axes and a grid for a 2D cartesian plane.
+ * The layer is designed to display x and y axes, grid lines, labels, and optional titles for the axes.
+ *
+ * This layer dynamically updates its state and rendering based on panning, zooming, or prop changes.
+ */
 export default class AxesGridLayer extends CompositeLayer<AxesGridLayerProps> {
     static layerName = 'AxesGridLayer';
     static defaultProps = defaultProps;
@@ -45,8 +50,8 @@ export default class AxesGridLayer extends CompositeLayer<AxesGridLayerProps> {
 
     private getVisibleDomain(context: LayerContext) {
         const vp: any = context.viewport;
-        const [xMin, yMax] = vp.unproject([0, 0]);                    // top-left
-        const [xMax, yMin] = vp.unproject([vp.width, vp.height]);     // bottom-right
+        const [xMin, yMax] = vp.unproject([0, 0]); // top-left
+        const [xMax, yMin] = vp.unproject([vp.width, vp.height]); // bottom-right
         return {xMin, xMax, yMin, yMax, width: vp.width, height: vp.height};
     }
 
@@ -107,7 +112,7 @@ export default class AxesGridLayer extends CompositeLayer<AxesGridLayerProps> {
         const yLabelData = yTicks.map(t => ({
             position: [xInnerMin, t, 0],
             text: yFormat!(t),
-            // push labels outside the plot)
+            // push labels outside the plot
             pixelOffset: [-(labelOffsetPx + 25), 0],
             textAnchor: 'end' as const,
             alignmentBaseline: 'center' as const

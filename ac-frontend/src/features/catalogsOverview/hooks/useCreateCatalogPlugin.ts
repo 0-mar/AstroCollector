@@ -29,13 +29,14 @@ const useCreateCatalogPlugin = () => {
                 progress.setSourceProgress(0);
                 progress.setResourcesProgress(0);
 
+                // Create plugin entity
                 createData.created_by = auth?.user?.username ?? "system"
                 const created = await BaseApi.post<PluginDto>(`/plugins`, createData)
 
                 progress.setPhase("uploading_source");
                 // upload sources
                 try {
-                    // 2) Upload source file (raw body)
+                    // Upload source file (raw body)
                     progress.setPhase("uploading_source");
                     await uploadSrc(
                         file,
@@ -43,13 +44,12 @@ const useCreateCatalogPlugin = () => {
                         progress.setSourceProgress
                     );
 
-                    // 3) Upload resources (optional)
+                    // Upload resources (optional)
                     if (resourcesFile) {
                         progress.setPhase("uploading_resources");
                         await uploadResources(
                             `/plugins/upload-resources/${created.id}`,
                             resourcesFile,
-                            // if you know it's zip, force it; otherwise fallback
                             fileContentType(resourcesFile, "application/zip"),
                             progress.setResourcesProgress
                         );

@@ -7,6 +7,10 @@ type AladinCutoutProps = {
     loaded: boolean
 }
 
+/**
+ * A React functional component that integrates and renders the Aladin Lite sky atlas.
+ * Displays the map based on the resolved object coordinates provided.
+ */
 const AladinCutout = ({loaded}: AladinCutoutProps) => {
     const resolvedObjectCoordsContext = useContext(ResolvedObjectCoordsContext);
     // the container, where aladin lives

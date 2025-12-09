@@ -34,6 +34,7 @@ const StellarObjectsMenu = ({
 
     const endpoint = searchFormContext?.searchValues.objectName !== "" ? "find-object" : "cone-search"
 
+    // query the search tasks for all plugins
     const taskQueries = useQueries({
         queries: pluginData.map(plugin => {
             const body = searchFormContext?.searchValues.objectName !== "" ?
@@ -53,6 +54,7 @@ const StellarObjectsMenu = ({
         })
     })
 
+    // periodically request the state of the tasks (polling); stop when completed
     const taskStatusQueries = useQueries({
         queries: pluginData.map((plugin, idx) => {
             return {
@@ -131,6 +133,7 @@ const StellarObjectsMenu = ({
         resultQueries.map(q => q.status).join(',')
     ]);
 
+    // get indices of tasks in progress
     const ongoingTasks = useMemo(() => {
         const ongoingTasks = pluginData.map((_, idx) => idx)
             .filter(idx => !failedTasks.includes(idx))
@@ -158,6 +161,7 @@ const StellarObjectsMenu = ({
         });
     }, [resultQueries.map(q => q.status).join(',')]);
 
+    // enable the lightcurve section (photometricDataSection) when results arrive
     useEffect(() => {
         if (completedTasks.length === 0) {
             setLightcurveSectionVisible(false);
@@ -167,6 +171,7 @@ const StellarObjectsMenu = ({
         setLightcurveSectionVisible(true);
     }, [completedTasks]);
 
+    // no selected object identifiers -> hide the lightcurve section (photometricDataSection)
     useEffect(() => {
         if (Object.values(identifiersContext?.selectedObjectIdentifiers ?? {}).length === 0) {
             setLightcurveSectionVisible(false);

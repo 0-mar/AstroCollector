@@ -12,6 +12,10 @@ type PhotometryDataLoader = {
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 const COUNT = 5000;
 
+/**
+ * PhotometricDataLoader is a headless React functional component that retrieves photometric data
+ * for a given task ID.
+ */
 const PhotometricDataLoader = ({ taskId, onData }: PhotometryDataLoader) => {
     const q = useInfiniteQuery({
         queryKey: ['pd', taskId],
