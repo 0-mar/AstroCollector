@@ -18,12 +18,17 @@ services:
 
   redis-broker:
     image: docker.io/redis:8
-    ports:
-      - "${REDIS_BROKER_PORT}:6379"
+    networks:
+      - ac
   redis-database:
     image: docker.io/redis:8
-    ports:
-      - "${REDIS_DB_PORT}:6379"
+    networks:
+      - api-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   api:
     build:
@@ -45,9 +50,17 @@ services:
       - "${API_PORT}:8082"
     networks:
       - ac
+      - api-net
     depends_on:
       database:
         condition: service_healthy
+      redis-database:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
+      celery_beat:
+        condition: service_started
+
 
     volumes:
       - plugins:/app/plugins  # the celery worker needs to access the plugin scripts directory
@@ -71,7 +84,7 @@ services:
       REDIS_DB_PORT: ${REDIS_DB_PORT}
     command: [ "celery", "-A", "src.core.celery.worker", "worker" ]
     depends_on:
-      - redis
+      - redis-broker
     networks:
       - ac
     volumes:
@@ -96,7 +109,7 @@ services:
       REDIS_DB_PORT: ${REDIS_DB_PORT}
     command: [ "celery", "-A", "src.core.celery.worker", "beat" ]
     depends_on:
-      - redis
+      - redis-broker
     networks:
       - ac
     volumes:
@@ -119,6 +132,7 @@ services:
 
 networks:
   ac:
+  api-net:
 
 volumes:
   database:
