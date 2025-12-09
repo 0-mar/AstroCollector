@@ -35,7 +35,7 @@ do
     copy_be_files "$fname"
 done
 
-fe_files=("components" "lib" "public" "src" ".dockerignore" ".env.production" "Dockerfile" "nginx.local.conf" "nginx.prod.conf" "index.html" "package.json" "package-lock.json" "tsconfig.json" "vite.config.ts")
+fe_files=("components" "lib" "public" "src" ".dockerignore" ".env.production" "Dockerfile" "nginx.local.conf" "nginx.deploy.conf" "index.html" "package.json" "package-lock.json" "tsconfig.json" "vite.config.ts")
 for fname in "${fe_files[@]}"
 do
     copy_fe_files "$fname"
