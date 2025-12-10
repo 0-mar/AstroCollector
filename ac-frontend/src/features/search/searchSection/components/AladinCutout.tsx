@@ -36,16 +36,16 @@ const AladinCutout = ({loaded}: AladinCutoutProps) => {
         if (!aladinRef.current) {
             // create aladin for the first time
             aladin = aladinGlobal.aladin(containerRef.current,
-                { survey: 'P/DSS2/color', fov: 2 / 60, target: target});
-            aladin.addCatalog(aladinGlobal.catalogFromSimbad(target, 2 / 60, {onClick: 'showPopup'}));
-            aladin.addCatalog(aladinGlobal.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
+                { survey: "https://alasky.cds.unistra.fr/DSS/DSSColor", fov: 2 / 60, target: target});
+
             aladinRef.current = aladin;
         } else {
             // change target
             aladin = aladinRef.current;
             aladin.gotoObject(target);
         }
-
+        aladin.addCatalog(aladinGlobal.catalogFromSimbad(target, 2 / 60, {onClick: 'showPopup'}));
+        aladin.addCatalog(aladinGlobal.catalogFromNED(target, 2 / 60, {onClick: 'showPopup', shape: 'plus'}));
         aladin.setFov(2/60);
     }, [loaded, resolvedObjectCoordsContext?.resolvedObjectCoords]);
 
