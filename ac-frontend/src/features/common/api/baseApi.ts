@@ -8,6 +8,7 @@ export const axiosInstance = axios.create({
     withCredentials: true,
 });
 
+// use interceptor to send CSRF token with each request in the header
 axiosInstance.interceptors.request.use((config) => {
     const token = localStorage.getItem("ac_csrf_token");
 
