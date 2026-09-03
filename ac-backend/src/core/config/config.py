@@ -60,6 +60,63 @@ class Settings(BaseSettings):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
+    def CELERY_LOGGING_CONFIG(self) -> dict[str, Any]:
+        return {
+            "version": 1,
+            # leaves existing loggers from celery enabled
+            "disable_existing_loggers": False,
+            "formatters": {
+                "base": {
+                    "()": "uvicorn.logging.DefaultFormatter",
+                    "fmt": "%(asctime)s  %(levelname)s --- [%(name)s] %(message)s",
+                }
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "level": self.LOGGING_LEVEL,
+                    "formatter": "base",
+                    "stream": "ext://sys.stdout",
+                },
+                "file": {
+                    "class": "logging.handlers.TimedRotatingFileHandler",
+                    "level": self.LOGGING_LEVEL,
+                    "utc": True,
+                    "formatter": "base",
+                    "filename": self.LOGGING_DIR / "celery.log",
+                    # Rotate daily
+                    "when": "midnight",
+                    # Number of files to keep.
+                    "backupCount": 8,
+                    # every day
+                    "interval": 1,
+                },
+            },
+            "loggers": {
+                "celery": {
+                    "level": self.LOGGING_LEVEL,
+                    "handlers": [],
+                    "propagate": True,
+                },
+                "celery.worker": {
+                    "level": self.LOGGING_LEVEL,
+                    "handlers": [],
+                    "propagate": True,
+                },
+                "celery.task": {
+                    "level": self.LOGGING_LEVEL,
+                    "handlers": [],
+                    "propagate": True,
+                },
+            },
+            "root": {
+                "level": self.LOGGING_LEVEL,
+                "handlers": ["console", "file"],
+            },
+        }
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
     def PLUGIN_DIR(self) -> Path:
         return Path.joinpath(self.ROOT_DIR, "plugins").resolve()
 
@@ -99,11 +156,17 @@ class Settings(BaseSettings):
     def LOGGING_CONFIG(self) -> dict[str, Any]:
         return {
             "version": 1,
+            # leaves existing loggers from uvicorn and fastapi enabled
             "disable_existing_loggers": False,
+            "filters": {
+                "skip_task_status_polls": {
+                    "()": "src.core.logging.logging_filters.TaskStatusPollFilter",
+                },
+            },
             "formatters": {
                 "base": {
                     "()": "uvicorn.logging.DefaultFormatter",
-                    "fmt": "[%(levelname)s %(asctime)s]: %(name)s - %(message)s",
+                    "fmt": "%(asctime)s  %(levelname)s --- [%(name)s] %(message)s",
                 }
             },
             "handlers": {
@@ -128,10 +191,33 @@ class Settings(BaseSettings):
                 },
             },
             "loggers": {
-                "root": {
-                    "level": "DEBUG",
-                    "handlers": ["console", "file"],
+                "uvicorn": {
+                    "level": self.LOGGING_LEVEL,
+                    "handlers": [],
+                    "propagate": True,
                 },
+                "uvicorn.error": {
+                    "level": self.LOGGING_LEVEL,
+                    "handlers": [],
+                    "propagate": True,
+                },
+                "uvicorn.access": {
+                    # Access records are emitted at INFO.
+                    "level": "INFO",
+                    "handlers": [],
+                    "propagate": True,
+                    # filter out successful task poll requests from the logs
+                    "filters": ["skip_task_status_polls"],
+                },
+                "fastapi": {
+                    "level": self.LOGGING_LEVEL,
+                    "handlers": [],
+                    "propagate": True,
+                },
+            },
+            "root": {
+                "level": self.LOGGING_LEVEL,
+                "handlers": ["console", "file"],
             },
         }
 

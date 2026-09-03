@@ -1,6 +1,7 @@
 import logging
+import logging.config
 import os
-from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
 
 from celery import Celery
 from celery.signals import worker_process_init, setup_logging
@@ -17,49 +18,22 @@ celery_app.conf.update(settings.CELERY_CONFIG)
 celery_app.autodiscover_tasks(["src.tasks"])
 
 
-def configure_celery_logging():
-    celery_logger = logging.getLogger("celery_app")  # our namespace
-    celery_logger.setLevel(logging.INFO)
-    celery_logger.propagate = False
-    celery_logger.handlers.clear()
-
-    formatter = logging.Formatter(
-        "[%(levelname)s %(asctime)s] %(processName)s %(name)s: %(message)s"
-    )
-
-    file_handler = TimedRotatingFileHandler(
-        filename=settings.LOGGING_DIR / "celery.log",
-        when="midnight",
-        backupCount=8,
-        utc=True,
-        encoding="utf-8",
-        interval=1,
-    )
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-
-    celery_logger.addHandler(file_handler)
-    celery_logger.addHandler(console_handler)
-
-    for name in ["celery", "celery.worker", "celery.task"]:
-        logger = logging.getLogger(name)
-        logger.setLevel(logging.INFO)
-        logger.propagate = False
-        logger.handlers = celery_logger.handlers.copy()
-
-
 @setup_logging.connect
 def on_celery_setup_logging(**kwargs) -> None:
     """
-    Setup logging for Celery workers.
+    Setup logging for Celery workers. This is called from their own (separate) processes, so it can use logging.config.dictConfig(), which is
     :param kwargs:
     :return:
     """
-    configure_celery_logging()
+    # create log directory if not present
+    if not Path.exists(settings.LOGGING_DIR):
+        os.mkdir(settings.LOGGING_DIR)
+    logging.config.dictConfig(settings.CELERY_LOGGING_CONFIG)
+    # Temporary smoke test; remove after verification.
+    logging.getLogger().warning(
+        "Celery logging configured; log file: %s",
+        (settings.LOGGING_DIR / "celery.log").resolve(),
+    )
 
 
 # connection pooling when forking processes:
