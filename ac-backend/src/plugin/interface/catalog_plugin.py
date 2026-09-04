@@ -62,7 +62,7 @@ class CatalogPlugin(Generic[T], ABC):
         If the remote source returns large amounts of data, please split the data into chunks and yield each chunk. This is because the data is saved to the database,
         so that we avoid inserting too much at once. The recommended chunk size is defined in batch_limit.
 
-        If the catalog is locally stored, it is stored in the resources directory.
+        If the catalog data is locally stored, it is stored in the resources directory.
 
         :param resources_dir: resource directory of the plugin
         :param csv_path: path to store the original data
@@ -135,6 +135,11 @@ class CatalogPlugin(Generic[T], ABC):
 
 
 class DefaultCatalogPlugin(CatalogPlugin[T]):
+    """
+    Parent class for default plugins, which are registered automatically on application startup.
+    Unlike CatalogPlugin, the catalog metadata is included directly in the code, so that the plugin can be automatically added on application startup.
+    """
+
     def __init__(
         self, name: str, description: str, url: str, directly_identifies_objects: bool
     ) -> None:
