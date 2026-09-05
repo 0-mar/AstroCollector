@@ -3,18 +3,18 @@ from typing import Annotated
 from fastapi import Depends
 
 from src.core.config.config import settings
-from src.plugin.interface.schemas import PhotometricDataDto
+from src.plugin.interface.schemas import PhotometricMeasurement
 from src.core.repository.repository import Repository, get_repository, Filters
-from src.core.service.schemas import PaginationResponseDto
-from src.data_retrieval.schemas import StellarObjectIdentifierDto
-from src.tasks.model import StellarObjectIdentifier, PhotometricData
+from src.core.service.schemas import PaginationResponse
+from src.data_retrieval.schemas import EnrichedStellarObjectIdentifier
+from src.tasks.model import StellarObjectIdentifierEntity, PhotometricDataEntity
 
 StellarObjectIdentifierRepositoryDep = Annotated[
-    Repository[StellarObjectIdentifier],
-    Depends(get_repository(StellarObjectIdentifier)),
+    Repository[StellarObjectIdentifierEntity],
+    Depends(get_repository(StellarObjectIdentifierEntity)),
 ]
 PhotometricDataRepositoryDep = Annotated[
-    Repository[PhotometricData], Depends(get_repository(PhotometricData))
+    Repository[PhotometricDataEntity], Depends(get_repository(PhotometricDataEntity))
 ]
 
 
@@ -36,12 +36,12 @@ class DataService:
         offset: int = 0,
         count: int = settings.MAX_PAGINATION_BATCH_COUNT,
         filters: Filters | None = None,
-    ) -> PaginationResponseDto[StellarObjectIdentifierDto]:
+    ) -> PaginationResponse[EnrichedStellarObjectIdentifier]:
         total_count, soi_list = await self._soi_repository.find(
             offset=offset, count=count, filters=filters
         )
-        data = list(map(StellarObjectIdentifierDto.model_validate, soi_list))
-        return PaginationResponseDto[StellarObjectIdentifierDto](
+        data = list(map(EnrichedStellarObjectIdentifier.model_validate, soi_list))
+        return PaginationResponse[EnrichedStellarObjectIdentifier](
             data=data, count=len(data), total_items=total_count
         )
 
@@ -50,12 +50,12 @@ class DataService:
         offset: int = 0,
         count: int = settings.MAX_PAGINATION_BATCH_COUNT,
         filters: Filters | None = None,
-    ) -> PaginationResponseDto[PhotometricDataDto]:
+    ) -> PaginationResponse[PhotometricMeasurement]:
         total_count, pd_list = await self._photometric_data_repository.find(
             offset=offset, count=count, filters=filters
         )
 
-        data = list(map(PhotometricDataDto.model_validate, pd_list))
-        return PaginationResponseDto[PhotometricDataDto](
+        data = list(map(PhotometricMeasurement.model_validate, pd_list))
+        return PaginationResponse[PhotometricMeasurement](
             data=data, count=len(data), total_items=total_count
         )

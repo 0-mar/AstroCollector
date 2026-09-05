@@ -5,10 +5,10 @@ from fastapi import Depends, APIRouter
 
 from src.core.config.config import settings
 from src.core.exception.exceptions import APIException
-from src.plugin.interface.schemas import PhotometricDataDto
+from src.plugin.interface.schemas import PhotometricMeasurement
 from src.core.repository.repository import Filters
-from src.core.service.schemas import PaginationResponseDto
-from src.data_retrieval.schemas import StellarObjectIdentifierDto
+from src.core.service.schemas import PaginationResponse
+from src.data_retrieval.schemas import EnrichedStellarObjectIdentifier
 from src.data_retrieval.service import DataService, PhotometricDataRepositoryDep
 
 DataServiceDep = Annotated[DataService, Depends(DataService)]
@@ -26,8 +26,8 @@ async def retrieve_objects_identifiers(
     filters: Filters | None = None,
     offset: int = 0,
     count: int = settings.MAX_PAGINATION_BATCH_COUNT,
-) -> PaginationResponseDto[StellarObjectIdentifierDto]:
-    """List identifiers from the database"""
+) -> PaginationResponse[EnrichedStellarObjectIdentifier]:
+    """List enriched identifiers from the database based on the task id"""
     if filters is None or (
         "task_id__eq" not in filters.filters and "task_id__in" not in filters.filters
     ):
@@ -42,9 +42,9 @@ async def retrieve_data(
     filters: Filters | None = None,
     offset: int = 0,
     count: int = settings.MAX_PAGINATION_BATCH_COUNT,
-) -> PaginationResponseDto[PhotometricDataDto]:
+) -> PaginationResponse[PhotometricMeasurement]:
     """
-    Retrieve photometric data from the database.
+    Retrieve photometric data from the database based on the task id.
     """
     if filters is None or (
         "task_id__eq" not in filters.filters and "task_id__in" not in filters.filters

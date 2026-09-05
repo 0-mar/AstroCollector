@@ -9,7 +9,13 @@ from starlette.responses import Response
 from src.core.config.config import settings
 from src.core.security.auth import required_roles, get_user
 from src.core.security.dependencies import UserServiceDep
-from src.core.security.schemas import UserDto, UserRoleEnum, LoginFormData
+from src.core.security.schemas import (
+    UserDto,
+    UserRoleEnum,
+    LoginFormData,
+    CsrfTokenResponse,
+    LogoutUserResponse,
+)
 from src.core.security.utils import (
     authenticate_user,
     create_session,
@@ -31,7 +37,7 @@ async def login(
     request: Request,
     form_data: LoginFormData = Depends(),
 ):
-    """Authenticate user and set session ID in a cookie."""
+    """Authenticate user and set session ID in a cookie. Returns CSRF token."""
     user = await authenticate_user(user_service, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -53,7 +59,7 @@ async def login(
         expires=settings.SESSION_EXPIRE_SECONDS,
         domain=settings.SESSION_COOKIE_DOMAIN,
     )
-    return {"csrf_token": csrf_token}
+    return CsrfTokenResponse(csrf_token=csrf_token)
 
 
 @router.post("/logout")
@@ -65,7 +71,7 @@ async def logout(user: Annotated[UserDto, Depends(get_user)], response: Response
 
     logger.info(f"User {user.email} logged out (ID: {user.id})")
 
-    return {"message": "Successfully logged out!"}
+    return LogoutUserResponse(message="Successfully logged out!")
 
 
 @router.get("/me")

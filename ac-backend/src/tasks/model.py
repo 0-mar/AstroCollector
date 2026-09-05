@@ -11,7 +11,7 @@ from src.core.database.database import DbEntity
 from src.tasks.types import TaskStatus, TaskType
 
 
-class Task(DbEntity):
+class TaskEntity(DbEntity):
     __tablename__ = "ac_task"
 
     status: Mapped[TaskStatus] = mapped_column(default=TaskStatus.in_progress)
@@ -28,15 +28,15 @@ class Task(DbEntity):
     # passive_deletes=True on the relationships tells SQLAlchemy not to emit DELETEs for children,
     # because it is handled by the DB
 
-    photometric_data: Mapped[list["PhotometricData"]] = relationship(
+    photometric_data: Mapped[list["PhotometricDataEntity"]] = relationship(
         cascade="all, delete-orphan", passive_deletes=True
     )
-    identifiers: Mapped[list["StellarObjectIdentifier"]] = relationship(
+    identifiers: Mapped[list["StellarObjectIdentifierEntity"]] = relationship(
         cascade="all, delete-orphan", passive_deletes=True
     )
 
 
-class PhotometricData(DbEntity):
+class PhotometricDataEntity(DbEntity):
     """."""
 
     __tablename__ = "ac_photometric_data"
@@ -52,7 +52,7 @@ class PhotometricData(DbEntity):
     light_filter: Mapped[str] = mapped_column(String, nullable=True)
 
 
-class StellarObjectIdentifier(DbEntity):
+class StellarObjectIdentifierEntity(DbEntity):
     """Represents stellar object identifiers returned by a catalogue.
     The identifier format can vary, thus we are using JSONB type to store them."""
 

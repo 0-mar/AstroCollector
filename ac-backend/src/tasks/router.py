@@ -6,15 +6,15 @@ from fastapi import APIRouter, Depends
 
 from src.core.config.config import settings
 from src.plugin.interface.schemas import (
-    StellarObjectIdentificatorDto,
+    StellarObjectIdentifier,
 )
 from src.core.repository.repository import Repository, get_repository
-from src.tasks.model import Task
+from src.tasks.model import TaskEntity
 from src.tasks.schemas import (
-    ConeSearchRequestDto,
-    FindObjectRequestDto,
-    TaskStatusDto,
-    TaskIdDto,
+    ConeSearchRequest,
+    FindObjectRequest,
+    TaskStatusResponse,
+    TaskCreatedResponse,
 )
 
 from src.tasks.tasks import (
@@ -25,8 +25,8 @@ from src.tasks.tasks import (
 from src.tasks.types import TaskType
 
 TaskRepositoryDep = Annotated[
-    Repository[Task],
-    Depends(get_repository(Task)),
+    Repository[TaskEntity],
+    Depends(get_repository(TaskEntity)),
 ]
 
 
@@ -40,9 +40,9 @@ router = APIRouter(
 @router.post("/submit-task/{plugin_id}/cone-search")
 async def cone_search(
     task_repository: TaskRepositoryDep,
-    search_query_dto: ConeSearchRequestDto,
+    search_query_dto: ConeSearchRequest,
     plugin_id: UUID,
-) -> TaskIdDto:
+) -> TaskCreatedResponse:
     """
     Handles the submission of a cone search task. This endpoint also initiates
     an asynchronous Celery task for the cone search operation.
@@ -53,18 +53,18 @@ async def cone_search(
     :return: A DTO containing the generated ID of the created task.
     """
     search_query_dto.plugin_id = plugin_id
-    task = await task_repository.save(Task(task_type=TaskType.object_search))
+    task = await task_repository.save(TaskEntity(task_type=TaskType.object_search))
     catalog_cone_search.delay(str(task.id), search_query_dto.model_dump())
 
-    return TaskIdDto(task_id=task.id)
+    return TaskCreatedResponse(task_id=task.id)
 
 
 @router.post("/submit-task/{plugin_id}/find-object")
 async def find_object(
     task_repository: TaskRepositoryDep,
-    query_dto: FindObjectRequestDto,
+    query_dto: FindObjectRequest,
     plugin_id: UUID,
-) -> TaskIdDto:
+) -> TaskCreatedResponse:
     """
     Handles the endpoint to submit a task for finding a stallar object based on a given name in a star survey (catalog).
     This endpoint also initiates an asynchronous Celery task for the find object search operation.
@@ -73,22 +73,22 @@ async def find_object(
     :param query_dto: The name of the stellar object to be searched for.
     :param plugin_id: The identifier for the plugin associated with the task.
     :return: A DTO containing the generated ID of the created task.
-    :rtype: TaskIdDto
+    :rtype: TaskCreatedResponse
     """
     query_dto.plugin_id = plugin_id
-    task = await task_repository.save(Task(task_type=TaskType.object_search))
+    task = await task_repository.save(TaskEntity(task_type=TaskType.object_search))
 
     find_stellar_object.delay(str(task.id), query_dto.model_dump())
 
-    return TaskIdDto(task_id=task.id)
+    return TaskCreatedResponse(task_id=task.id)
 
 
 @router.post("/submit-task/{plugin_id}/photometric-data")
 async def submit_retrieve_data(
     task_repository: TaskRepositoryDep,
     plugin_id: UUID,
-    identificator_model: StellarObjectIdentificatorDto,
-) -> TaskIdDto:
+    identificator_model: StellarObjectIdentifier,
+) -> TaskCreatedResponse:
     """
     Endpoint to submit a task for retrieval of photometric data corresponding to a plugin.
     Triggers an asynchronous Celery task to retrieve the photometric data and save it as a CSV file in
@@ -100,7 +100,7 @@ async def submit_retrieve_data(
     :return: A DTO containing the generated ID of the created task.
     """
     identificator_model.plugin_id = plugin_id
-    task = await task_repository.save(Task(task_type=TaskType.photometric_data))
+    task = await task_repository.save(TaskEntity(task_type=TaskType.photometric_data))
     task_id = task.id
 
     filename = f"{task_id}.csv"
@@ -110,11 +110,11 @@ async def submit_retrieve_data(
         str(task_id), identificator_model.model_dump(), csv_path.resolve().as_posix()
     )
 
-    return TaskIdDto(task_id=task_id)
+    return TaskCreatedResponse(task_id=task_id)
 
 
 @router.get("/task_status/{task_id}")
 async def get_task_status(task_id: UUID, task_repository: TaskRepositoryDep):
     """Endpoint to check the status of a task."""
     task = await task_repository.get(task_id)
-    return TaskStatusDto(task_id=task_id, status=task.status.value)
+    return TaskStatusResponse(task_id=task_id, status=task.status.value)

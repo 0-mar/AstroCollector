@@ -11,16 +11,16 @@ from astropy.coordinates import SkyCoord
 from src.core.config.config import settings
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    StellarObjectIdentificatorDto,
-    PhotometricDataDto,
+    StellarObjectIdentifier,
+    PhotometricMeasurement,
 )
 
 
-class AtlasIdentificatorDto(StellarObjectIdentificatorDto):
+class AtlasIdentifier(StellarObjectIdentifier):
     pass
 
 
-class AtlasPlugin(DefaultCatalogPlugin[AtlasIdentificatorDto]):
+class AtlasPlugin(DefaultCatalogPlugin[AtlasIdentifier]):
     def __init__(self) -> None:
         super().__init__(
             "ATLAS",
@@ -37,9 +37,9 @@ class AtlasPlugin(DefaultCatalogPlugin[AtlasIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[AtlasIdentificatorDto]]:
+    ) -> Iterator[list[AtlasIdentifier]]:
         yield [
-            AtlasIdentificatorDto(
+            AtlasIdentifier(
                 plugin_id=plugin_id,
                 ra_deg=coords.ra.deg,
                 dec_deg=coords.dec.deg,
@@ -49,8 +49,8 @@ class AtlasPlugin(DefaultCatalogPlugin[AtlasIdentificatorDto]):
         ]
 
     def get_photometric_data(
-        self, identificator: AtlasIdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: AtlasIdentifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         headers = {
             "Authorization": f"Token {settings.ATLAS_TOKEN}",
             "Accept": "application/json",
@@ -129,7 +129,7 @@ class AtlasPlugin(DefaultCatalogPlugin[AtlasIdentificatorDto]):
             )
             filtered_chunk = chunk[mask]
 
-            batch: list[PhotometricDataDto] = []
+            batch: list[PhotometricMeasurement] = []
             for mjd, mag, mag_err, photometric_filter in zip(
                 filtered_chunk["MJD"],
                 filtered_chunk["m"],
@@ -147,7 +147,7 @@ class AtlasPlugin(DefaultCatalogPlugin[AtlasIdentificatorDto]):
                 )
 
                 batch.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         plugin_id=identificator.plugin_id,
                         julian_date=bjd,
                         magnitude=mag,

@@ -8,11 +8,11 @@ from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.time import Time
 
 from src.plugin.interface.schemas import (
-    StellarObjectIdentificatorDto,
-    PhotometricDataDto,
+    StellarObjectIdentifier,
+    PhotometricMeasurement,
 )
 
-T = TypeVar("T", bound=StellarObjectIdentificatorDto)
+T = TypeVar("T", bound=StellarObjectIdentifier)
 
 
 class CatalogPlugin(Generic[T], ABC):
@@ -53,7 +53,7 @@ class CatalogPlugin(Generic[T], ABC):
     @abstractmethod
     def get_photometric_data(
         self, identificator: T, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+    ) -> Iterator[list[PhotometricMeasurement]]:
         """
         Generator method that yields photometric data for a given stellar object. Writes the original fetched data to the provided csv file.
 

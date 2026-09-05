@@ -12,12 +12,12 @@ from sqlalchemy.orm import Session
 
 from src.core.config.config import settings
 from src.plugin.interface.catalog_plugin import CatalogPlugin, DefaultCatalogPlugin
-from src.plugin.interface.schemas import StellarObjectIdentificatorDto
+from src.plugin.interface.schemas import StellarObjectIdentifier
 from src.core.repository.exception import RepositoryException
 
 from src.plugin.exceptions import NoPluginClassException
-from src.plugin.model import Plugin
-from src.tasks.model import Task
+from src.plugin.model import PluginEntity
+from src.tasks.model import TaskEntity
 from src.tasks.types import TaskStatus
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,8 @@ class SyncTaskService:
         self._session = session
         self._model = model
 
-    def _get_plugin_entity(self, entity_id: UUID) -> Plugin:
-        result = self._session.get(Plugin, entity_id)
+    def _get_plugin_entity(self, entity_id: UUID) -> PluginEntity:
+        result = self._session.get(PluginEntity, entity_id)
         self._session.commit()
         if result is None:
             raise RepositoryException("Plugin with ID " + str(entity_id) + " not found")
@@ -42,7 +42,7 @@ class SyncTaskService:
 
     def _load_plugin(
         self, module_name: str, file_path: Path
-    ) -> Optional[CatalogPlugin[StellarObjectIdentificatorDto]]:
+    ) -> Optional[CatalogPlugin[StellarObjectIdentifier]]:
         """
         Loads a plugin dynamically by its module name and file path, and returns an instance
         of a class that subclasses `CatalogPlugin`, if available.
@@ -53,7 +53,7 @@ class SyncTaskService:
         :type file_path: Path
         :return: An instance of a class that subclasses `CatalogPlugin`, or None if no
             valid plugin class is found.
-        :rtype: Optional[CatalogPlugin[StellarObjectIdentificatorDto]]
+        :rtype: Optional[CatalogPlugin[StellarObjectIdentifier]]
         :raises ImportError: If the module spec or loader cannot be loaded from `file_path`.
         """
         spec = importlib.util.spec_from_file_location(module_name, file_path)
@@ -81,7 +81,7 @@ class SyncTaskService:
 
     def get_plugin_instance(
         self, plugin_id: UUID
-    ) -> CatalogPlugin[StellarObjectIdentificatorDto]:
+    ) -> CatalogPlugin[StellarObjectIdentifier]:
         """
         Retrieves an instance of the catalog plugin identified by the plugin UUID.
         If no corresponding plugin class is found, an exception is raised.
@@ -89,7 +89,7 @@ class SyncTaskService:
         :param plugin_id: Unique identifier of the plugin to retrieve.
         :type plugin_id: UUID
         :return: An instance of the catalog plugin corresponding to the provided ID.
-        :rtype: CatalogPlugin[StellarObjectIdentificatorDto]
+        :rtype: CatalogPlugin[StellarObjectIdentifier]
         :raises NoPluginClassException: If no plugin class is found for the given plugin ID.
         """
         db_plugin = self._get_plugin_entity(plugin_id)
@@ -111,6 +111,6 @@ class SyncTaskService:
 
     def set_task_status(self, task_id: str, status: TaskStatus):
         uuid = UUID(task_id)
-        stmt = update(Task).where(Task.id == uuid).values(status=status)
+        stmt = update(TaskEntity).where(TaskEntity.id == uuid).values(status=status)
         self._session.execute(stmt)
         self._session.commit()

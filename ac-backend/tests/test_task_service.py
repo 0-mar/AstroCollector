@@ -6,7 +6,7 @@ import pytest
 
 from src.core.config.config import settings
 from src.plugin.interface.catalog_plugin import CatalogPlugin
-from src.plugin.model import Plugin
+from src.plugin.model import PluginEntity
 from src.tasks.service import SyncTaskService
 from tests.default_test_plugins.plugin_test import plugin
 
@@ -19,8 +19,8 @@ class TestTaskService:
         return SyncTaskService(session, None)
 
     @pytest.fixture
-    def plugin_entity(self) -> Plugin:
-        return Plugin(
+    def plugin_entity(self) -> PluginEntity:
+        return PluginEntity(
             id=uuid.UUID("abb15bc1-4926-497d-b337-0a7d529b62f1"),
             catalog_url="https://google.com",
             description="hey",

@@ -9,18 +9,18 @@ from astroquery.vizier import Vizier
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 
 
-class MachoIdentificatorDto(StellarObjectIdentificatorDto):
+class MachoIdentifier(StellarObjectIdentifier):
     macho_id: str
     perv: float
     perr: float
 
 
-class MachoPlugin(DefaultCatalogPlugin[MachoIdentificatorDto]):
+class MachoPlugin(DefaultCatalogPlugin[MachoIdentifier]):
     def __init__(self) -> None:
         super().__init__(
             "MACHO",
@@ -31,7 +31,7 @@ class MachoPlugin(DefaultCatalogPlugin[MachoIdentificatorDto]):
         self._http_client = httpx.Client(timeout=10.0)
         self._vizier = Vizier()
 
-    def _data_url(self, ident: MachoIdentificatorDto) -> str:
+    def _data_url(self, ident: MachoIdentifier) -> str:
         return f"https://cdsarc.cds.unistra.fr/viz-bin/nph-Plot/Vgraph/txt?J/AJ/134/1963/./L/{ident.macho_id}/{ident.perr}/{ident.perv}&LC=Instrumental&P=0"
 
     def list_objects(
@@ -40,7 +40,7 @@ class MachoPlugin(DefaultCatalogPlugin[MachoIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[MachoIdentificatorDto]]:
+    ) -> Iterator[list[MachoIdentifier]]:
         result = self._vizier.query_region(
             coords, radius=radius_arcsec * u.arcsec, catalog="J/AJ/134/1963"
         )
@@ -50,7 +50,7 @@ class MachoPlugin(DefaultCatalogPlugin[MachoIdentificatorDto]):
             return
 
         result_table = result[0]
-        targets: list[MachoIdentificatorDto] = []
+        targets: list[MachoIdentifier] = []
 
         for row_idx in range(len(result_table)):
             macho_id = result_table["MACHO"][row_idx]
@@ -62,7 +62,7 @@ class MachoPlugin(DefaultCatalogPlugin[MachoIdentificatorDto]):
             target_coords = SkyCoord(ra=ra_deg, dec=dec_deg, unit=(u.hourangle, u.deg))
 
             targets.append(
-                MachoIdentificatorDto(
+                MachoIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=target_coords.ra.deg,
                     dec_deg=target_coords.dec.deg,
@@ -78,15 +78,15 @@ class MachoPlugin(DefaultCatalogPlugin[MachoIdentificatorDto]):
             yield targets
 
     def get_photometric_data(
-        self, identificator: MachoIdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: MachoIdentifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         # data format:
         # JD-2400000	[mag]	(error)
 
         resp = self._http_client.get(self._data_url(identificator))
         resp.raise_for_status()
 
-        batch: list[PhotometricDataDto] = []
+        batch: list[PhotometricMeasurement] = []
 
         with open(csv_path, "w") as csv_file:
             csv_file.write("# JD-2400000, mag, mag_err\n")
@@ -117,7 +117,7 @@ class MachoPlugin(DefaultCatalogPlugin[MachoIdentificatorDto]):
                     )
 
                     batch.append(
-                        PhotometricDataDto(
+                        PhotometricMeasurement(
                             plugin_id=identificator.plugin_id,
                             julian_date=bjd,
                             magnitude=mag,

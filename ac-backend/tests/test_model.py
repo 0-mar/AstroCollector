@@ -6,14 +6,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.tasks.model import Task, PhotometricData, StellarObjectIdentifier
+from src.tasks.model import (
+    TaskEntity,
+    PhotometricDataEntity,
+    StellarObjectIdentifierEntity,
+)
 from src.tasks.types import TaskStatus, TaskType
 
 
 @pytest.mark.asyncio
 class TestTaskModel:
     async def test_task_creation(self, db_session: AsyncSession):
-        task = Task(task_type=TaskType.object_search)
+        task = TaskEntity(task_type=TaskType.object_search)
         db_session.add(task)
         await db_session.commit()
 
@@ -23,11 +27,11 @@ class TestTaskModel:
         assert isinstance(task.created_at, datetime)
 
     async def test_task_relationships(self, db_session: AsyncSession):
-        task = Task(task_type=TaskType.photometric_data)
+        task = TaskEntity(task_type=TaskType.photometric_data)
         db_session.add(task)
         await db_session.flush()
 
-        photo_data = PhotometricData(
+        photo_data = PhotometricDataEntity(
             task_id=task.id,
             plugin_id=uuid4(),
             julian_date=2459000.5,
@@ -36,7 +40,7 @@ class TestTaskModel:
             light_filter="V",
         )
 
-        identifier = StellarObjectIdentifier(
+        identifier = StellarObjectIdentifierEntity(
             task_id=task.id,
             identifier={"catalog": "SIMBAD", "id": "HD 1234"},
         )
@@ -46,12 +50,12 @@ class TestTaskModel:
         await db_session.flush()
 
         result = await db_session.execute(
-            select(Task)
+            select(TaskEntity)
             .options(
-                selectinload(Task.photometric_data),
-                selectinload(Task.identifiers),
+                selectinload(TaskEntity.photometric_data),
+                selectinload(TaskEntity.identifiers),
             )
-            .where(Task.id == task.id)
+            .where(TaskEntity.id == task.id)
         )
         db_task = result.scalar_one()
 
@@ -61,11 +65,11 @@ class TestTaskModel:
         assert db_task.identifiers[0].identifier["catalog"] == "SIMBAD"
 
     async def test_cascade_delete(self, db_session: AsyncSession):
-        task = Task(task_type=TaskType.photometric_data)
+        task = TaskEntity(task_type=TaskType.photometric_data)
         db_session.add(task)
         await db_session.flush()
 
-        photo_data = PhotometricData(
+        photo_data = PhotometricDataEntity(
             task_id=task.id,
             plugin_id=uuid4(),
             julian_date=2459000.5,
@@ -81,7 +85,9 @@ class TestTaskModel:
 
         # Verify photometric data is also deleted
         result = await db_session.execute(
-            select(PhotometricData).where(PhotometricData.task_id == task.id)
+            select(PhotometricDataEntity).where(
+                PhotometricDataEntity.task_id == task.id
+            )
         )
         remaining_data = result.scalars().all()
         assert remaining_data == []
@@ -90,11 +96,11 @@ class TestTaskModel:
 @pytest.mark.asyncio
 class TestPhotometricDataModel:
     async def test_photometric_data_creation(self, db_session: AsyncSession):
-        task = Task(task_type=TaskType.photometric_data)
+        task = TaskEntity(task_type=TaskType.photometric_data)
         db_session.add(task)
         await db_session.flush()
 
-        photo_data = PhotometricData(
+        photo_data = PhotometricDataEntity(
             task_id=task.id,
             plugin_id=uuid4(),
             julian_date=2459000.5,
@@ -106,7 +112,9 @@ class TestPhotometricDataModel:
         await db_session.flush()
 
         result = await db_session.execute(
-            select(PhotometricData).where(PhotometricData.id == photo_data.id)
+            select(PhotometricDataEntity).where(
+                PhotometricDataEntity.id == photo_data.id
+            )
         )
         db_photo = result.scalar_one()
 
@@ -118,11 +126,11 @@ class TestPhotometricDataModel:
         assert db_photo.light_filter == "V"
 
     async def test_photometric_data_without_filter(self, db_session: AsyncSession):
-        task = Task(task_type=TaskType.photometric_data)
+        task = TaskEntity(task_type=TaskType.photometric_data)
         db_session.add(task)
         await db_session.flush()
 
-        photo_data = PhotometricData(
+        photo_data = PhotometricDataEntity(
             task_id=task.id,
             plugin_id=uuid4(),
             julian_date=2459000.5,
@@ -133,7 +141,9 @@ class TestPhotometricDataModel:
         await db_session.flush()
 
         result = await db_session.execute(
-            select(PhotometricData).where(PhotometricData.id == photo_data.id)
+            select(PhotometricDataEntity).where(
+                PhotometricDataEntity.id == photo_data.id
+            )
         )
         db_photo = result.scalar_one()
 
@@ -143,7 +153,7 @@ class TestPhotometricDataModel:
 @pytest.mark.asyncio
 class TestStellarObjectIdentifierModel:
     async def test_identifier_creation(self, db_session: AsyncSession):
-        task = Task(task_type=TaskType.object_search)
+        task = TaskEntity(task_type=TaskType.object_search)
         db_session.add(task)
         await db_session.flush()
 
@@ -153,7 +163,7 @@ class TestStellarObjectIdentifierModel:
             "ra": 123.456,
             "dec": -12.345,
         }
-        identifier = StellarObjectIdentifier(
+        identifier = StellarObjectIdentifierEntity(
             task_id=task.id,
             identifier=identifier_data,
         )
@@ -161,8 +171,8 @@ class TestStellarObjectIdentifierModel:
         await db_session.flush()
 
         result = await db_session.execute(
-            select(StellarObjectIdentifier).where(
-                StellarObjectIdentifier.id == identifier.id
+            select(StellarObjectIdentifierEntity).where(
+                StellarObjectIdentifierEntity.id == identifier.id
             )
         )
         db_identifier = result.scalar_one()
@@ -173,7 +183,7 @@ class TestStellarObjectIdentifierModel:
         assert db_identifier.identifier["catalog"] == "SIMBAD"
 
     async def test_complex_identifier_structure(self, db_session: AsyncSession):
-        task = Task(task_type=TaskType.object_search)
+        task = TaskEntity(task_type=TaskType.object_search)
         db_session.add(task)
         await db_session.flush()
 
@@ -184,7 +194,7 @@ class TestStellarObjectIdentifierModel:
             "metadata": {"source": "query", "confidence": 0.95},
         }
 
-        identifier = StellarObjectIdentifier(
+        identifier = StellarObjectIdentifierEntity(
             task_id=task.id,
             identifier=complex_identifier,
         )
@@ -192,8 +202,8 @@ class TestStellarObjectIdentifierModel:
         await db_session.flush()
 
         result = await db_session.execute(
-            select(StellarObjectIdentifier).where(
-                StellarObjectIdentifier.id == identifier.id
+            select(StellarObjectIdentifierEntity).where(
+                StellarObjectIdentifierEntity.id == identifier.id
             )
         )
         db_identifier = result.scalar_one()

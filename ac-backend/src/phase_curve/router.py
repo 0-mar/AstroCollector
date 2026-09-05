@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from src.core.exception.exceptions import APIException
 
 from src.deps import get_async_http_client
-from src.phase_curve.schemas import PhaseCurveDataDto
+from src.phase_curve.schemas import PhaseCurveResponse
 
 
 router = APIRouter(
@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-def get_phase_curve_data(query_data, search_coords: SkyCoord) -> PhaseCurveDataDto:
+def get_phase_curve_data(query_data, search_coords: SkyCoord) -> PhaseCurveResponse:
     """
     Return the period and epoch of a star closest to the search coordinates.
     :param query_data:
@@ -23,7 +23,7 @@ def get_phase_curve_data(query_data, search_coords: SkyCoord) -> PhaseCurveDataD
     :return: PhaseCurveDataDto
     """
     if query_data["VSXObjects"] == []:
-        return PhaseCurveDataDto(
+        return PhaseCurveResponse(
             ra_deg=None, dec_deg=None, epoch=None, period=None, vsx_object_name=None
         )
 
@@ -39,7 +39,7 @@ def get_phase_curve_data(query_data, search_coords: SkyCoord) -> PhaseCurveDataD
             or "Declination2000" not in record
         ):
             continue
-        return PhaseCurveDataDto(
+        return PhaseCurveResponse(
             ra_deg=float(record["RA2000"]),
             dec_deg=float(record["Declination2000"]),
             epoch=float(record["Epoch"]) if "Epoch" in record else None,
@@ -47,7 +47,7 @@ def get_phase_curve_data(query_data, search_coords: SkyCoord) -> PhaseCurveDataD
             vsx_object_name=record["Name"] if "Name" in record else None,
         )
 
-    return PhaseCurveDataDto(
+    return PhaseCurveResponse(
         ra_deg=None, dec_deg=None, epoch=None, period=None, vsx_object_name=None
     )
 
@@ -58,7 +58,7 @@ async def phase_curve_data(
     name: str | None = None,
     ra_deg: float | None = None,
     dec_deg: float | None = None,
-) -> PhaseCurveDataDto:
+) -> PhaseCurveResponse:
     """
     Get the period and epoch of a star given by its name, or coordinates.
     If both are provided, the name is used as first and if the search fails, the coordinates are used.
@@ -87,7 +87,7 @@ async def phase_curve_data(
                 and "RA2000" in record
                 and "Declination2000" in record
             ):
-                return PhaseCurveDataDto(
+                return PhaseCurveResponse(
                     ra_deg=float(record["RA2000"]),
                     dec_deg=float(record["Declination2000"]),
                     epoch=float(record["Epoch"]) if "Epoch" in record else None,
@@ -110,6 +110,6 @@ async def phase_curve_data(
 
         return get_phase_curve_data(query_data, SkyCoord(ra_deg, dec_deg, unit="deg"))
 
-    return PhaseCurveDataDto(
+    return PhaseCurveResponse(
         ra_deg=None, dec_deg=None, epoch=None, period=None, vsx_object_name=None
     )

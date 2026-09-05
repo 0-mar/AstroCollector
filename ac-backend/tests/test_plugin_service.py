@@ -10,8 +10,8 @@ from fastapi import UploadFile
 
 from src.core.config.config import settings
 from src.plugin import service
-from src.plugin.model import Plugin
-from src.plugin.schemas import CreatePluginDto, PluginDto
+from src.plugin.model import PluginEntity
+from src.plugin.schemas import PluginCreateRequest, PluginResponse
 from src.plugin.service import PluginService
 from tests import conftest, default_test_plugins
 from tests.default_test_plugins.plugin_test import plugin
@@ -20,8 +20,8 @@ from tests.default_test_plugins.plugin_test.plugin import PluginTest
 
 class TestPluginService:
     @pytest.fixture
-    def plugin_entity(self) -> Plugin:
-        return Plugin(
+    def plugin_entity(self) -> PluginEntity:
+        return PluginEntity(
             id=uuid.UUID("abb15bc1-4926-497d-b337-0a7d529b62f1"),
             catalog_url="https://google.com",
             description="Test plugin",
@@ -64,7 +64,7 @@ class TestPluginService:
         self, override_directories, plugin_service, plugin_entity
     ):
         """Test plugin creation through service."""
-        create_dto = CreatePluginDto(
+        create_dto = PluginCreateRequest(
             name="Test",
             catalog_url="mock",
             description="hey",
@@ -96,7 +96,7 @@ class TestPluginService:
             file=io.BytesIO(file_bytes),
         )
         print(Path.joinpath(settings.RESOURCES_DIR, str(plugin_entity.id)))
-        result: PluginDto = await plugin_service.upload_plugin(
+        result: PluginResponse = await plugin_service.upload_plugin(
             plugin_entity.id, upload_file
         )
 
@@ -121,7 +121,9 @@ class TestPluginService:
 
     @pytest.mark.asyncio
     async def test_register_plugins(self, override_directories, plugin_service):
-        dto: PluginDto = await plugin_service._PluginService__register_plugin(plugin)
+        dto: PluginResponse = await plugin_service._PluginService__register_plugin(
+            plugin
+        )
         test_plugin = PluginTest()
         print(dto.catalog_url)
         print(test_plugin.catalog_url)

@@ -1,10 +1,10 @@
 from src.core.config.config import settings
 from src.core.database.database import async_sessionmanager
 from src.core.repository.repository import Repository
-from src.core.security.models import UserRole, User
+from src.core.security.models import UserRoleEntity, UserEntity
 from src.core.security.schemas import UserRoleEnum
 from src.core.security.utils import get_password_hash
-from src.plugin.model import Plugin
+from src.plugin.model import PluginEntity
 from src.plugin.service import PluginService
 
 
@@ -12,22 +12,24 @@ async def init_db():
     """Initialize database by adding default users, roles and plugins."""
     # load plugins on startup
     async with async_sessionmanager.session() as session:
-        plugin_repository = Repository(Plugin, session)
+        plugin_repository = Repository(PluginEntity, session)
         plugin_service = PluginService(plugin_repository)
         await plugin_service.create_default_plugins()
 
     async with async_sessionmanager.session() as session:
-        role_repository = Repository(UserRole, session)
-        role = UserRole(name=UserRoleEnum.super_admin, description="Super admin role")
+        role_repository = Repository(UserRoleEntity, session)
+        role = UserRoleEntity(
+            name=UserRoleEnum.super_admin, description="Super admin role"
+        )
         super_admin_role = await role_repository.save(role)
-        role = UserRole(name=UserRoleEnum.admin, description="Admin role")
+        role = UserRoleEntity(name=UserRoleEnum.admin, description="Admin role")
         await role_repository.save(role)
-        role = UserRole(name=UserRoleEnum.user, description="User role")
+        role = UserRoleEntity(name=UserRoleEnum.user, description="User role")
         await role_repository.save(role)
 
     async with async_sessionmanager.session() as session:
-        user_repository = Repository(User, session)
-        user = User(
+        user_repository = Repository(UserEntity, session)
+        user = UserEntity(
             username=settings.SUPER_ADMIN_USERNAME,
             email=settings.SUPER_ADMIN_EMAIL,
             hashed_password=get_password_hash(settings.SUPER_ADMIN_PASSWORD),

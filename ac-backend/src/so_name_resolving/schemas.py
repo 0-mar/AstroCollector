@@ -1,7 +1,7 @@
 from src.core.repository.schemas import BaseDto
 
 
-class StellarObjectNameDto(BaseDto):
+class StellarObjectNameRequest(BaseDto):
     name: str
 
 

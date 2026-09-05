@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.core.config.config import settings
-from src.tasks.model import Task
+from src.tasks.model import TaskEntity
 from src.tasks.router import (
     cone_search,
     find_object,
@@ -12,13 +12,13 @@ from src.tasks.router import (
     get_task_status,
 )
 from src.tasks.schemas import (
-    ConeSearchRequestDto,
-    FindObjectRequestDto,
-    TaskIdDto,
-    TaskStatusDto,
+    ConeSearchRequest,
+    FindObjectRequest,
+    TaskCreatedResponse,
+    TaskStatusResponse,
 )
 from src.tasks.types import TaskType, TaskStatus
-from src.plugin.interface.schemas import StellarObjectIdentificatorDto
+from src.plugin.interface.schemas import StellarObjectIdentifier
 
 
 # ---------------------------------------------------------------------------
@@ -30,10 +30,10 @@ class FakeTaskRepository:
     """Repo that behaves like Repository[Task] for the router."""
 
     def __init__(self):
-        self.saved_tasks: list[Task] = []
-        self.tasks_by_id: dict[uuid.UUID, Task] = {}
+        self.saved_tasks: list[TaskEntity] = []
+        self.tasks_by_id: dict[uuid.UUID, TaskEntity] = {}
 
-    async def save(self, task: Task) -> Task:
+    async def save(self, task: TaskEntity) -> TaskEntity:
         # In real DB, ID is set by DB; here we simulate it
         if getattr(task, "id", None) is None:
             task.id = uuid.uuid4()
@@ -44,7 +44,7 @@ class FakeTaskRepository:
         self.tasks_by_id[task.id] = task
         return task
 
-    async def get(self, task_id: uuid.UUID) -> Task:
+    async def get(self, task_id: uuid.UUID) -> TaskEntity:
         return self.tasks_by_id[task_id]
 
 
@@ -58,7 +58,7 @@ async def test_cone_search_submits_task_and_calls_celery(monkeypatch):
     repo = FakeTaskRepository()
     plugin_id = uuid.uuid4()
 
-    body = ConeSearchRequestDto(
+    body = ConeSearchRequest(
         right_ascension_deg=123.4,
         declination_deg=-22.5,
         radius_arcsec=10.0,
@@ -72,7 +72,7 @@ async def test_cone_search_submits_task_and_calls_celery(monkeypatch):
         fake_delay,
     )
 
-    response: TaskIdDto = await cone_search(
+    response: TaskCreatedResponse = await cone_search(
         task_repository=repo,
         search_query_dto=body,
         plugin_id=plugin_id,
@@ -109,7 +109,7 @@ async def test_find_object_submits_task_and_calls_celery(monkeypatch):
     repo = FakeTaskRepository()
     plugin_id = uuid.uuid4()
 
-    body = FindObjectRequestDto(
+    body = FindObjectRequest(
         name="Vega",
         plugin_id=plugin_id,
     )
@@ -120,7 +120,7 @@ async def test_find_object_submits_task_and_calls_celery(monkeypatch):
         fake_delay,
     )
 
-    response: TaskIdDto = await find_object(
+    response: TaskCreatedResponse = await find_object(
         task_repository=repo,
         query_dto=body,
         plugin_id=plugin_id,
@@ -153,7 +153,7 @@ async def test_submit_retrieve_data_submits_task_and_calls_celery(
     repo = FakeTaskRepository()
     plugin_id = uuid.uuid4()
 
-    identificator = StellarObjectIdentificatorDto(
+    identificator = StellarObjectIdentifier(
         plugin_id=plugin_id,
         ra_deg=12.3,
         dec_deg=-45.6,
@@ -167,7 +167,7 @@ async def test_submit_retrieve_data_submits_task_and_calls_celery(
         fake_delay,
     )
 
-    response: TaskIdDto = await submit_retrieve_data(
+    response: TaskCreatedResponse = await submit_retrieve_data(
         task_repository=repo,
         plugin_id=plugin_id,
         identificator_model=identificator,
@@ -206,12 +206,12 @@ async def test_get_task_status_returns_status():
     repo = FakeTaskRepository()
     task_id = uuid.uuid4()
 
-    task = Task(task_type=TaskType.object_search)
+    task = TaskEntity(task_type=TaskType.object_search)
     task.id = task_id
     task.status = TaskStatus.completed
     await repo.save(task)
 
-    response: TaskStatusDto = await get_task_status(
+    response: TaskStatusResponse = await get_task_status(
         task_id=task_id,
         task_repository=repo,
     )

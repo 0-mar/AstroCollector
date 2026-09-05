@@ -15,10 +15,14 @@ from src.core.celery.worker import celery_app
 from src.core.database.database import get_async_db_session
 from src.main import app
 from src.plugin.interface.schemas import (
-    StellarObjectIdentificatorDto,
-    PhotometricDataDto,
+    StellarObjectIdentifier,
+    PhotometricMeasurement,
 )
-from src.tasks.model import Task, StellarObjectIdentifier, PhotometricData
+from src.tasks.model import (
+    TaskEntity,
+    StellarObjectIdentifierEntity,
+    PhotometricDataEntity,
+)
 from src.tasks.types import TaskType, TaskStatus
 from src.tasks import tasks as tasks_module
 
@@ -104,14 +108,14 @@ async def test_cone_search_with_celery(
 
     class FakePlugin:
         def list_objects(self, coords, radius_arcsec, plugin_id_arg, resources_dir):
-            dto1 = StellarObjectIdentificatorDto(
+            dto1 = StellarObjectIdentifier(
                 plugin_id=plugin_id,
                 ra_deg=10.0,
                 dec_deg=-20.0,
                 name="Star A",
                 dist_arcsec=1.0,
             )
-            dto2 = StellarObjectIdentificatorDto(
+            dto2 = StellarObjectIdentifier(
                 plugin_id=plugin_id,
                 ra_deg=11.0,
                 dec_deg=-21.0,
@@ -150,15 +154,17 @@ async def test_cone_search_with_celery(
     task_id = uuid.UUID(data["task_id"])
 
     # check that the Task exists and status was set to COMPLETED by the Celery task
-    result = await db_session.execute(select(Task).where(Task.id == task_id))
+    result = await db_session.execute(
+        select(TaskEntity).where(TaskEntity.id == task_id)
+    )
     task_obj = result.scalar_one()
     assert task_obj.task_type == TaskType.object_search
     assert task_obj.status == TaskStatus.completed
 
     # check that SyncTaskService.bulk_insert inserted the StellarObjectIdentifier rows
     result = await db_session.execute(
-        select(StellarObjectIdentifier).where(
-            StellarObjectIdentifier.task_id == task_id
+        select(StellarObjectIdentifierEntity).where(
+            StellarObjectIdentifierEntity.task_id == task_id
         )
     )
     identifiers = result.scalars().all()
@@ -198,14 +204,14 @@ async def test_find_object_with_celery(
 
     class FakePlugin:
         def list_objects(self, coords, radius_arcsec, plugin_id_arg, resources_dir):
-            dto1 = StellarObjectIdentificatorDto(
+            dto1 = StellarObjectIdentifier(
                 plugin_id=plugin_id,
                 ra_deg=10.0,
                 dec_deg=-20.0,
                 name="Star A",
                 dist_arcsec=1.0,
             )
-            dto2 = StellarObjectIdentificatorDto(
+            dto2 = StellarObjectIdentifier(
                 plugin_id=plugin_id,
                 ra_deg=11.0,
                 dec_deg=-21.0,
@@ -240,15 +246,17 @@ async def test_find_object_with_celery(
     task_id = uuid.UUID(data["task_id"])
 
     # check Task in DB - created with correct type and status COMPLETED
-    result = await db_session.execute(select(Task).where(Task.id == task_id))
+    result = await db_session.execute(
+        select(TaskEntity).where(TaskEntity.id == task_id)
+    )
     task_obj = result.scalar_one()
     assert task_obj.task_type == TaskType.object_search
     assert task_obj.status == TaskStatus.completed
 
     # check that identifiers were inserted by SyncTaskService
     result = await db_session.execute(
-        select(StellarObjectIdentifier).where(
-            StellarObjectIdentifier.task_id == task_id
+        select(StellarObjectIdentifierEntity).where(
+            StellarObjectIdentifierEntity.task_id == task_id
         )
     )
     identifiers = result.scalars().all()
@@ -281,14 +289,14 @@ async def test_photometric_data_with_celery(
             assert identificator.plugin_id == plugin_id
             assert identificator.name == "TestStar"
 
-            dto1 = PhotometricDataDto(
+            dto1 = PhotometricMeasurement(
                 plugin_id=plugin_id,
                 julian_date=2450000.5,
                 magnitude=12.3,
                 magnitude_error=0.01,
                 light_filter="V",
             )
-            dto2 = PhotometricDataDto(
+            dto2 = PhotometricMeasurement(
                 plugin_id=plugin_id,
                 julian_date=2450001.5,
                 magnitude=12.4,
@@ -326,14 +334,16 @@ async def test_photometric_data_with_celery(
     task_id = uuid.UUID(data["task_id"])
 
     # task row should exist and be COMPLETED (set by get_photometric_data task)
-    result = await db_session.execute(select(Task).where(Task.id == task_id))
+    result = await db_session.execute(
+        select(TaskEntity).where(TaskEntity.id == task_id)
+    )
     task_obj = result.scalar_one()
     assert task_obj.task_type == TaskType.photometric_data
     assert task_obj.status == TaskStatus.completed
 
     # PhotometricData rows inserted by SyncTaskService.bulk_insert
     result = await db_session.execute(
-        select(PhotometricData).where(PhotometricData.task_id == task_id)
+        select(PhotometricDataEntity).where(PhotometricDataEntity.task_id == task_id)
     )
     records = result.scalars().all()
     assert len(records) == 2

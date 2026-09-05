@@ -7,17 +7,17 @@ import pandas as pd
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 import httpx
 
 
-class AidIdentificatorDto(StellarObjectIdentificatorDto):
+class AidIdentifier(StellarObjectIdentifier):
     auid: str
 
 
-class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
+class AidPlugin(DefaultCatalogPlugin[AidIdentifier]):
     """
     Integration of the AID plugin
     """
@@ -45,7 +45,7 @@ class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[AidIdentificatorDto]]:
+    ) -> Iterator[list[AidIdentifier]]:
         response = self._http_client.get(
             self.__list_url(coords.ra.deg, coords.dec.deg, radius_arcsec / 3600.0)
         )
@@ -54,7 +54,7 @@ class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
 
     def _process_objects(
         self, query_data: dict[str, Any], plugin_id: UUID, search_coords: SkyCoord
-    ) -> list[AidIdentificatorDto]:
+    ) -> list[AidIdentifier]:
         results = []
         if query_data["VSXObjects"] == []:
             return results
@@ -66,7 +66,7 @@ class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
                 record["RA2000"], record["Declination2000"], unit="deg"
             )
             results.append(
-                AidIdentificatorDto(
+                AidIdentifier(
                     plugin_id=plugin_id,
                     auid=record["AUID"],
                     ra_deg=record["RA2000"],
@@ -79,8 +79,8 @@ class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
         return results
 
     def get_photometric_data(
-        self, identificator: AidIdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: AidIdentifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         self.__write_to_csv(self.__data_url(identificator.auid), csv_path)
 
         # release data in chunks
@@ -98,8 +98,8 @@ class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
                     f.write(chunk)
 
     def __get_chunk(
-        self, path: Path, identificator: AidIdentificatorDto
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, path: Path, identificator: AidIdentifier
+    ) -> Iterator[list[PhotometricMeasurement]]:
         for chunk in pd.read_csv(
             path,
             chunksize=50_000,
@@ -115,7 +115,7 @@ class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
             na_values=(""),
             on_bad_lines="skip",
         ):
-            batch: list[PhotometricDataDto] = []
+            batch: list[PhotometricMeasurement] = []
             chunk = chunk.dropna(subset=["JD", "mag", "uncert", "band"])
             for jd, mag, uncert, band in chunk.itertuples(index=False, name=None):
                 # convert JD_UTC to BJD_TDB
@@ -129,7 +129,7 @@ class AidPlugin(DefaultCatalogPlugin[AidIdentificatorDto]):
                 )
 
                 batch.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         plugin_id=identificator.plugin_id,
                         julian_date=bjd,
                         magnitude=mag,

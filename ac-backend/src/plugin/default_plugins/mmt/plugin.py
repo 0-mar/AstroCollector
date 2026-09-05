@@ -8,16 +8,16 @@ from astropy.coordinates import SkyCoord
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 
 
-class Mmt9IdentificatorDto(StellarObjectIdentificatorDto):
+class Mmt9Identifier(StellarObjectIdentifier):
     radius_arcsec: float
 
 
-class Mmt9Plugin(DefaultCatalogPlugin[Mmt9IdentificatorDto]):
+class Mmt9Plugin(DefaultCatalogPlugin[Mmt9Identifier]):
     # http://survey.favor2.info/favor2/
     def __init__(self) -> None:
         super().__init__(
@@ -35,7 +35,7 @@ class Mmt9Plugin(DefaultCatalogPlugin[Mmt9IdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[Mmt9IdentificatorDto]]:
+    ) -> Iterator[list[Mmt9Identifier]]:
         query_params = {
             "coords": f"{coords.ra.deg} {coords.dec.deg} ",
             "sr": f"{radius_arcsec / 3600}",
@@ -54,7 +54,7 @@ class Mmt9Plugin(DefaultCatalogPlugin[Mmt9IdentificatorDto]):
         # catalog does not group results by stellar object ID, so instead we treat measurements as one object.
         # It is up to the user to set appropriate radius
         yield [
-            Mmt9IdentificatorDto(
+            Mmt9Identifier(
                 plugin_id=plugin_id,
                 ra_deg=coords.ra.deg,
                 dec_deg=coords.dec.deg,
@@ -65,8 +65,8 @@ class Mmt9Plugin(DefaultCatalogPlugin[Mmt9IdentificatorDto]):
         ]
 
     def get_photometric_data(
-        self, identificator: Mmt9IdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: Mmt9Identifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         query_params = {
             "coords": f"{identificator.ra_deg} {identificator.dec_deg} ",
             "sr": f"{identificator.radius_arcsec / 3600}",
@@ -79,7 +79,7 @@ class Mmt9Plugin(DefaultCatalogPlugin[Mmt9IdentificatorDto]):
         query_resp = self._http_client.get(self._url, params=query_params)
         query_data = query_resp.json()
 
-        chunk: list[PhotometricDataDto] = []
+        chunk: list[PhotometricMeasurement] = []
 
         with open(csv_path, mode="w") as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=",")
@@ -140,7 +140,7 @@ class Mmt9Plugin(DefaultCatalogPlugin[Mmt9IdentificatorDto]):
                     )
 
                     chunk.append(
-                        PhotometricDataDto(
+                        PhotometricMeasurement(
                             julian_date=bjd,
                             magnitude=record["mags"][i],
                             magnitude_error=record["magerrs"][i],

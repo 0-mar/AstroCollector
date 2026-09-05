@@ -8,17 +8,17 @@ from astropy import units as u
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 from bs4 import BeautifulSoup
 
 
-class AsasIdentificatorDto(StellarObjectIdentificatorDto):
+class AsasIdentifier(StellarObjectIdentifier):
     asas_id: str
 
 
-class AsasPlugin(DefaultCatalogPlugin[AsasIdentificatorDto]):
+class AsasPlugin(DefaultCatalogPlugin[AsasIdentifier]):
     def __init__(self) -> None:
         super().__init__(
             "ASAS",
@@ -38,7 +38,7 @@ class AsasPlugin(DefaultCatalogPlugin[AsasIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[AsasIdentificatorDto]]:
+    ) -> Iterator[list[AsasIdentifier]]:
         # valid identifiers are in format:
         # RA[h] DEC[deg]
         # see https://www.astrouw.edu.pl/asas/i_aasc/aasc_form.php?catsrc=asas3
@@ -74,12 +74,12 @@ class AsasPlugin(DefaultCatalogPlugin[AsasIdentificatorDto]):
             asas_id, _ = line.split("\n")
             unique_ids.add(asas_id)
 
-        targets: list[AsasIdentificatorDto] = []
+        targets: list[AsasIdentifier] = []
         for asas_id in unique_ids:
             # ASAS ID is coded from the star's RA_2000 and DEC_2000 in the format: hhmmss+ddmm.m
             target_coords = self._asas_id_to_coord(asas_id)
             targets.append(
-                AsasIdentificatorDto(
+                AsasIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=target_coords.ra.deg,
                     dec_deg=target_coords.dec.deg,
@@ -92,15 +92,15 @@ class AsasPlugin(DefaultCatalogPlugin[AsasIdentificatorDto]):
         yield targets
 
     def get_photometric_data(
-        self, identificator: AsasIdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: AsasIdentifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         resp = self._http_client.get(self._data_url(identificator.asas_id))
         resp.raise_for_status()
         html = resp.text
 
         lines = html.split("\n")
 
-        chunk: list[PhotometricDataDto] = []
+        chunk: list[PhotometricMeasurement] = []
         # Each data row consists of the following fields:
         # -  HJD-2450000
         # -  magnitudes (one for each aperture)
@@ -179,7 +179,7 @@ class AsasPlugin(DefaultCatalogPlugin[AsasIdentificatorDto]):
                 )
 
                 chunk.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         julian_date=bjd,
                         magnitude=mag,
                         magnitude_error=mag_err,

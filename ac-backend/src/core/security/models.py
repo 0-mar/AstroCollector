@@ -9,7 +9,7 @@ from src.core.database.database import DbEntity
 from src.core.security.schemas import UserRoleEnum
 
 
-class User(DbEntity):
+class UserEntity(DbEntity):
     __tablename__ = "ac_user"
 
     username: Mapped[str] = mapped_column(String, nullable=False)
@@ -20,12 +20,12 @@ class User(DbEntity):
         DateTime, nullable=False, server_default=func.now()
     )
     role_id: Mapped[UUID] = mapped_column(ForeignKey("ac_user_role.id"))
-    role: Mapped["UserRole"] = relationship(back_populates="users", lazy="joined")
+    role: Mapped["UserRoleEntity"] = relationship(back_populates="users", lazy="joined")
 
 
-class UserRole(DbEntity):
+class UserRoleEntity(DbEntity):
     __tablename__ = "ac_user_role"
 
     name: Mapped[UserRoleEnum] = mapped_column(nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    users: Mapped[list["User"]] = relationship(back_populates="role")
+    users: Mapped[list["UserEntity"]] = relationship(back_populates="role")
