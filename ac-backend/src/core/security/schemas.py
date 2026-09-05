@@ -18,6 +18,14 @@ class UserRoleDto(BaseIdDto):
     description: str | None
 
 
+class CsrfTokenResponse(BaseDto):
+    csrf_token: str
+
+
+class LogoutUserResponse(BaseDto):
+    message: str
+
+
 class UserRoleCreateDto(BaseDto):
     name: UserRoleEnum
     description: str | None

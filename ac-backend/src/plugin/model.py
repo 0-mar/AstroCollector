@@ -7,7 +7,7 @@ from src.core.database.database import DbEntity
 from sqlalchemy.sql import func
 
 
-class Plugin(DbEntity):
+class PluginEntity(DbEntity):
     """Plugin model for database."""
 
     __tablename__ = "ac_plugin"

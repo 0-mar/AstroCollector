@@ -4,17 +4,17 @@ from fastapi import Depends
 
 from src.core.config.config import settings
 from src.core.repository.repository import Repository, get_repository, Filters
-from src.core.security.models import User, UserRole
+from src.core.security.models import UserEntity, UserRoleEntity
 from src.core.security.schemas import UserCreateDto, UserDto, UserInDbDto
 
 UserRepositoryDep = Annotated[
-    Repository[User],
-    Depends(get_repository(User)),
+    Repository[UserEntity],
+    Depends(get_repository(UserEntity)),
 ]
 
 UserRoleRepositoryDep = Annotated[
-    Repository[UserRole],
-    Depends(get_repository(UserRole)),
+    Repository[UserRoleEntity],
+    Depends(get_repository(UserRoleEntity)),
 ]
 
 
@@ -58,7 +58,7 @@ class UserService:
             Filters(filters={"name__eq": create_dto.role.value})
         )
 
-        user_to_save = User(
+        user_to_save = UserEntity(
             username=create_dto.username,
             email=create_dto.email,
             hashed_password=settings.pwd_context.hash(create_dto.password),

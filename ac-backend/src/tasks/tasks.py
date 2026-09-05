@@ -12,13 +12,17 @@ from httpx import Client
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from src.export.model import ExportFile
+from src.export.model import ExportFileEntity
 from src.tasks.service import SyncTaskService
 from src.core.celery.worker import celery_app, TaskWithSession
 from src.core.config.config import settings
-from src.plugin.interface.schemas import StellarObjectIdentificatorDto
-from src.tasks.model import StellarObjectIdentifier, PhotometricData, Task
-from src.tasks.schemas import ConeSearchRequestDto, FindObjectRequestDto
+from src.plugin.interface.schemas import StellarObjectIdentifier
+from src.tasks.model import (
+    StellarObjectIdentifierEntity,
+    PhotometricDataEntity,
+    TaskEntity,
+)
+from src.tasks.schemas import ConeSearchRequest, FindObjectRequest
 
 from src.tasks.types import TaskStatus
 
@@ -93,11 +97,11 @@ def catalog_cone_search(self, task_id: str, query_dict: dict[Any, Any]):
     :param query_dict: Query parameters
     :return: None
     """
-    task_service = SyncTaskService(self.session, StellarObjectIdentifier)
+    task_service = SyncTaskService(self.session, StellarObjectIdentifierEntity)
 
     try:
         task_uuid = UUID(task_id)
-        query = ConeSearchRequestDto.model_validate(query_dict)
+        query = ConeSearchRequest.model_validate(query_dict)
         coords = SkyCoord(
             ra=query.right_ascension_deg * units.degree,
             dec=query.declination_deg * units.degree,
@@ -136,10 +140,10 @@ def find_stellar_object(self, task_id: str, query_dict: dict[Any, Any]):
     :param query_dict: Query parameters
     :return: None
     """
-    task_service = SyncTaskService(self.session, StellarObjectIdentifier)
+    task_service = SyncTaskService(self.session, StellarObjectIdentifierEntity)
     try:
         uuid = UUID(task_id)
-        query = FindObjectRequestDto.model_validate(query_dict)
+        query = FindObjectRequest.model_validate(query_dict)
         http_client = Client()
         coords = resolve_name_to_coordinates(query.name, http_client)
         http_client.close()
@@ -179,10 +183,10 @@ def get_photometric_data(
     """
     csv_path = Path(csv_path_str)
 
-    task_service = SyncTaskService(self.session, PhotometricData)
+    task_service = SyncTaskService(self.session, PhotometricDataEntity)
 
     try:
-        identificator = StellarObjectIdentificatorDto.model_validate(identificator_dict)
+        identificator = StellarObjectIdentifier.model_validate(identificator_dict)
         plugin = task_service.get_plugin_instance(identificator.plugin_id)
         resources_dir = settings.RESOURCES_DIR / str(identificator.plugin_id)
 
@@ -216,10 +220,10 @@ def clear_task_data(self):
 
     # remove export files
     stmt = (
-        select(Task.id)
-        .select_from(Task)
+        select(TaskEntity.id)
+        .select_from(TaskEntity)
         .where(
-            Task.created_at
+            TaskEntity.created_at
             < (datetime.now() - timedelta(hours=settings.TASK_DATA_DELETE_INTERVAL))
         )
     )
@@ -242,8 +246,8 @@ def clear_task_data(self):
         raise
 
     # remove task data
-    stmt = delete(Task).where(
-        Task.created_at
+    stmt = delete(TaskEntity).where(
+        TaskEntity.created_at
         < (datetime.now() - timedelta(hours=settings.TASK_DATA_DELETE_INTERVAL))
     )
     try:
@@ -260,10 +264,10 @@ def clear_task_data(self):
         logger.info(f"Clear task data completed (PID {os.getpid()})")
 
     stmt = (
-        select(ExportFile.file_name)
-        .select_from(ExportFile)
+        select(ExportFileEntity.file_name)
+        .select_from(ExportFileEntity)
         .where(
-            ExportFile.created_at
+            ExportFileEntity.created_at
             < (datetime.now() - timedelta(hours=settings.TASK_DATA_DELETE_INTERVAL))
         )
     )

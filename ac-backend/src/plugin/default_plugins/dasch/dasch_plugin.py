@@ -8,19 +8,19 @@ from astropy.coordinates import SkyCoord
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 
 REFCAT_APASS = "apass"
 
 
-class DaschIdentificatorDto(StellarObjectIdentificatorDto):
+class DaschIdentifier(StellarObjectIdentifier):
     gsc_bin_index: int
     ref_number: int
 
 
-class DaschPlugin(DefaultCatalogPlugin[DaschIdentificatorDto]):
+class DaschPlugin(DefaultCatalogPlugin[DaschIdentifier]):
     # https://dasch.cfa.harvard.edu/dr7/web-apis/
     def __init__(self) -> None:
         super().__init__(
@@ -40,7 +40,7 @@ class DaschPlugin(DefaultCatalogPlugin[DaschIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[DaschIdentificatorDto]]:
+    ) -> Iterator[list[DaschIdentifier]]:
         query_body = {
             "dec_deg": coords.dec.deg,
             "ra_deg": coords.ra.deg,
@@ -59,7 +59,7 @@ class DaschPlugin(DefaultCatalogPlugin[DaschIdentificatorDto]):
         gsc_bin_index_idx = header.index("gsc_bin_index")
         ref_number_idx = header.index("ref_number")
 
-        chunk: list[DaschIdentificatorDto] = []
+        chunk: list[DaschIdentifier] = []
 
         for row in reader:
             if len(chunk) >= self.batch_limit():
@@ -83,7 +83,7 @@ class DaschPlugin(DefaultCatalogPlugin[DaschIdentificatorDto]):
             )
 
             chunk.append(
-                DaschIdentificatorDto(
+                DaschIdentifier(
                     gsc_bin_index=int(identificator_gsc_bin_index),
                     ref_number=int(identificator_ref_number),
                     ra_deg=float(identificator_ra_deg),
@@ -98,8 +98,8 @@ class DaschPlugin(DefaultCatalogPlugin[DaschIdentificatorDto]):
             yield chunk
 
     def get_photometric_data(
-        self, identificator: DaschIdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: DaschIdentifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         lc_body = {
             "gsc_bin_index": identificator.gsc_bin_index,
             "ref_number": identificator.ref_number,
@@ -124,7 +124,7 @@ class DaschPlugin(DefaultCatalogPlugin[DaschIdentificatorDto]):
             mag_idx = header.index("magcal_magdep")
             err_idx = header.index("magcal_magdep_rms")
 
-            chunk: list[PhotometricDataDto] = []
+            chunk: list[PhotometricMeasurement] = []
 
             for row in reader:
                 if len(chunk) >= self.batch_limit():
@@ -153,7 +153,7 @@ class DaschPlugin(DefaultCatalogPlugin[DaschIdentificatorDto]):
                 err = float(row[err_idx])
 
                 chunk.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         julian_date=bjd,
                         magnitude=mag,
                         magnitude_error=err,

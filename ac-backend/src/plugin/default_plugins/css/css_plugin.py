@@ -8,17 +8,17 @@ from astropy.coordinates import SkyCoord
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 from bs4 import BeautifulSoup
 
 
-class CatalinaIdentificatorDto(StellarObjectIdentificatorDto):
+class CatalinaIdentifier(StellarObjectIdentifier):
     csv_link: str
 
 
-class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentificatorDto]):
+class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentifier]):
     def __init__(self) -> None:
         super().__init__(
             "Catalina",
@@ -35,7 +35,7 @@ class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[CatalinaIdentificatorDto]]:
+    ) -> Iterator[list[CatalinaIdentifier]]:
         form_data = {
             "RADec": f"{coords.ra.deg} {coords.dec.deg}",
             "Rad": f"{radius_arcsec / 60}",
@@ -62,7 +62,7 @@ class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentificatorDto]):
 
         csv_link = a_element["href"]
         yield [
-            CatalinaIdentificatorDto(
+            CatalinaIdentifier(
                 plugin_id=plugin_id,
                 ra_deg=coords.ra.deg,
                 dec_deg=coords.dec.deg,
@@ -74,10 +74,10 @@ class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentificatorDto]):
 
     def get_photometric_data(
         self,
-        identificator: CatalinaIdentificatorDto,
+        identificator: CatalinaIdentifier,
         csv_path: Path,
         resources_dir: Path,
-    ) -> Iterator[list[PhotometricDataDto]]:
+    ) -> Iterator[list[PhotometricMeasurement]]:
         self.__write_to_csv(identificator.csv_link, csv_path)
 
         # release data in chunks
@@ -88,8 +88,8 @@ class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentificatorDto]):
             yield chunk
 
     def __get_chunk(
-        self, path: Path, identificator: CatalinaIdentificatorDto
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, path: Path, identificator: CatalinaIdentifier
+    ) -> Iterator[list[PhotometricMeasurement]]:
         for chunk in pd.read_csv(
             path,
             chunksize=50_000,
@@ -104,7 +104,7 @@ class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentificatorDto]):
             na_values=(""),
             on_bad_lines="skip",
         ):
-            batch: list[PhotometricDataDto] = []
+            batch: list[PhotometricMeasurement] = []
             chunk = chunk.dropna(subset=["MJD", "Mag", "Magerr"])
             for mjd, mag, magerr in chunk.itertuples(index=False, name=None):
                 # convert MJD_UTC to BJD_TDB
@@ -118,7 +118,7 @@ class CatalinaPlugin(DefaultCatalogPlugin[CatalinaIdentificatorDto]):
                 )
 
                 batch.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         plugin_id=identificator.plugin_id,
                         julian_date=bjd,
                         magnitude=mag,

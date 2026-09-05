@@ -7,17 +7,17 @@ from astropy.coordinates import SkyCoord
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 from bs4 import BeautifulSoup
 
 
-class AsassnIdentificatorDto(StellarObjectIdentificatorDto):
+class AsassnIdentifier(StellarObjectIdentifier):
     asasn_uuid: str
 
 
-class AsassnPlugin(DefaultCatalogPlugin[AsassnIdentificatorDto]):
+class AsassnPlugin(DefaultCatalogPlugin[AsassnIdentifier]):
     def __init__(self) -> None:
         # the data comes from here
         # https://asas-sn.osu.edu/variables
@@ -39,7 +39,7 @@ class AsassnPlugin(DefaultCatalogPlugin[AsassnIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[AsassnIdentificatorDto]]:
+    ) -> Iterator[list[AsassnIdentifier]]:
         response = self._http_client.get(self._search_url(coords, radius_arcsec))
         response.raise_for_status()
         html = response.text
@@ -50,7 +50,7 @@ class AsassnPlugin(DefaultCatalogPlugin[AsassnIdentificatorDto]):
 
         rows = body.find_all("tr")
 
-        chunk: list[AsassnIdentificatorDto] = []
+        chunk: list[AsassnIdentifier] = []
 
         for row in rows:
             if len(chunk) >= self.batch_limit():
@@ -75,7 +75,7 @@ class AsassnPlugin(DefaultCatalogPlugin[AsassnIdentificatorDto]):
             dst_arc_sec = float(row_cols[4].text)
 
             chunk.append(
-                AsassnIdentificatorDto(
+                AsassnIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=ra,
                     dec_deg=dec,
@@ -89,15 +89,15 @@ class AsassnPlugin(DefaultCatalogPlugin[AsassnIdentificatorDto]):
             yield chunk
 
     def get_photometric_data(
-        self, identificator: AsassnIdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: AsassnIdentifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         data_url = f"{self._base_url}/variables/{identificator.asasn_uuid}.json"
 
         resp = self._http_client.get(data_url)
         resp.raise_for_status()
         data = resp.json()
 
-        chunk: list[PhotometricDataDto] = []
+        chunk: list[PhotometricMeasurement] = []
         with open(csv_path, mode="w") as csv_file:
             csv_file.write("hjd,camera,mag,mag_err,flux,flux_err\n")
 
@@ -122,7 +122,7 @@ class AsassnPlugin(DefaultCatalogPlugin[AsassnIdentificatorDto]):
                 )
 
                 chunk.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         julian_date=bjd,
                         magnitude=mag,
                         magnitude_error=mag_err,

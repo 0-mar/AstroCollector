@@ -12,11 +12,11 @@ from datetime import datetime
 
 from src.core.config.config import settings
 from src.core.repository.repository import Filters
-from src.core.service.schemas import PaginationResponseDto
+from src.core.service.schemas import PaginationResponse
 from src.core.security.auth import required_roles
-from src.core.security.models import User
+from src.core.security.models import UserEntity
 from src.core.security.schemas import UserRoleEnum
-from src.plugin.schemas import PluginDto, CreatePluginDto, UpdatePluginDto
+from src.plugin.schemas import PluginResponse, PluginCreateRequest, PluginUpdateRequest
 from src.plugin.service import PluginService
 from src.plugin.utils import unzip_archive
 
@@ -35,7 +35,7 @@ async def list_plugins(
     offset: int = 0,
     count: int = settings.MAX_PAGINATION_BATCH_COUNT,
     filters: Filters | None = None,
-) -> PaginationResponseDto[PluginDto]:
+) -> PaginationResponse[PluginResponse]:
     """List plugins."""
     plugins = await service.list_plugins(offset=offset, count=count, filters=filters)
     return plugins
@@ -43,7 +43,7 @@ async def list_plugins(
 
 @router.get("/download/{plugin_id}")
 async def download_plugin(
-    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    _: Annotated[UserEntity, Depends(required_roles(UserRoleEnum.super_admin))],
     service: PluginServiceDep,
     plugin_id: UUID,
 ):
@@ -69,22 +69,22 @@ async def download_plugin(
     )
 
 
-@router.get("/{plugin_id}", response_model=PluginDto)
+@router.get("/{plugin_id}", response_model=PluginResponse)
 async def get_plugin(
     plugin_id: UUID,
     service: PluginServiceDep,
-) -> PluginDto:
+) -> PluginResponse:
     """Get plugin by ID."""
     plugin = await service.get_plugin(plugin_id)
     return plugin
 
 
-@router.post("", response_model=PluginDto)
+@router.post("", response_model=PluginResponse)
 async def create_plugin(
-    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
-    create_dto: CreatePluginDto,
+    _: Annotated[UserEntity, Depends(required_roles(UserRoleEnum.super_admin))],
+    create_dto: PluginCreateRequest,
     service: PluginServiceDep,
-) -> PluginDto:
+) -> PluginResponse:
     """Create plugin"""
 
     plugin = await service.create_plugin(create_dto)
@@ -92,13 +92,13 @@ async def create_plugin(
     return plugin
 
 
-@router.put("/{plugin_id}", response_model=PluginDto)
+@router.put("/{plugin_id}", response_model=PluginResponse)
 async def update_plugin(
-    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
-    update_dto: UpdatePluginDto,
+    _: Annotated[UserEntity, Depends(required_roles(UserRoleEnum.super_admin))],
+    update_dto: PluginUpdateRequest,
     plugin_id: UUID,
     service: PluginServiceDep,
-) -> PluginDto:
+) -> PluginResponse:
     """Update plugin"""
 
     update_dto.id = plugin_id
@@ -109,18 +109,18 @@ async def update_plugin(
 
 @router.put("/upload/{plugin_id}")
 async def upload_plugin(
-    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    _: Annotated[UserEntity, Depends(required_roles(UserRoleEnum.super_admin))],
     plugin_id: UUID,
     plugin_file: UploadFile,
     service: PluginServiceDep,
-) -> PluginDto:
+) -> PluginResponse:
     """Upload plugin source code file"""
     return await service.upload_plugin(plugin_id, plugin_file)
 
 
 @router.put("/upload-resources/{plugin_id}")
 async def upload_resources(
-    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    _: Annotated[UserEntity, Depends(required_roles(UserRoleEnum.super_admin))],
     plugin_id: UUID,
     service: PluginServiceDep,
     request: Request,
@@ -148,7 +148,7 @@ async def upload_resources(
 
 @router.get("/resources/{plugin_id}")
 async def list_resources(
-    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    _: Annotated[UserEntity, Depends(required_roles(UserRoleEnum.super_admin))],
     plugin_id: UUID,
     service: PluginServiceDep,
 ):
@@ -161,7 +161,7 @@ async def list_resources(
 
 @router.delete("/{plugin_id}")
 async def delete_plugin(
-    _: Annotated[User, Depends(required_roles(UserRoleEnum.super_admin))],
+    _: Annotated[UserEntity, Depends(required_roles(UserRoleEnum.super_admin))],
     plugin_id: UUID,
     service: PluginServiceDep,
 ):

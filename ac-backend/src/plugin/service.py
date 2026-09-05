@@ -22,17 +22,19 @@ from src.plugin import default_plugins
 from src.core.config.config import settings
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.core.repository.repository import Repository, get_repository, Filters
-from src.core.service.schemas import PaginationResponseDto
+from src.core.service.schemas import PaginationResponse
 
-from src.plugin.model import Plugin
+from src.plugin.model import PluginEntity
 from src.plugin.schemas import (
-    PluginDto,
-    CreatePluginDto,
-    UpdatePluginDto,
-    UpdatePluginFileDto,
+    PluginResponse,
+    PluginCreateRequest,
+    PluginUpdateRequest,
+    PluginUpdateFileRequest,
 )
 
-PluginRepositoryDep = Annotated[Repository[Plugin], Depends(get_repository(Plugin))]
+PluginRepositoryDep = Annotated[
+    Repository[PluginEntity], Depends(get_repository(PluginEntity))
+]
 
 logger = logging.getLogger(__name__)
 
@@ -49,32 +51,34 @@ class PluginService:
     def __init__(self, repository: PluginRepositoryDep):
         self._repository = repository
 
-    async def get_plugin(self, plugin_id: UUID) -> PluginDto:
+    async def get_plugin(self, plugin_id: UUID) -> PluginResponse:
         plugin = await self._repository.get(plugin_id)
-        return PluginDto.model_validate(plugin)
+        return PluginResponse.model_validate(plugin)
 
-    async def create_plugin(self, create_dto: CreatePluginDto) -> PluginDto:
+    async def create_plugin(self, create_dto: PluginCreateRequest) -> PluginResponse:
         dto_data = create_dto.model_dump()
-        plugin = Plugin(**dto_data, file_name=None)
+        plugin = PluginEntity(**dto_data, file_name=None)
 
         plugin = await self._repository.save(plugin)
         # make resources directory for the plugin
         await run_in_threadpool(os.mkdir, settings.RESOURCES_DIR / str(plugin.id))
 
-        return PluginDto.model_validate(plugin)
+        return PluginResponse.model_validate(plugin)
 
-    async def update_plugin(self, update_dto: UpdatePluginDto) -> PluginDto:
+    async def update_plugin(self, update_dto: PluginUpdateRequest) -> PluginResponse:
         # check if exists
         await self.get_plugin(update_dto.id)
 
         update_data = update_dto.model_dump(exclude_none=True)
         plugin = await self._repository.update(update_dto.id, update_data)
-        return PluginDto.model_validate(plugin)
+        return PluginResponse.model_validate(plugin)
 
     async def upload_plugin(
         self, plugin_id: UUID, plugin_file: UploadFile
-    ) -> PluginDto:
-        plugin_entity: Plugin = await self._repository.get(plugin_id)  # check if exists
+    ) -> PluginResponse:
+        plugin_entity: PluginEntity = await self._repository.get(
+            plugin_id
+        )  # check if exists
 
         # delete old file if exists
         if plugin_entity.file_name is not None:
@@ -90,9 +94,11 @@ class PluginService:
             while content := await plugin_file.read(1024):  # async read chunk
                 await out_file.write(content)  # async write chunk
 
-        update_data = UpdatePluginFileDto(id=plugin_entity.id, file_name=new_file_name)
+        update_data = PluginUpdateFileRequest(
+            id=plugin_entity.id, file_name=new_file_name
+        )
         plugin = await self._repository.update(plugin_id, update_data.model_dump())
-        return PluginDto.model_validate(plugin)
+        return PluginResponse.model_validate(plugin)
 
     async def delete_plugin(self, plugin_id: UUID) -> None:
         plugin = await self._repository.get(plugin_id)
@@ -112,12 +118,12 @@ class PluginService:
         offset: int = 0,
         count: int = settings.MAX_PAGINATION_BATCH_COUNT,
         filters: Filters | None = None,
-    ) -> PaginationResponseDto[PluginDto]:
+    ) -> PaginationResponse[PluginResponse]:
         total_count, plugin_list = await self._repository.find(
             offset=offset, count=count, filters=filters
         )
-        data = list(map(PluginDto.model_validate, plugin_list))
-        return PaginationResponseDto[PluginDto](
+        data = list(map(PluginResponse.model_validate, plugin_list))
+        return PaginationResponse[PluginResponse](
             data=data, count=len(data), total_items=total_count
         )
 
@@ -159,7 +165,7 @@ class PluginService:
                             settings.RESOURCES_DIR / str(plugin.id) / "resources",
                         )
 
-    async def __register_plugin(self, plugin_module: ModuleType) -> PluginDto:
+    async def __register_plugin(self, plugin_module: ModuleType) -> PluginResponse:
         """
         Registers a plugin by identifying a specific class within the provided plugin module,
         initializing it, creating, and storing corresponding plugin metadata, saving the plugin file, and
@@ -170,7 +176,7 @@ class PluginService:
                               `DefaultCatalogPlugin`.
         :type plugin_module: ModuleType
         :return: An instance of `PluginDto` representing the metadata of the registered plugin.
-        :rtype: PluginDto
+        :rtype: PluginResponse
         :raises NotImplementedError: If no valid plugin class is found in the provided module.
         """
         clsmembers = inspect.getmembers(plugin_module, inspect.isclass)
@@ -188,7 +194,7 @@ class PluginService:
                 plugin_instance: DefaultCatalogPlugin = cls()
 
                 dto = await self.create_plugin(
-                    CreatePluginDto(
+                    PluginCreateRequest(
                         name=plugin_instance.catalog_name,
                         created_by="system",
                         directly_identifies_objects=plugin_instance.directly_identifies_objects,
@@ -206,7 +212,9 @@ class PluginService:
                         while content := await in_file.read(1024):
                             await out_file.write(content)
 
-                update_data = UpdatePluginFileDto(id=dto.id, file_name=new_file_name)
+                update_data = PluginUpdateFileRequest(
+                    id=dto.id, file_name=new_file_name
+                )
                 await self._repository.update(dto.id, update_data.model_dump())
 
                 return dto

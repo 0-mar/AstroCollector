@@ -1,7 +1,7 @@
 from src.core.repository.schemas import BaseDto
 
 
-class PhaseCurveDataDto(BaseDto):
+class PhaseCurveResponse(BaseDto):
     period: float | None
     epoch: float | None
     ra_deg: float | None

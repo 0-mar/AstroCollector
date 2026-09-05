@@ -25,7 +25,7 @@ async def export_data(
     export_option: ExportOption,
     filters: Filters,
     delimiter: str = ",",
-):
+) -> StreamingResponse:
     """
     Handles the export functionality of data based on provided parameters (export option and delimiter).
     Streams the resulting exported data back to the client as a ZIP file.

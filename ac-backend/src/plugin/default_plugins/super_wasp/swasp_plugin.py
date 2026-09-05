@@ -9,17 +9,17 @@ from astropy import units as u
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 from bs4 import BeautifulSoup
 
 
-class SwaspIdentificatorDto(StellarObjectIdentificatorDto):
+class SwaspIdentifier(StellarObjectIdentifier):
     swasp_id: str
 
 
-class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentificatorDto]):
+class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentifier]):
     def __init__(self) -> None:
         super().__init__(
             "Super WASP",
@@ -37,7 +37,7 @@ class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[SwaspIdentificatorDto]]:
+    ) -> Iterator[list[SwaspIdentifier]]:
         params = {
             "objid": "",
             "ra": coords.ra.deg,
@@ -61,13 +61,13 @@ class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentificatorDto]):
 
         rows = table.find_all("tr")[1:]
 
-        targets: list[SwaspIdentificatorDto] = []
+        targets: list[SwaspIdentifier] = []
 
         for row in rows:
             cols = row.find_all("td")
 
             targets.append(
-                SwaspIdentificatorDto(
+                SwaspIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=float(cols[8].text),
                     dec_deg=float(cols[9].text),
@@ -80,8 +80,8 @@ class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentificatorDto]):
         yield targets
 
     def get_photometric_data(
-        self, identificator: SwaspIdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: SwaspIdentifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         self.__write_to_csv(self._data_url, identificator.swasp_id, csv_path)
 
         # release data in chunks
@@ -99,8 +99,8 @@ class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentificatorDto]):
                     f.write(chunk)
 
     def __get_chunk(
-        self, path: Path, identificator: SwaspIdentificatorDto
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, path: Path, identificator: SwaspIdentifier
+    ) -> Iterator[list[PhotometricMeasurement]]:
         for chunk in pd.read_csv(
             path,
             chunksize=50_000,
@@ -115,7 +115,7 @@ class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentificatorDto]):
             na_values=(""),
             on_bad_lines="skip",
         ):
-            batch: list[PhotometricDataDto] = []
+            batch: list[PhotometricMeasurement] = []
             chunk = chunk.dropna(subset=["HJD", "magnitude", "magnitude error"])
             for hjd, mag, mag_err in chunk.itertuples(index=False, name=None):
                 # convert HJD_UTC to BJD_TDB
@@ -129,7 +129,7 @@ class SwaspPlugin(DefaultCatalogPlugin[SwaspIdentificatorDto]):
                 )
 
                 batch.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         plugin_id=identificator.plugin_id,
                         julian_date=bjd,
                         magnitude=mag,

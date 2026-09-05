@@ -6,19 +6,19 @@ from astropy.coordinates import SkyCoord
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 
 REFCAT_APASS = "apass"
 
 
-class IdentificatorDtoTest(StellarObjectIdentificatorDto):
+class IdentifierTest(StellarObjectIdentifier):
     test: int
     value: str
 
 
-class PluginTest(DefaultCatalogPlugin[IdentificatorDtoTest]):
+class PluginTest(DefaultCatalogPlugin[IdentifierTest]):
     # https://dasch.cfa.harvard.edu/dr7/web-apis/
     def __init__(self) -> None:
         super().__init__(
@@ -34,9 +34,9 @@ class PluginTest(DefaultCatalogPlugin[IdentificatorDtoTest]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[IdentificatorDtoTest]]:
+    ) -> Iterator[list[IdentifierTest]]:
         yield [
-            IdentificatorDtoTest(
+            IdentifierTest(
                 name="Test2",
                 plugin_id=plugin_id,
                 ra_deg=1,
@@ -45,7 +45,7 @@ class PluginTest(DefaultCatalogPlugin[IdentificatorDtoTest]):
                 value="test2",
                 dist_arcsec=0.1,
             ),
-            IdentificatorDtoTest(
+            IdentifierTest(
                 name="Test",
                 plugin_id=plugin_id,
                 ra_deg=0,
@@ -57,12 +57,12 @@ class PluginTest(DefaultCatalogPlugin[IdentificatorDtoTest]):
         ]
 
     def get_photometric_data(
-        self, identificator: IdentificatorDtoTest, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: IdentifierTest, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         chunk = []
         for i in range(10):
             chunk.append(
-                PhotometricDataDto(
+                PhotometricMeasurement(
                     plugin_id=identificator.plugin_id,
                     julian_date=i,
                     magnitude=i,

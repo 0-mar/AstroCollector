@@ -6,13 +6,13 @@ from sqlalchemy import select
 
 from src.core.repository.exception import RepositoryException
 from src.core.repository.repository import Repository, Filters, OrderBy, Distinct
-from src.plugin.model import Plugin
+from src.plugin.model import PluginEntity
 
 
 class TestRepository:
     @pytest_asyncio.fixture
     async def plugin_repo(self, db_session):
-        return Repository(Plugin, db_session)
+        return Repository(PluginEntity, db_session)
 
     def make_plugin(
         self,
@@ -22,8 +22,8 @@ class TestRepository:
         description: str = "desc",
         file_name: str | None = None,
         directly_identifies_objects: bool = False,
-    ) -> Plugin:
-        return Plugin(
+    ) -> PluginEntity:
+        return PluginEntity(
             name=name,
             catalog_url=catalog_url,
             description=description,
@@ -262,7 +262,7 @@ class TestRepository:
 
         assert saved.id is not None
 
-        stmt = select(Plugin).where(Plugin.id == saved.id)
+        stmt = select(PluginEntity).where(PluginEntity.id == saved.id)
         result = await db_session.execute(stmt)
         db_obj = result.scalar_one_or_none()
 
@@ -284,7 +284,7 @@ class TestRepository:
         assert updated.name == "NewName"
         assert updated.description == "new"
 
-        stmt = select(Plugin).where(Plugin.id == plugin.id)
+        stmt = select(PluginEntity).where(PluginEntity.id == plugin.id)
         result = await db_session.execute(stmt)
         db_obj = result.scalar_one()
         assert db_obj.name == "NewName"
@@ -299,7 +299,7 @@ class TestRepository:
 
         await plugin_repo.delete(plugin.id)
 
-        stmt = select(Plugin).where(Plugin.id == plugin.id)
+        stmt = select(PluginEntity).where(PluginEntity.id == plugin.id)
         result = await db_session.execute(stmt)
         assert result.scalar_one_or_none() is None
 
@@ -313,7 +313,7 @@ class TestRepository:
 
         await plugin_repo.bulk_insert(plugins)
 
-        stmt = select(Plugin).where(Plugin.name.in_(["P1", "P2", "P3"]))
+        stmt = select(PluginEntity).where(PluginEntity.name.in_(["P1", "P2", "P3"]))
         result = await db_session.execute(stmt)
         rows = result.scalars().all()
 

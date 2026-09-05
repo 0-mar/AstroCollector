@@ -7,18 +7,18 @@ from astropy.coordinates import SkyCoord
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 
 from astroquery.gaia import Gaia
 
 
-class GaiaDR3IdentificatorDto(StellarObjectIdentificatorDto):
+class GaiaDR3Identifier(StellarObjectIdentifier):
     source_id: str
 
 
-class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3IdentificatorDto]):
+class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3Identifier]):
     def __init__(self) -> None:
         super().__init__(
             "Gaia DR3",
@@ -33,7 +33,7 @@ class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3IdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[GaiaDR3IdentificatorDto]]:
+    ) -> Iterator[list[GaiaDR3Identifier]]:
         adql = f"""
         SELECT source_id, ra, dec, phot_g_mean_mag
         FROM gaiadr3.gaia_source
@@ -45,7 +45,7 @@ class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3IdentificatorDto]):
         job = Gaia.launch_job_async(adql)
         result_table = job.get_results()
 
-        chunk: list[GaiaDR3IdentificatorDto] = []
+        chunk: list[GaiaDR3Identifier] = []
         for source_id, ra, dec in result_table.iterrows("source_id", "ra", "dec"):
             if len(chunk) > self.batch_limit():
                 yield chunk
@@ -55,7 +55,7 @@ class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3IdentificatorDto]):
             dist_arcsec = coords.separation(target).arcsec
 
             chunk.append(
-                GaiaDR3IdentificatorDto(
+                GaiaDR3Identifier(
                     plugin_id=plugin_id,
                     ra_deg=ra,
                     dec_deg=dec,
@@ -70,10 +70,10 @@ class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3IdentificatorDto]):
 
     def get_photometric_data(
         self,
-        identificator: GaiaDR3IdentificatorDto,
+        identificator: GaiaDR3Identifier,
         csv_path: Path,
         resources_dir: Path,
-    ) -> Iterator[list[PhotometricDataDto]]:
+    ) -> Iterator[list[PhotometricMeasurement]]:
         # for DB columns, see:
         # https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_photometry/ssec_dm_epoch_photometry.html
 
@@ -106,7 +106,7 @@ class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3IdentificatorDto]):
 
         mask = result_table["rejected_by_photometry"] == False  # noqa: E712
         table = result_table[mask]
-        chunk: list[PhotometricDataDto] = []
+        chunk: list[PhotometricMeasurement] = []
         for i in range(len(table)):
             if len(chunk) >= self.batch_limit():
                 yield chunk
@@ -133,7 +133,7 @@ class GaiaDR3Plugin(DefaultCatalogPlugin[GaiaDR3IdentificatorDto]):
             )
 
             chunk.append(
-                PhotometricDataDto(
+                PhotometricMeasurement(
                     plugin_id=identificator.plugin_id,
                     julian_date=bjd,
                     magnitude=g_mag,

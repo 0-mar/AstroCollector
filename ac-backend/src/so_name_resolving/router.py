@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from httpx import Client
 
 from src.deps import get_sync_http_client
-from src.so_name_resolving.schemas import ResolvedCoordsDto, StellarObjectNameDto
+from src.so_name_resolving.schemas import ResolvedCoordsDto, StellarObjectNameRequest
 from src.tasks.tasks import (
     resolve_name_to_coordinates,
 )
@@ -16,7 +16,7 @@ router = APIRouter(
 
 @router.post("")
 def resolve_name(
-    requested_name: StellarObjectNameDto,
+    requested_name: StellarObjectNameRequest,
     http_client: Client = Depends(get_sync_http_client),
 ) -> ResolvedCoordsDto:
     """Resolve a stellar object name to coordinates."""

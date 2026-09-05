@@ -9,22 +9,22 @@ from unittest.mock import AsyncMock, MagicMock
 
 from src.core.config.config import settings
 from src.core.repository.repository import Filters
-from src.core.service.schemas import PaginationResponseDto
-from src.export.model import ExportFile
+from src.core.service.schemas import PaginationResponse
+from src.export.model import ExportFileEntity
 from src.export.service import ExportService
 from src.export.types import ExportOption
-from src.plugin.interface.schemas import PhotometricDataDto
+from src.plugin.interface.schemas import PhotometricMeasurement
 
 
 @pytest.fixture
 def fake_export_repo():
     class FakeRepo:
         def __init__(self):
-            self.saved: list[ExportFile] = []
+            self.saved: list[ExportFileEntity] = []
             # (total, [ExportFile,...])
             self.find_result = (0, [])
 
-        async def save(self, entity: ExportFile):
+        async def save(self, entity: ExportFileEntity):
             self.saved.append(entity)
             return entity
 
@@ -56,14 +56,14 @@ def fake_data_service_single_page(fake_plugin_service):
     class FakeDataService:
         async def list_photometric_data(self, offset=0, count=100, filters=None):
             data = [
-                PhotometricDataDto(
+                PhotometricMeasurement(
                     plugin_id=plugin_id,
                     julian_date=2450000.5,
                     magnitude=12.3,
                     magnitude_error=0.01,
                     light_filter="V",
                 ),
-                PhotometricDataDto(
+                PhotometricMeasurement(
                     plugin_id=plugin_id,
                     julian_date=2450001.5,
                     magnitude=12.4,
@@ -72,7 +72,7 @@ def fake_data_service_single_page(fake_plugin_service):
                 ),
             ]
 
-            return PaginationResponseDto[PhotometricDataDto](
+            return PaginationResponse[PhotometricMeasurement](
                 data=data,
                 count=len(data),
                 total_items=len(data),
@@ -212,7 +212,7 @@ async def test_get_export_filename_by_hash_returns_none_when_not_found(
 async def test_get_export_filename_by_hash_returns_filename_when_found(
     export_service, fake_export_repo
 ):
-    ef = ExportFile(
+    ef = ExportFileEntity(
         file_name="existing.zip",
         export_option=ExportOption.single_file,
         task_set_hash="abc",
@@ -280,7 +280,7 @@ async def test_export_data_creates_new_zip_and_db_record(
 
     assert len(fake_export_repo.saved) == 1
     saved = fake_export_repo.saved[0]
-    assert isinstance(saved, ExportFile)
+    assert isinstance(saved, ExportFileEntity)
     assert saved.export_option == ExportOption.single_file
     assert saved.file_name == result.name
 

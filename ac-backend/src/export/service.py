@@ -15,13 +15,13 @@ from starlette.concurrency import run_in_threadpool
 from src.core.config.config import settings
 from src.core.repository.repository import get_repository, Repository, Filters
 from src.data_retrieval.router import DataServiceDep
-from src.export.model import ExportFile
+from src.export.model import ExportFileEntity
 from src.export.types import ExportOption
 from src.plugin.router import PluginServiceDep
-from src.plugin.schemas import PluginDto
+from src.plugin.schemas import PluginResponse
 
 ExportRepositoryDep = Annotated[
-    Repository[ExportFile], Depends(get_repository(ExportFile))
+    Repository[ExportFileEntity], Depends(get_repository(ExportFileEntity))
 ]
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class ExportService:
     async def _write_to_csv(
         self,
         filters: Filters,
-        plugin_dict: dict[UUID, PluginDto],
+        plugin_dict: dict[UUID, PluginResponse],
         csv_file: Path,
         delimiter: str,
     ) -> None:
@@ -64,7 +64,7 @@ class ExportService:
         :param filters: The filtering criteria used to retrieve photometric data.
         :type filters: Filters
         :param plugin_dict: A dictionary mapping plugin UUIDs to corresponding PluginDto objects.
-        :type plugin_dict: dict[UUID, PluginDto]
+        :type plugin_dict: dict[UUID, PluginResponse]
         :param csv_file: Path to the CSV file where data will be written.
         :type csv_file: Path
         :param delimiter: The delimiter used to separate values in the CSV file.
@@ -99,7 +99,7 @@ class ExportService:
     async def _export_to_single_file(
         self,
         filters: Filters,
-        plugin_dict: dict[UUID, PluginDto],
+        plugin_dict: dict[UUID, PluginResponse],
         work_dir: Path,
         delimiter: str,
     ) -> None:
@@ -110,7 +110,7 @@ class ExportService:
         :param filters: The filtering criteria used to retrieve photometric data.
         :type filters: Filters
         :param plugin_dict: A dictionary mapping plugin UUIDs to corresponding PluginDto objects.
-        :type plugin_dict: dict[UUID, PluginDto]
+        :type plugin_dict: dict[UUID, PluginResponse]
         :param work_dir: The directory where the resulting CSV file will be created.
         :type work_dir: Path
         :param delimiter: The string character used to separate values in the resulting
@@ -133,7 +133,7 @@ class ExportService:
         :param filters: Task ID filters
         :type filters: Filters
         :param plugin_dict: A dictionary mapping plugin UUIDs to corresponding PluginDto objects.
-        :type plugin_dict: dict[UUID, PluginDto]
+        :type plugin_dict: dict[UUID, PluginResponse]
         :param work_dir: The directory where the output CSV files will be saved.
         :type work_dir: pathlib.Path
         :param delimiter: The delimiter to be used in the output CSV files.
@@ -277,7 +277,7 @@ class ExportService:
 
         # create DB record for the archive
         await self._export_repository.save(
-            ExportFile(
+            ExportFileEntity(
                 file_name=str(zip_file_path.name),
                 export_option=export_option,
                 task_set_hash=task_set_hash,
@@ -287,7 +287,7 @@ class ExportService:
         return zip_file_path
 
     async def _export_raw_data(
-        self, filters: Filters, work_dir: Path, plugin_dict: dict[UUID, PluginDto]
+        self, filters: Filters, work_dir: Path, plugin_dict: dict[UUID, PluginResponse]
     ):
         """
         Exports raw photometric data from specified tasks in the filters object,

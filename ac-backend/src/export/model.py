@@ -8,7 +8,7 @@ from src.core.database.database import DbEntity
 from src.export.types import ExportOption
 
 
-class ExportFile(DbEntity):
+class ExportFileEntity(DbEntity):
     __tablename__ = "ac_export_file"
 
     file_name: Mapped[str] = mapped_column(nullable=False)

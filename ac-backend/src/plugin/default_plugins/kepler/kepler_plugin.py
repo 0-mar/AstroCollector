@@ -10,16 +10,16 @@ from lightkurve import SearchResult, LightkurveError, search_lightcurve, LightCu
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 
 
-class KeplerStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
+class KeplerStellarObjectIdentifier(StellarObjectIdentifier):
     kic: str
 
 
-class KeplerPlugin(DefaultCatalogPlugin[KeplerStellarObjectIdentificatorDto]):
+class KeplerPlugin(DefaultCatalogPlugin[KeplerStellarObjectIdentifier]):
     def __init__(self) -> None:
         super().__init__(
             "Kepler",
@@ -34,7 +34,7 @@ class KeplerPlugin(DefaultCatalogPlugin[KeplerStellarObjectIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[KeplerStellarObjectIdentificatorDto]]:
+    ) -> Iterator[list[KeplerStellarObjectIdentifier]]:
         search_results: SearchResult = search_lightcurve(
             coords, radius=radius_arcsec, mission="Kepler", author="Kepler"
         )
@@ -51,7 +51,7 @@ class KeplerPlugin(DefaultCatalogPlugin[KeplerStellarObjectIdentificatorDto]):
             )
 
             yield [
-                KeplerStellarObjectIdentificatorDto(
+                KeplerStellarObjectIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=s_ra,
                     dec_deg=s_dec,
@@ -66,10 +66,10 @@ class KeplerPlugin(DefaultCatalogPlugin[KeplerStellarObjectIdentificatorDto]):
 
     def get_photometric_data(
         self,
-        identificator: KeplerStellarObjectIdentificatorDto,
+        identificator: KeplerStellarObjectIdentifier,
         csv_path: Path,
         resources_dir: Path,
-    ) -> Iterator[list[PhotometricDataDto]]:
+    ) -> Iterator[list[PhotometricMeasurement]]:
         target = f"{identificator.kic}"
 
         search_results: SearchResult = search_lightcurve(
@@ -78,7 +78,7 @@ class KeplerPlugin(DefaultCatalogPlugin[KeplerStellarObjectIdentificatorDto]):
 
         # https://heasarc.gsfc.nasa.gov/docs/tess/LightCurveFile-Object-Tutorial.html
 
-        chunk: list[PhotometricDataDto] = []
+        chunk: list[PhotometricMeasurement] = []
         header_written = False
         for search_result in search_results:
             try:
@@ -106,7 +106,7 @@ class KeplerPlugin(DefaultCatalogPlugin[KeplerStellarObjectIdentificatorDto]):
                 mag_err = (2.5 / math.log(10)) * (flux_err.value / flux.value)
 
                 chunk.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         plugin_id=identificator.plugin_id,
                         julian_date=time.tdb.jd,
                         magnitude=mag,

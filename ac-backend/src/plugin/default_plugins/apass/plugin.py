@@ -7,17 +7,17 @@ from astropy.coordinates import SkyCoord
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 from bs4 import BeautifulSoup
 
 
-class ApassIdentificatorDto(StellarObjectIdentificatorDto):
+class ApassIdentifier(StellarObjectIdentifier):
     raddeg: float
 
 
-class ApassPlugin(DefaultCatalogPlugin[ApassIdentificatorDto]):
+class ApassPlugin(DefaultCatalogPlugin[ApassIdentifier]):
     # https://tombstone.physics.mcmaster.ca/APASS/conesearch_offset.php
     def __init__(self) -> None:
         super().__init__(
@@ -35,7 +35,7 @@ class ApassPlugin(DefaultCatalogPlugin[ApassIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[ApassIdentificatorDto]]:
+    ) -> Iterator[list[ApassIdentifier]]:
         query_params = {
             "radeg": f"{coords.ra.deg}",
             "decdeg": f"{coords.dec.deg}",
@@ -52,7 +52,7 @@ class ApassPlugin(DefaultCatalogPlugin[ApassIdentificatorDto]):
         # TODO: how do I resolve names & distances?
         else:
             yield [
-                ApassIdentificatorDto(
+                ApassIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=coords.ra.deg,
                     dec_deg=coords.dec.deg,
@@ -63,8 +63,8 @@ class ApassPlugin(DefaultCatalogPlugin[ApassIdentificatorDto]):
             ]
 
     def get_photometric_data(
-        self, identificator: ApassIdentificatorDto, csv_path: Path, resources_dir: Path
-    ) -> Iterator[list[PhotometricDataDto]]:
+        self, identificator: ApassIdentifier, csv_path: Path, resources_dir: Path
+    ) -> Iterator[list[PhotometricMeasurement]]:
         query_params = {
             "radeg": f"{identificator.ra_deg}",
             "decdeg": f"{identificator.dec_deg}",
@@ -73,7 +73,7 @@ class ApassPlugin(DefaultCatalogPlugin[ApassIdentificatorDto]):
         query_resp = self._http_client.get(self._url, params=query_params)
         html = query_resp.text
 
-        chunk: list[PhotometricDataDto] = []
+        chunk: list[PhotometricMeasurement] = []
 
         soup = BeautifulSoup(html, "html.parser")
         root = soup.find("font", attrs={"face": "courier"})
@@ -109,7 +109,7 @@ class ApassPlugin(DefaultCatalogPlugin[ApassIdentificatorDto]):
                 )
 
                 chunk.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         julian_date=bjd,
                         magnitude=float(values[1]),
                         magnitude_error=float(values[2]),

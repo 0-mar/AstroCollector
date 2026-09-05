@@ -10,16 +10,16 @@ from lightkurve import SearchResult, LightkurveError, search_lightcurve, LightCu
 
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 
 
-class TessStellarObjectIdentificatorDto(StellarObjectIdentificatorDto):
+class TessStellarObjectIdentifier(StellarObjectIdentifier):
     tic: str
 
 
-class TessPlugin(DefaultCatalogPlugin[TessStellarObjectIdentificatorDto]):
+class TessPlugin(DefaultCatalogPlugin[TessStellarObjectIdentifier]):
     def __init__(self) -> None:
         super().__init__(
             "TESS",
@@ -34,7 +34,7 @@ class TessPlugin(DefaultCatalogPlugin[TessStellarObjectIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[TessStellarObjectIdentificatorDto]]:
+    ) -> Iterator[list[TessStellarObjectIdentifier]]:
         search_results: SearchResult = search_lightcurve(
             coords, radius=radius_arcsec, mission="TESS", author="SPOC"
         )
@@ -51,7 +51,7 @@ class TessPlugin(DefaultCatalogPlugin[TessStellarObjectIdentificatorDto]):
             )
 
             yield [
-                TessStellarObjectIdentificatorDto(
+                TessStellarObjectIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=s_ra,
                     dec_deg=s_dec,
@@ -66,10 +66,10 @@ class TessPlugin(DefaultCatalogPlugin[TessStellarObjectIdentificatorDto]):
 
     def get_photometric_data(
         self,
-        identificator: TessStellarObjectIdentificatorDto,
+        identificator: TessStellarObjectIdentifier,
         csv_path: Path,
         resources_dir: Path,
-    ) -> Iterator[list[PhotometricDataDto]]:
+    ) -> Iterator[list[PhotometricMeasurement]]:
         target = f"TIC {identificator.tic}"
 
         search_results: SearchResult = search_lightcurve(
@@ -78,7 +78,7 @@ class TessPlugin(DefaultCatalogPlugin[TessStellarObjectIdentificatorDto]):
 
         # https://heasarc.gsfc.nasa.gov/docs/tess/LightCurveFile-Object-Tutorial.html
 
-        chunk: list[PhotometricDataDto] = []
+        chunk: list[PhotometricMeasurement] = []
         header_written = False
         for search_result in search_results:
             try:
@@ -108,7 +108,7 @@ class TessPlugin(DefaultCatalogPlugin[TessStellarObjectIdentificatorDto]):
                 mag_err = (2.5 / math.log(10)) * (flux_err.value / flux.value)
 
                 chunk.append(
-                    PhotometricDataDto(
+                    PhotometricMeasurement(
                         plugin_id=identificator.plugin_id,
                         julian_date=time.tdb.jd,
                         magnitude=mag,

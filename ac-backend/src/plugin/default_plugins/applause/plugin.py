@@ -10,8 +10,8 @@ from pyvo.dal import AsyncTAPJob
 from src.core.config.config import settings
 from src.plugin.interface.catalog_plugin import DefaultCatalogPlugin
 from src.plugin.interface.schemas import (
-    PhotometricDataDto,
-    StellarObjectIdentificatorDto,
+    PhotometricMeasurement,
+    StellarObjectIdentifier,
 )
 
 import pyvo as vo
@@ -20,11 +20,11 @@ import requests
 APPLAUSE_TAP_URL = "https://www.plate-archive.org/tap"
 
 
-class ApplauseIdentificatorDto(StellarObjectIdentificatorDto):
+class ApplauseIdentifier(StellarObjectIdentifier):
     ucac4_id: str
 
 
-class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentificatorDto]):
+class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentifier]):
     def __init__(self) -> None:
         super().__init__(
             "APPLAUSE",
@@ -68,7 +68,7 @@ class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentificatorDto]):
         radius_arcsec: float,
         plugin_id: UUID,
         resources_dir: Path,
-    ) -> Iterator[list[ApplauseIdentificatorDto]]:
+    ) -> Iterator[list[ApplauseIdentifier]]:
         cone_search_query = f"""
         SELECT DISTINCT ON(ucac4_id) ucac4_id, raj2000, dej2000,
         3600.0 * DEGREES(SPOINT(RADIANS(raj2000), RADIANS(dej2000)) <-> SPOINT(RADIANS({coords.ra.deg}), RADIANS({coords.dec.deg}))) as angdist_arcsec
@@ -88,7 +88,7 @@ class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentificatorDto]):
                 chunk = []
 
             chunk.append(
-                ApplauseIdentificatorDto(
+                ApplauseIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=ra,
                     dec_deg=dec,
@@ -103,14 +103,14 @@ class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentificatorDto]):
 
     def __get_object_data(
         self, plugin_id: UUID, result_table: Table
-    ) -> list[ApplauseIdentificatorDto]:
+    ) -> list[ApplauseIdentifier]:
         results = []
         # TODO: how do I get the name?
         for ucac4_id, ra, dec, angdist_arcsec in result_table.iterrows(
             "ucac4_id", "raj2000", "dej2000", "angdist_arcsec"
         ):
             results.append(
-                ApplauseIdentificatorDto(
+                ApplauseIdentifier(
                     plugin_id=plugin_id,
                     ra_deg=ra,
                     dec_deg=dec,
@@ -124,17 +124,17 @@ class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentificatorDto]):
 
     def get_photometric_data(
         self,
-        identificator: ApplauseIdentificatorDto,
+        identificator: ApplauseIdentifier,
         csv_path: Path,
         resources_dir: Path,
-    ) -> Iterator[list[PhotometricDataDto]]:
+    ) -> Iterator[list[PhotometricMeasurement]]:
         lc_query = f"""SELECT ucac4_id, jd_mid, bmag, bmagerr, vmag, vmagerr FROM applause_dr3.lightcurve
         WHERE ucac4_id='{identificator.ucac4_id}' ORDER BY jd_mid"""
 
         result_table = self.__tap_query(lc_query, "PostgreSQL")
         result_table.write(csv_path)
 
-        chunk: list[PhotometricDataDto] = []
+        chunk: list[PhotometricMeasurement] = []
         for jd_mid, bmag, bmagerr, vmag, vmagerr in result_table.iterrows(
             "jd_mid ", "bmag", "bmagerr", "vmag", "vmagerr"
         ):
@@ -153,7 +153,7 @@ class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentificatorDto]):
             )
 
             chunk.append(
-                PhotometricDataDto(
+                PhotometricMeasurement(
                     plugin_id=identificator.plugin_id,
                     julian_date=bjd,
                     magnitude=bmag,
@@ -163,7 +163,7 @@ class ApplausePlugin(DefaultCatalogPlugin[ApplauseIdentificatorDto]):
             )
 
             chunk.append(
-                PhotometricDataDto(
+                PhotometricMeasurement(
                     plugin_id=identificator.plugin_id,
                     julian_date=bjd,
                     magnitude=vmag,

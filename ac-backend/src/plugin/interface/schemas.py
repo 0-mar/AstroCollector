@@ -5,7 +5,7 @@ from pydantic import ConfigDict, field_serializer
 from src.core.repository.schemas import BaseDto
 
 
-class StellarObjectIdentificatorDto(BaseDto):
+class StellarObjectIdentifier(BaseDto):
     """
     Represents a Data Transfer Object (DTO) for identifying stellar objects.
 
@@ -31,7 +31,7 @@ class StellarObjectIdentificatorDto(BaseDto):
         return str(plugin_id)
 
 
-class PhotometricDataDto(BaseDto):
+class PhotometricMeasurement(BaseDto):
     """
     Represents photometric measurements in unified format.
 
